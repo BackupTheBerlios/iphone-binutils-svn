@@ -92,7 +92,7 @@ CFILES_i386 = i386.c
 CFILES_ppc = ppc.c
 CFILES_hppa = hppa.c hppa-aux.c
 CFILES_sparc = sparc.c
-CFILES_arm = arm.c
+CFILES_arm = arm.c army.c arml.c
 
 HFILES = app.h as.h atof-ieee.h bignum.h expr.h fixes.h flonum.h frags.h \
 	 hash.h hex_value.h i386-opcode.h i386.h i860-opcode.h input-file.h \
@@ -117,7 +117,7 @@ OBJS_i386 = $(CFILES_i386:.c=.o)
 OBJS_ppc = $(CFILES_ppc:.c=.o)
 OBJS_hppa = $(CFILES_hppa:.c=.o)
 OBJS_sparc = $(CFILES_sparc:.c=.o)
-OBJS_arm = $(CFILES_arm:.c=.c)
+OBJS_arm = $(CFILES_arm:.c=.o)
 
 all:	$(OFILE_DIRS) $(SYM_DIRS) driver_build a68_build a88_build a386_build \
 	ax86_64_build a860_build appc_build appc64_build ahppa_build asparc_build aarm_build
@@ -322,6 +322,28 @@ asparc_test: asparc_dir
 	cd asparc_dir; $(MAKE) -f ../Makefile sparc-check VPATH=.. \
 		OFILE_DIR=. SRCROOT=.. COPTS="-DSPARC"
 	cd asparc_dir; $(MAKE) -f ../Makefile test
+
+aarm_build:	$(OBJROOT)/aarm_dir
+	@if [ $(SRCROOT) = . ];						\
+	then								\
+	    cd aarm_dir; $(MAKE) -f ../Makefile as VPATH=.. OFILE_DIR=.	\
+		SRCROOT=.. TARGET_OBJS="$(OBJS_arm)" DEP_DIR=aarm_dir	\
+		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)" OFLAG=$(OFLAG)	\
+		RC_CFLAGS="$(RC_CFLAGS)" COPTS="-DARM";			\
+	else								\
+	    cd $(OBJROOT)/aarm_dir; $(MAKE) -f $(SRCROOT)/Makefile as	\
+		VPATH=$(SRCROOT) OFILE_DIR=$(OBJROOT)/aarm_dir		\
+		SYMROOT=$(SYMROOT)/aarm_dir SRCROOT=$(SRCROOT)		\
+		TARGET_OBJS="$(OBJS_arm)" COPTS="-DARM"			\
+		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
+		RC_CFLAGS="$(RC_CFLAGS)" DEP_DIR=aarm_dir;		\
+	fi
+
+army.c:	army.y
+	bison -o army.c -d army.y
+
+arml.c:	arml.l army.c
+	flex -o arml.c arml.l
 
 driver:	driver.o apple_version.o
 	$(CC) $(COPTS) $(CFLAGS) $(RC_CFLAGS) -o $(SYMROOT)/driver \

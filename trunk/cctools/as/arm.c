@@ -3,8 +3,13 @@
  *   Distributed under the terms of the GNU General Public License ver. 2.
  * ------------------------------------------------------------------------- */
 
-#include <pcre.h>
 #include <mach/machine.h>
+#include <stuff/bytesex.h>
+
+#include "frags.h"
+#include "fixes.h"
+#include "messages.h"
+#include "read.h"
 
 /* ----------------------------------------------------------------------------
  *   Uninteresting machine-dependent boilerplate code 
@@ -15,7 +20,7 @@ const cpu_type_t md_cpusubtype = 6;
 const enum byte_sex md_target_byte_sex = LITTLE_ENDIAN_BYTE_SEX;
 
 const char md_comment_chars[] = "";
-const char md_line_comment_chars = "#";
+const char md_line_comment_chars[] = "#";
 const char md_EXP_CHARS[] = "eE";
 const char md_FLT_CHARS[] = "dDfF";
 
@@ -60,8 +65,8 @@ void md_convert_frag(fragS *fragP)
  *   Relocation 
  * ------------------------------------------------------------------------- */
 
-void md_number_to_imm(unsigned char *buf, signed_expr_t val, int n, fixS *fixP,
-    int nsect)
+void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
+    fixP, int nsect)
 {
     switch (fixP->fx_r_type) {
         case NO_RELOC:

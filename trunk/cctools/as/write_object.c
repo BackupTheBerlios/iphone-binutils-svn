@@ -67,7 +67,8 @@
 #define RELOC_LOCAL_SECTDIFF	SPARC_RELOC_SECTDIFF
 #define RELOC_PAIR		SPARC_RELOC_PAIR
 #endif
-#if defined(M68K) || defined(I386)
+#if defined(M68K) || defined(I386) || defined(ARM)
+/* FIXME: is this right for the ARM? */
 #define RELOC_SECTDIFF		GENERIC_RELOC_SECTDIFF
 #define RELOC_LOCAL_SECTDIFF	GENERIC_RELOC_LOCAL_SECTDIFF
 #define RELOC_PAIR		GENERIC_RELOC_PAIR
