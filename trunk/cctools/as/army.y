@@ -1,10 +1,17 @@
 %{
-#define YYSTYPE unsigned int
+#include <mach-o/arm/reloc.h>
 %}
 
-%token  OPRD_REG OPRD_IMM;
-%token  INST_BL INST_ADD_LIKE INST_LDM_LIKE;
-%type   inst;
+%union {
+    unsigned int ival;
+    symbolS *sval;
+}
+
+%token <ival> OPRD_REG OPRD_IMM;
+%token <ival> INST_BL INST_ADD_LIKE INST_LDM_LIKE;
+%token <sval> OPRD_SYM; 
+%type  <ival> inst branch_inst data_inst load_inst load_mult_inst maybe_bang;
+%type  <ival> reg_list dest_reg shifter_operand load_am expr;
 
 %%
 
@@ -68,7 +75,18 @@ load_am:
       expr
         {
             /* assumes PC-relative addressing */
+            register_reloc_type(ARM_RELOC_PCREL_IMM12, 4, 1);
+            return ((1 << 26) | (1 << 24) | (15 << 16) | $1); 
         }
+    ;
+
+expr:
+      OPRD_SYM              { register_add_symbol($1, 0);  $$ = $1; }
+    | OPRD_IMM              { $$                                    }
+    | expr '+' OPRD_SYM     { register_add_symbol($3, $1); $$ = $1; }
+    | expr '+' OPRD_IMM     { $$ = $1 + $3;                         }
+    | expr '-' OPRD_SYM     { register_sub_symbol($3, $1); $$ = $1; }
+    | expr '-' OPRD_IMM     { $$ = $1 - $3;                         }
     ;
 
 %%
