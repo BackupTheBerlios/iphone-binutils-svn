@@ -11,7 +11,8 @@
 inst:
       branch_inst
     | data_inst
-    | load_mult_inst  
+    | load_inst
+    | load_mult_inst 
     ;
 
 branch_inst:
@@ -25,6 +26,11 @@ data_inst:
         {   $$ = ($1 | $3 | $5 | $7 | $9); }
     ;
 
+load_inst:
+      INST_LDR { BEGIN(cond) } COND { BEGIN(oprd) } dest_reg ',' load_am
+        {   $$ = ($1 | $3 | $5 | $7);   }
+    ; 
+
 load_mult_inst:
       INST_LDM_LIKE { BEGIN(cond) } COND { BEGIN(lmam) } LMAM { BEGIN(oprd) }
         src_reg maybe_bang ',' '{' reg_list '}'
@@ -37,9 +43,9 @@ maybe_bang:
     ;
 
 reg_list:
-    /* empty */             { $$ = 0;           }
-    | OPRD_REG              { $$ = $1;          }
-    | reg_list ',' OPRD_REG { $$ = ($1 | $3);   }
+    /* empty */             { $$ = 0;                   }
+    | OPRD_REG              { $$ = $1;                  }
+    | reg_list ',' OPRD_REG { $$ = ($1 | (1 << $3));    }
     ;
 
 dest_reg:
@@ -58,8 +64,12 @@ shifter_operand:
     | OPRD_REG      { $$ = $1; }
     ;
 
-expr:
-      
+load_am:
+      expr
+        {
+            /* assumes PC-relative addressing */
+        }
+    ;
 
 %%
 
