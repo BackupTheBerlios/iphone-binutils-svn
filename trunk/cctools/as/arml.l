@@ -1,13 +1,21 @@
+%{
+#include "arm.h"
+#include "army.h"
+
+%}
+
+%option noyywrap
+%x cond ccup lmam oprd smam
 
 %%
 
 <INITIAL>{
     "add"     yylval.nval = (0x5 << 21); return INST_ADD_LIKE;
     "bl"                                 return INST_BL;
-    "ldm"     yylval.nval = (0x1 << 20); return INST_LDM_LIKE;
+    "ldm"     yylval.nval = (0x1 << 20); return INST_LDM;
     "ldr"     yylval.nval = 0x04100000;  return INST_LDR_LIKE;
     "mov"     yylval.nval = (0xd << 21); return INST_MOV_LIKE;
-    "stm"     yylval.nval = 0;           return INST_LDM_LIKE;
+    "stm"     yylval.nval = 0;           return INST_STM;
     "str"     yylval.nval = 0x04000000;  return INST_LDR_LIKE;
     "sub"     yylval.nval = (0x2 << 21); return INST_ADD_LIKE;
 }
@@ -16,37 +24,34 @@
     "eq"        yylval.nval = 0x00000000; return COND;
     "ne"        yylval.nval = 0x10000000; return COND;
     "cs"        yylval.nval = 0x20000000; return COND;
-    "hs"        yylval.nval = 0x20000000; return COND_CS;
-    "cc"        yylval.nval = 0x30000000; return COND_CC;
-    "lo"        yylval.nval = 0x30000000; return COND_CC;
-    "mi"        yylval.nval = 0x40000000; return COND_MI;
-    "pl"        yylval.nval = 0x50000000; return COND_PL;
-    "vs"        yylval.nval = 0x60000000; return COND_VS;
-    "vc"        yylval.nval = 0x70000000; return COND_VC;
-    "hi"        yylval.nval = 0x80000000; return COND_HI;
-    "ls"        yylval.nval = 0x90000000; return COND_LS;
-    "ge"        yylval.nval = 0xa0000000; return COND_GE;
-    "lt"        yylval.nval = 0xb0000000; return COND_LT;
-    "gt"        yylval.nval = 0xc0000000; return COND_GT;
-    "le"        yylval.nval = 0xd0000000; return COND_LE;
-    "al"        yylval.nval = 0xe0000000; return COND_AL;
-    .           yyless(0); yylval.nval = 0xe0000000; return COND_AL;
+    "hs"        yylval.nval = 0x20000000; return COND;
+    "cc"        yylval.nval = 0x30000000; return COND;
+    "lo"        yylval.nval = 0x30000000; return COND;
+    "mi"        yylval.nval = 0x40000000; return COND;
+    "pl"        yylval.nval = 0x50000000; return COND;
+    "vs"        yylval.nval = 0x60000000; return COND;
+    "vc"        yylval.nval = 0x70000000; return COND;
+    "hi"        yylval.nval = 0x80000000; return COND;
+    "ls"        yylval.nval = 0x90000000; return COND;
+    "ge"        yylval.nval = 0xa0000000; return COND;
+    "lt"        yylval.nval = 0xb0000000; return COND;
+    "gt"        yylval.nval = 0xc0000000; return COND;
+    "le"        yylval.nval = 0xd0000000; return COND;
+    "al"        yylval.nval = 0xe0000000; return COND;
+    .           yyless(0); yylval.nval = 0xe0000000; return COND;
 }
 
 <ccup>{
-    "s"                     yylval = (1 << 20); return CCUP;
-    .           yyless(0);  yylval = 0;         return CCUP;
+    "s"                     yylval.nval = (1 << 20);    return CCUP;
+    .           yyless(0);  yylval.nval = 0;            return CCUP;
 }
 
 <lmam>{
-    "ia"        return LMAM_IA;
-    "ib"        return LMAM_IB;
-    "da"        return LMAM_DA;
-    "db"        return LMAM_DB;
-    "fd"        return LMAM_FD;
-    "fa"        return LMAM_FA;
-    "ed"        return LMAM_ED;
-    "ea"        return LMAM_EA;
+    "fd"        yylval.nval = ((1 << 27) | (1 << 23));  return LMAM;
+}
+
+<smam>{
+    "fd"        yylval.nval = ((1 << 27) | (1 << 24));  return SMAM; 
 }
 
 <oprd>{
@@ -87,4 +92,17 @@
 <*>[ \t]        /* eat whitespace */
 
 %%
+
+void lexpect(int what)
+{
+    switch (what) {
+        case AE_INIT:   BEGIN(INITIAL); break;
+        case AE_COND:   BEGIN(cond);    break;
+        case AE_CCUP:   BEGIN(ccup);    break;
+        case AE_LMAM:   BEGIN(lmam);    break;
+        case AE_OPRD:   BEGIN(oprd);    break;
+        case AE_SMAM:   BEGIN(smam);    break;
+        default:        abort();
+    }
+}
 

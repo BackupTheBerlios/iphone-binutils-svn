@@ -6,6 +6,7 @@
 #include <mach/machine.h>
 #include <stuff/bytesex.h>
 
+#include "arm.h"
 #include "frags.h"
 #include "fixes.h"
 #include "messages.h"
@@ -60,6 +61,44 @@ void md_convert_frag(fragS *fragP)
 /* ----------------------------------------------------------------------------
  *   Tokenizing and parsing 
  * ------------------------------------------------------------------------- */
+
+struct fix_info this_fix;
+
+void register_reloc_type(int type, int size, int pcrel)
+{
+    this_fix.type = type;
+    this_fix.size = size;
+    this_fix.pcrel = pcrel;
+
+    this_fix.needed = 1;
+}
+
+void register_add_symbol(symbolS *symbol, int offset)
+{
+    this_fix.add_symbol = symbol;
+    this_fix.offset = offset;
+
+    this_fix.needed = 1;
+}
+
+void register_sub_symbol(symbolS *symbol, int offset)
+{
+    this_fix.sub_symbol = symbol;
+    this_fix.offset = offset;
+
+    this_fix.needed = 1;
+}
+
+int yyerror(char *err)
+{
+    as_bad("%s", err);
+    return 0;
+}
+
+void md_assemble()
+{
+    this_fix.needed = 0;
+}
 
 /* ----------------------------------------------------------------------------
  *   Relocation 

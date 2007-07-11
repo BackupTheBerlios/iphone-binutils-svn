@@ -1,5 +1,9 @@
 %{
+#include <stdlib.h>
 #include <mach-o/arm/reloc.h>
+
+#include "arm.h"
+#include "struc-symbol.h"
 %}
 
 %union {
@@ -10,9 +14,10 @@
 
 %token <nval> OPRD_REG
 %token <ival> OPRD_IMM
-%token <nval> INST_BL INST_ADD_LIKE INST_LDM_LIKE INST_LDR_LIKE INST_MOV_LIKE
+%token <nval> INST_BL INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_MOV_LIKE
+%token <nval> INST_STM
 %token <sval> OPRD_SYM
-%token <nval> COND CCUP LMAM
+%token <nval> COND CCUP LMAM SMAM
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_operand
 %type  <ival> expr
@@ -27,25 +32,29 @@ inst:
     ;
 
 branch_inst:
-      INST_BL { BEGIN(cond) } COND { BEGIN(oprd) } branch_operand
+      INST_BL { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } branch_operand
         {   $$ = (0x0b000000 | $3 | $5); }
     ;
 
 data_inst:
-      INST_MOV_LIKE { BEGIN(cond) } COND { BEGIN(ccup) } CCUP { BEGIN(oprd) }
-        dest_reg ',' shifter_operand
+      INST_MOV_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
+        { lexpect(AE_OPRD); } dest_reg ',' shifter_operand
         {   $$ = ($1 | $3 | $5 | $7 | $9); }
     ;
 
 load_inst:
-      INST_LDR_LIKE { BEGIN(cond) } COND { BEGIN(oprd) } dest_reg ',' load_am
+      INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } dest_reg
+        ',' load_am
         {   $$ = ($1 | $3 | $5 | $7);   }
     ; 
 
 load_mult_inst:
-      INST_LDM_LIKE { BEGIN(cond) } COND { BEGIN(lmam) } LMAM { BEGIN(oprd) }
-        src_reg maybe_bang ',' '{' reg_list '}'
-        {   $$ = ($1 | $3 | $5 | $7 | $8 | $11) } 
+      INST_LDM { lexpect(AE_COND); } COND { lexpect(AE_LMAM); } LMAM
+        { lexpect(AE_OPRD); } src_reg maybe_bang ',' '{' reg_list '}'
+        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $11); } 
+    | INST_STM { lexpect(AE_COND); } COND { lexpect(AE_SMAM); } SMAM
+        { lexpect(AE_OPRD); } src_reg maybe_bang ',' '{' reg_list '}'
+        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $11); } 
     ;
 
 maybe_bang:
@@ -104,12 +113,13 @@ branch_operand:
     ;
 
 expr:
-      OPRD_SYM              { register_add_symbol($1, 0);  $$ = $1; }
-    | OPRD_IMM              { $$                                    }
+      OPRD_SYM              { register_add_symbol($1, 0);  $$ = 0;  }
+    | OPRD_IMM              { $$ = $1;                              }
     | expr '+' OPRD_SYM     { register_add_symbol($3, $1); $$ = $1; }
     | expr '+' OPRD_IMM     { $$ = $1 + $3;                         }
     | expr '-' OPRD_SYM     { register_sub_symbol($3, $1); $$ = $1; }
     | expr '-' OPRD_IMM     { $$ = $1 - $3;                         }
+    | '(' expr ')'          { $$ = $2;                              }
     ;
 
 %%
