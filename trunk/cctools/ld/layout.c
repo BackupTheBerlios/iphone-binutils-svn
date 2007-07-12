@@ -66,6 +66,7 @@
 #import <mach/i386/thread_status.h>
 #import <mach/hppa/thread_status.h>
 #import <mach/sparc/thread_status.h>
+#include <mach/arm/thread_status.h>
 #include <mach-o/nlist.h>
 #include <mach-o/reloc.h>
 #if defined(RLD) && !defined(SA_RLD) && !(defined(KLD) && defined(__STATIC__))
@@ -156,6 +157,8 @@ static struct hp_pa_frame_thread_state hppa_frame_state = { 0 };
 static struct hp_pa_integer_thread_state hppa_integer_state = { 0 };
 /* cputype == CPU_TYPE_SPARC, all subtypes */
 static struct sparc_thread_state_regs sparc_state = { {0} };
+/* cputype == CPU_TYPE_ARM, all subtypes */
+static arm_thread_state_t arm = { 0 };
 
 static void layout_segments(void);
 static unsigned long next_vmaddr(
@@ -197,6 +200,7 @@ layout(void)
 	memset(&powerpc,     '\0', sizeof(ppc_thread_state_t));
 	memset(&mc88000, '\0', sizeof(m88k_thread_state_grf_t));
 	memset(&intel386,'\0', sizeof(i386_thread_state_t));
+    memset(&arm, '\0', sizeof(arm_thread_state_t));
 	intel386.es = USER_DATA_SELECTOR;
 	intel386.ds = USER_DATA_SELECTOR;
 	intel386.ss = USER_DATA_SELECTOR;
@@ -1266,6 +1270,14 @@ layout_segments(void)
 	      output_thread_info.state = &sparc_state;
 	      output_thread_info.thread_command.cmdsize += sizeof(long) *
 		SPARC_THREAD_STATE_REGS_COUNT;
+        } else if (arch_flag.cputype == CPU_TYPE_ARM) {
+            output_thread_info.flavor = ARM_THREAD_STATE;
+            output_thread_info.count = ARM_THREAD_STATE_COUNT;
+            output_thread_info.entry_point = &(arm.r15);
+            output_thread_info.stack_pointer = &(arm.r14);
+            output_thread_info.state = &arm;
+            output_thread_info.thread_command.cmdsize += sizeof(long) *
+                ARM_THREAD_STATE_COUNT;
 	    }
 	    else{
 		fatal("internal error: layout_segments() called with unknown "

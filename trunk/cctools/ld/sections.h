@@ -24,6 +24,13 @@
 #define __private_extern__ __declspec(private_extern)
 #endif
 
+#ifndef SECTIONS_H
+#define SECTIONS_H
+
+#include <mach-o/loader.h>
+#include "ld.h"
+#include "symbols.h"
+
 /*
  * Global types, variables and routines declared in the file sections.c.
  *
@@ -238,3 +245,6 @@ __private_extern__ void print_load_order(
     struct object_file *object_file,
     char *string);
 #endif /* DEBUG */
+
+#endif
+

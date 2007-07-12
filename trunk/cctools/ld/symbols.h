@@ -24,6 +24,12 @@
 #define __private_extern__ __declspec(private_extern)
 #endif
 
+#ifndef SYMBOLS_H
+#define SYMBOLS_H
+
+#include <mach-o/nlist.h>
+#include "ld.h"
+
 /*
  * Global types, variables and routines declared in the file symbols.c.
  *
@@ -464,3 +470,6 @@ __private_extern__ void print_symbol_list(
 __private_extern__ void print_undefined_list(
     void);
 #endif /* DEBUG */
+
+#endif
+

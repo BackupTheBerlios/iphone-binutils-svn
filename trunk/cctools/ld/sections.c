@@ -70,6 +70,7 @@
 #include "m88k_reloc.h"
 #include "hppa_reloc.h"
 #include "sparc_reloc.h"
+#include "arm_reloc.h"
 #include "sets.h"
 #include "hash_string.h"
 #include "layout.h"
@@ -3633,6 +3634,8 @@ unsigned long *nextrel)
 			hppa_reloc(fake_contents, fake_relocs, &fake_map);
 		    else if(arch_flag.cputype == CPU_TYPE_SPARC)
 			sparc_reloc(fake_contents, fake_relocs, &fake_map);
+            else if(arch_flag.cputype == CPU_TYPE_ARM)
+            arm_reloc(fake_contents, fake_relocs, &fake_map);
 #ifndef RLD
 		    else if(arch_flag.cputype == CPU_TYPE_I860)
 			i860_reloc(fake_contents, fake_relocs, map);
@@ -4013,6 +4016,8 @@ struct section_map *map)
 	    hppa_reloc(contents, relocs, map);
 	else if(arch_flag.cputype == CPU_TYPE_SPARC)
 	    sparc_reloc(contents, relocs, map);
+    else if(arch_flag.cputype == CPU_TYPE_ARM)
+        arm_reloc(contents, relocs, map);
 #ifndef RLD
 	else if(arch_flag.cputype == CPU_TYPE_I860)
 	    i860_reloc(contents, relocs, map);

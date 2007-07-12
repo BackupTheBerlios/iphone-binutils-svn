@@ -75,13 +75,14 @@ HFILES = ld.h pass1.h objects.h sections.h cstring_literals.h symbols.h \
 	 sets.h 4byte_literals.h 8byte_literals.h literal_pointers.h dylibs.h \
 	 indirect_sections.h mod_sections.h i860_reloc.h ppc_reloc.h \
 	 m88k_reloc.h hppa_reloc.h sparc_reloc.h coalesced_sections.h \
-	 live_refs.h uuid.h debugcompunit.h dwarf2.h debugline.h
+	 live_refs.h uuid.h debugcompunit.h dwarf2.h debugline.h \
+	 arm_reloc.h
 CFILES = ld.c pass1.c objects.c sections.c cstring_literals.c symbols.c \
 	 fvmlibs.c layout.c specs.c pass2.c generic_reloc.c rld.c sets.c \
 	 4byte_literals.c 8byte_literals.c literal_pointers.c dylibs.c \
 	 indirect_sections.c mod_sections.c i860_reloc.c ppc_reloc.c \
 	 m88k_reloc.c hppa_reloc.c sparc_reloc.c coalesced_sections.c uuid.c \
-	 debugcompunit.c debugline.c
+	 debugcompunit.c debugline.c arm_reloc.c
 OBJS = $(CFILES:.c=.o)
 INSTALL_FILES = $(CFILES) $(HFILES) Makefile notes \
 		make.defs make_defs.h librld.ofileList

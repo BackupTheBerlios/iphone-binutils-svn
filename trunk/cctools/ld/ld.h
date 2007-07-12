@@ -24,6 +24,13 @@
 #define __private_extern__ __declspec(private_extern)
 #endif
 
+#ifndef LD_H
+#define LD_H
+
+#include <stdarg.h>
+#include <mach/error.h>
+#include <stuff/bool.h>
+
 /*
  * Global types, variables and routines declared in the file ld.c.
  *
@@ -377,3 +384,6 @@ __private_extern__ void mach_fatal(
 #ifdef DEBUG
 __private_extern__ unsigned long debug;		/* link-editor debugging */
 #endif /* DEBUG */
+
+#endif
+

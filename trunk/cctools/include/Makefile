@@ -44,6 +44,7 @@ ENCUMBERED_SRCS = gnu/a.out.h gnu/exec.h
 GAS_MISSING_SRCS = mach/m68k/thread_status.h \
 		   mach/i860/thread_status.h \
 		   mach/m88k/thread_status.h \
+		   mach/arm/thread_status.h \
 		   architecture/m88k/fp_regs.h \
 		   architecture/m88k/reg_help.h \
 		   architecture/nrw/reg_help.h \
