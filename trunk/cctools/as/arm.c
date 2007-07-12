@@ -3,6 +3,7 @@
  *   Distributed under the terms of the GNU General Public License ver. 2.
  * ------------------------------------------------------------------------- */
 
+#include <stdio.h>
 #include <mach/machine.h>
 #include <stuff/bytesex.h>
 
@@ -20,12 +21,16 @@ const cpu_type_t md_cputype = 12;
 const cpu_type_t md_cpusubtype = 6;
 const enum byte_sex md_target_byte_sex = LITTLE_ENDIAN_BYTE_SEX;
 
-const char md_comment_chars[] = "";
+const char md_comment_chars[] = "@";
 const char md_line_comment_chars[] = "#";
 const char md_EXP_CHARS[] = "eE";
 const char md_FLT_CHARS[] = "dDfF";
 
-const pseudo_typeS md_pseudo_table[] = { {NULL, 0, 0} };
+const pseudo_typeS md_pseudo_table[] = {
+    { "code", s_ignore, 0 },        /* we don't support Thumb */
+    { NULL, 0, 0 }
+};
+
 const relax_typeS md_relax_table[0];
 
 int md_parse_option(char **argP, int *cntP, char ***vecP)
@@ -56,6 +61,32 @@ void md_convert_frag(fragS *fragP)
 {
     as_fatal("relaxation shouldn't occur on the ARM");
     return 0;
+}
+
+/* Simply writes out a number in little endian form. */
+void md_number_to_chars(char *buf, signed_expr_t val, int n)
+{
+    
+    switch (n) {
+        case 4:
+            buf[0] = val;
+            buf[1] = (val >> 8);
+            buf[2] = (val >> 16);
+            buf[3] = (val >> 24);
+            break;
+
+        case 2:
+            buf[0] = val;
+            buf[1] = (val >> 8);
+            break;
+
+        case 1:
+            buf[0] = val;
+            break; 
+
+        default:
+            abort();
+    }
 }
 
 /* ----------------------------------------------------------------------------
@@ -95,9 +126,11 @@ int yyerror(char *err)
     return 0;
 }
 
-void md_assemble()
+void md_assemble(char *str)
 {
     this_fix.needed = 0;
+
+    fprintf(stderr, "assembling: %s\n", str);
 }
 
 /* ----------------------------------------------------------------------------
