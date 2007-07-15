@@ -1,0 +1,2 @@
+Main arm-apple-darwin-cc : cc.c ;
+
