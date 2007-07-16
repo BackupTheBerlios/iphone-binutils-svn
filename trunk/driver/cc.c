@@ -1,3 +1,11 @@
+/* ----------------------------------------------------------------------------
+ *   iphone-binutils: development tools for the Apple iPhone       07/16/2007
+ *   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> but freely
+ *   redistributable under the terms of the GNU General Public License v2.
+ *
+ *   driver/cc.c: the interface to the iPhone build system 
+ * ------------------------------------------------------------------------- */
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,12 +64,14 @@ struct arg_spec arg_specs[] = {
     { "o",          FOR_DRIVER,     1,  1 },
     { "pedantic",   FOR_COMPILER,   0,  0 },
     { "std",        FOR_COMPILER,   0,  1 },
+    { "v",          FOR_DRIVER,     0,  0 },
     { "w",          FOR_COMPILER,   0,  0 },
     { "D",          FOR_COMPILER,   0,  1 },
     { "E",          FOR_DRIVER,     0,  0 },
     { "I",          FOR_COMPILER,   0,  1 },
     { "L",          FOR_LINKER,     0,  1 },
     { "O",          FOR_COMPILER,   0,  0 },
+    { "O0",         FOR_COMPILER,   0,  0 },
     { "O1",         FOR_COMPILER,   0,  0 },
     { "O2",         FOR_COMPILER,   0,  0 },
     { "O3",         FOR_COMPILER,   0,  0 },
@@ -277,7 +287,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
     struct arg_list *linker_args)
 {
     char *inpath, *outpath, *template;
-    struct arg *arg;
+    struct arg_list *argl;
     struct input_file *in;
     unsigned int last_op, n, todo;
 
