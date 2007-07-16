@@ -74,7 +74,8 @@ struct arg_spec arg_specs[] = {
 };
 
 struct input_file *input_files = NULL;
-char *output_path;
+char *output_path = "a.out";
+struct config_option *config = NULL;
 
 void create_arg(struct arg_list *arg_list, char *data)
 {
@@ -210,16 +211,29 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
     } 
 }
 
-void perform_operations(unsigned int todo, struct arg_list *compiler_args,
-    struct arg_list *linker_args)
+char *get_config_key(char *key, int die_on_error)
 {
-     
+    struct config_option *opt;
+
+    /* linear search... but who really cares? */
+    opt = config;
+    while (opt) {
+        if (!strcmp(key, opt->key))
+            return opt->value;
+        opt = opt->next;
+    }
+
+    if (die_on_error)
+        die("required configuration setting '%s' is not present", key);
+
+    return NULL;
 }
 
 void read_config_file()
 {
     char *home, *path;
     FILE *f;
+    struct config_option *opt;
 
     if (!(home = getenv("HOME")))
         die("didn't find a $HOME environment variable");
@@ -229,7 +243,124 @@ void read_config_file()
     if (!f)
         die("failed to open ~/.arm-cc-specs; see installation instructions");
 
+    while (!feof(f)) {
+        opt = (struct config_option *)malloc(sizeof(struct config_option));
+        opt->key = (char *)malloc(256);
+        opt->value = (char *)malloc(256);
+        if (fscanf(path, "%255[A-Za-z_]=%255s\n", &(opt->name), &(opt->value))
+            < 2)
+            free(opt);
+        else {
+            opt->next = config;
+            config = opt;
+        }
+    }
+
+    fclose(f);        
+}
+
+void execute_step(char *prog_name_opt, char *flags_opt, struct arg *arg_list,
+    ...)
+{
+}
+
+void prepare_outpath(unsigned int last_op, unsigned int this_op, char *suffix,
+    char **outpath, char *template)
+{
+    if (last_op == this_op)
+        *outpath = strdup(*output_path);
+    else
+        asprintf(outpath, "%s%s", template, suffix); 
+}
+
+void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
+    struct arg_list *linker_args)
+{
+    char *inpath, *outpath, *template;
+    struct arg *arg;
+    struct input_file *in;
+    unsigned int last_op, n, todo;
+
+    in = input_files;
+    while (in) {
+        todo = (req_todo & (in->todo));
+
+        n = todo; last_op = 1;
+        while (n != 1) {
+            n = (n >> 1);
+            last_op = (last_op << 1);
+        }
     
+        template = strdup("/tmp/XXXXXX");
+        mktemp(template);
+
+        inpath = strdup(in->path);
+
+        if (todo & TODO_PREPROCESS) {
+            prepare_outpath(last_op, TODO_PREPROCESS, ".cxx", &outpath,
+                template);
+            execute_step("PREPROCESS", "CFLAGS", compiler_args, "-o", outpath,
+                inpath, NULL);
+
+            free(inpath);
+            inpath = outpath;
+        }
+
+        if (todo & TODO_COMPILE_TO_BYTECODE) {
+            prepare_outpath(last_op, TODO_COMPILE_TO_BYTECODE, ".bc", &outpath,
+                template);
+            execute_step("LLVM_GCC", "CFLAGS", compiler_args, "-c", "-o",
+                outpath, inpath, NULL);
+            
+            free(inpath);
+            inpath = outpath;
+        }
+
+        if (todo & TODO_TRANSLATE_BYTECODE) {
+            prepare_outpath(last_op, TODO_TRANSLATE_BYTECODE, ".s", &outpath,
+                template);
+            execute_step("LLC", "LLCFLAGS", NULL, "-o", outpath, inpath, NULL);
+            
+            free(inpath);
+            inpath = outpath;
+        }
+
+        if (todo & TODO_ASSEMBLE) {
+            prepare_outpath(last_op, TODO_ASSEMBLE, ".o", &outpath, template);
+            execute_step("AS", "ASFLAGS", NULL, "-o", outpath, inpath, NULL); 
+            
+            free(inpath);
+            inpath = outpath;
+        }
+         
+        free(template);
+
+        /* Change the input file's name to that of the object file so that the
+         * we will know where to find it during the linking step. */
+        if (todo & TODO_LINK) 
+            in->path = outpath;
+
+        in = in->next;
+    }
+
+    /* Build up the linking step args. */
+    in = input_files;
+    while (in) {
+        todo = (req_todo & (in->todo));
+       
+        if (todo & TODO_LINK) {
+            arg = (struct arg *)malloc(sizeof(struct arg));
+            arg->data = in->path;
+
+            arg->next = linker_args;
+            linker_args = arg;
+        }
+
+        in = in->next;
+    }
+
+    /* Run the linking step. */
+    execute_step("LD", "LDFLAGS", linker_args, "-o", output_path, NULL);
 }
 
 int main(int argc, char **argv)
