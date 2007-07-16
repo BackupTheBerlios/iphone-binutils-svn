@@ -204,6 +204,8 @@ static int is_it_end_of_statement(void);
 static void equals(char *sym_name);
 static int next_char_of_string(void);
 
+static void s_code(int ignore) { }
+
 #ifdef M68K /* we allow big cons only on the 68k machines */
 /*
  * This is setup by read_begin() and used by big_cons() with using grow_bignum()
@@ -494,6 +496,7 @@ static const pseudo_typeS pseudo_table[] = {
   { "load",	s_load,		0	},
   { "subsections_via_symbols",	s_subsections_via_symbols,	0	},
   { "machine",	s_machine,	0	},
+  { "code", s_code, 0 },
   { NULL }	/* end sentinel */
 };
 
@@ -4575,3 +4578,4 @@ int value)
       demand_empty_rest_of_line();
 }
 #endif /* PPC */
+

@@ -66,7 +66,6 @@ void md_convert_frag(fragS *fragP)
 /* Simply writes out a number in little endian form. */
 void md_number_to_chars(char *buf, signed_expr_t val, int n)
 {
-    
     switch (n) {
         case 4:
             buf[0] = val;
@@ -128,9 +127,18 @@ int yyerror(char *err)
 
 void md_assemble(char *str)
 {
+    char *this_frag;
+
     this_fix.needed = 0;
 
     fprintf(stderr, "assembling: %s\n", str);
+
+    cur_ptr = s;
+    lexpect(AE_INIT);
+    yyparse();
+
+    this_frag = frag_more(4);
+    md_number_to_chars(thus_frag, instruction, 10);
 }
 
 /* ----------------------------------------------------------------------------
@@ -141,6 +149,7 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
     fixP, int nsect)
 {
     switch (fixP->fx_r_type) {
+        case ARM_RELOC_VANILLA:
         case NO_RELOC:
             switch (size) {
                 case 4:
@@ -156,6 +165,7 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             break;
 
         default:
+printf("%d\n", fixP->fx_r_type);
             as_fatal("md_number_to_imm: reloc unimplemented");
     }
 }

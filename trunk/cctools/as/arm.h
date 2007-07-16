@@ -2,6 +2,7 @@
 #define ARM_H
 
 #include "struc-symbol.h"
+#include "mach-o/arm/reloc.h"
 
 #define AE_INIT 0
 #define AE_COND 1
@@ -21,6 +22,8 @@ struct fix_info {
     int size;
     int pcrel; 
 };
+
+extern char *cur_ptr;
 
 void register_reloc_type(int type, int size, int pcrel);
 void register_add_symbol(symbolS *symbol, int offset);

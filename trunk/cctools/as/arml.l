@@ -2,6 +2,26 @@
 #include "arm.h"
 #include "army.h"
 
+char *cur_ptr;
+
+#define YY_INPUT(buf,result,max_size) { result = yystringin(buf, max_size); }
+
+int yystringin(char *buf, int max_size)
+    {
+        int result;
+        if (cur_ptr && *cur_ptr) {
+            result = strncpy(buf, cur_ptr, max_size);
+            if (strlen(cur_ptr) > max_size) {
+                result = max_size;
+            } else {
+                result = strlen(cur_ptr);
+            }
+            cur_ptr += result;
+        } else {
+            result = YY_NULL;
+        }
+        return result;
+    }
 %}
 
 %option noyywrap
@@ -10,48 +30,49 @@
 %%
 
 <INITIAL>{
-    "add"     yylval.nval = (0x5 << 21); return INST_ADD_LIKE;
-    "bl"                                 return INST_BL;
-    "ldm"     yylval.nval = (0x1 << 20); return INST_LDM;
-    "ldr"     yylval.nval = 0x04100000;  return INST_LDR_LIKE;
-    "mov"     yylval.nval = (0xd << 21); return INST_MOV_LIKE;
-    "stm"     yylval.nval = 0;           return INST_STM;
-    "str"     yylval.nval = 0x04000000;  return INST_LDR_LIKE;
-    "sub"     yylval.nval = (0x2 << 21); return INST_ADD_LIKE;
+    "add"     { yylval.nval = (0x5 << 21); return INST_ADD_LIKE; }
+    "bl"      {                            return INST_BL; }
+    "bx"      { yylval.nval = 0x12FFF30; return INST_BX; }
+    "ldm"     { yylval.nval = (0x1 << 20); return INST_LDM; }
+    "ldr"     { yylval.nval = 0x04100000;  return INST_LDR_LIKE; }
+    "mov"     { yylval.nval = (0xd << 21); return INST_MOV_LIKE; }
+    "stm"     { yylval.nval = 0;           return INST_STM; }
+    "str"     { yylval.nval = 0x04000000;  return INST_LDR_LIKE; }
+    "sub"     { yylval.nval = (0x2 << 21); return INST_ADD_LIKE; }
 }
 
 <cond>{
-    "eq"        yylval.nval = 0x00000000; return COND;
-    "ne"        yylval.nval = 0x10000000; return COND;
-    "cs"        yylval.nval = 0x20000000; return COND;
-    "hs"        yylval.nval = 0x20000000; return COND;
-    "cc"        yylval.nval = 0x30000000; return COND;
-    "lo"        yylval.nval = 0x30000000; return COND;
-    "mi"        yylval.nval = 0x40000000; return COND;
-    "pl"        yylval.nval = 0x50000000; return COND;
-    "vs"        yylval.nval = 0x60000000; return COND;
-    "vc"        yylval.nval = 0x70000000; return COND;
-    "hi"        yylval.nval = 0x80000000; return COND;
-    "ls"        yylval.nval = 0x90000000; return COND;
-    "ge"        yylval.nval = 0xa0000000; return COND;
-    "lt"        yylval.nval = 0xb0000000; return COND;
-    "gt"        yylval.nval = 0xc0000000; return COND;
-    "le"        yylval.nval = 0xd0000000; return COND;
-    "al"        yylval.nval = 0xe0000000; return COND;
-    .           yyless(0); yylval.nval = 0xe0000000; return COND;
+    "eq"        { yylval.nval = 0x00000000; return COND; }
+    "ne"        { yylval.nval = 0x10000000; return COND; }
+    "cs"        { yylval.nval = 0x20000000; return COND; }
+    "hs"        { yylval.nval = 0x20000000; return COND; }
+    "cc"        { yylval.nval = 0x30000000; return COND; }
+    "lo"        { yylval.nval = 0x30000000; return COND; }
+    "mi"        { yylval.nval = 0x40000000; return COND; }
+    "pl"        { yylval.nval = 0x50000000; return COND; }
+    "vs"        { yylval.nval = 0x60000000; return COND; }
+    "vc"        { yylval.nval = 0x70000000; return COND; }
+    "hi"        { yylval.nval = 0x80000000; return COND; }
+    "ls"        { yylval.nval = 0x90000000; return COND; }
+    "ge"        { yylval.nval = 0xa0000000; return COND; }
+    "lt"        { yylval.nval = 0xb0000000; return COND; }
+    "gt"        { yylval.nval = 0xc0000000; return COND; }
+    "le"        { yylval.nval = 0xd0000000; return COND; }
+    "al"        { yylval.nval = 0xe0000000; return COND; }
+    .           { yyless(0); yylval.nval = 0xe0000000; return COND; }
 }
 
 <ccup>{
-    "s"                     yylval.nval = (1 << 20);    return CCUP;
-    .           yyless(0);  yylval.nval = 0;            return CCUP;
+    "s"         {             yylval.nval = (1 << 20);    return CCUP; }
+    .           { yyless(0);  yylval.nval = 0;            return CCUP; }
 }
 
 <lmam>{
-    "fd"        yylval.nval = ((1 << 27) | (1 << 23));  return LMAM;
+    "fd"        { yylval.nval = ((1 << 27) | (1 << 23));  return LMAM; }
 }
 
 <smam>{
-    "fd"        yylval.nval = ((1 << 27) | (1 << 24));  return SMAM; 
+    "fd"        { yylval.nval = ((1 << 27) | (1 << 24));  return SMAM; }
 }
 
 <oprd>{
@@ -65,29 +86,29 @@
                         (char **)NULL, 10) - 1;
                     return OPRD_REG;
                 }
-    "wr"        yylval.nval = 7;  return OPRD_REG;
-    "sb"        yylval.nval = 9;  return OPRD_REG;
-    "sl"        yylval.nval = 10; return OPRD_REG;
-    "fp"        yylval.nval = 11; return OPRD_REG;
-    "ip"        yylval.nval = 12; return OPRD_REG;
-    "sp"        yylval.nval = 13; return OPRD_REG;
-    "lr"        yylval.nval = 14; return OPRD_REG;
-    "pc"        yylval.nval = 15; return OPRD_REG;
+    "wr"        { yylval.nval = 7;  return OPRD_REG; }
+    "sb"        { yylval.nval = 9;  return OPRD_REG; }
+    "sl"        { yylval.nval = 10; return OPRD_REG; }
+    "fp"        { yylval.nval = 11; return OPRD_REG; }
+    "ip"        { yylval.nval = 12; return OPRD_REG; }
+    "sp"        { yylval.nval = 13; return OPRD_REG; }
+    "lr"        { yylval.nval = 14; return OPRD_REG; }
+    "pc"        { yylval.nval = 15; return OPRD_REG; }
     [-+]?[0-9]+ {
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 10);
                     return OPRD_IMM;
                 }
 }
 
-<*>"#"          return '#';
-<*>"["          return '[';
-<*>"]"          return ']';
-<*>"{"          return '{';
-<*>"}"          return '}';
-<*>","          return ',';
-<*>"!"          return '!';
-<*>"+"          return '+';
-<*>"-"          return '-';
+<*>"#"          { return '#'; }
+<*>"["          { return '['; }
+<*>"]"          { return ']'; }
+<*>"{"          { return '{'; }
+<*>"}"          { return '}'; } 
+<*>","          { return ','; } 
+<*>"!"          { return '!'; }
+<*>"+"          { return '+'; }
+<*>"-"          { return '-'; }
 
 <*>[ \t]        /* eat whitespace */
 
