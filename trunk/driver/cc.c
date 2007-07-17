@@ -62,13 +62,7 @@ struct arg_spec arg_specs[] = {
     { "E",          FOR_DRIVER,     0,  0 },
     { "I",          FOR_COMPILER,   0,  1 },
     { "L",          FOR_LINKER,     0,  1 },
-    { "O",          FOR_COMPILER,   0,  0 },
-    { "O0",         FOR_COMPILER,   0,  0 },
-    { "O1",         FOR_COMPILER,   0,  0 },
-    { "O2",         FOR_COMPILER,   0,  0 },
-    { "O3",         FOR_COMPILER,   0,  0 },
-    { "Os",         FOR_COMPILER,   0,  0 },
-    { "ObjC",       FOR_COMPILER,   0,  0 },
+    { "O",          FOR_COMPILER,   0,  1 },
     { "S",          FOR_DRIVER,     0,  0 },
     { "U",          FOR_COMPILER,   0,  1 },
     { "V",          FOR_DRIVER,     0,  0 },
@@ -89,7 +83,7 @@ struct arg_spec arg_specs[] = {
 char *prog_name;
 int verbose_on = 0;
 struct input_file *input_files = NULL;
-char *output_path = "a.out";
+char *output_path = NULL;
 struct config_option *config = NULL;
 
 void create_arg(struct arg_list *arg_list, char *data)
@@ -111,19 +105,16 @@ void create_arg(struct arg_list *arg_list, char *data)
 int compare_args(const void *i_key, const void *i_arg_spec)
 {
     char *key;
-    size_t len;
+    size_t key_len, spec_len;
     struct arg_spec *spec;
 
     key = (char *)i_key; spec = (struct arg_spec *)i_arg_spec;
+    key_len = strlen(key); spec_len = strlen(spec->name);
 
-    if (spec->partial_match_ok) {
-        len = strlen(key);
-        if (len > strlen(spec->name))
-            return -1;
-        return strncmp(key, spec->name, len);
-    }
- 
-    return strcmp(key, spec->name);
+    if (spec->partial_match_ok && key_len > spec_len)
+        return strncmp(key, spec->name, spec_len);
+    else 
+        return strcmp(key, spec->name);
 }
 
 void die(char *fmt, ...)
@@ -264,6 +255,8 @@ void read_config_file()
     if (!f)
         die("failed to open ~/.arm-cc-specs; see installation instructions");
 
+    free(path);
+
     while (1) {
         line_len = 0;
         while ((ch = fgetc(f)) != '\n' && !feof(f))
@@ -367,6 +360,35 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     }
 }
 
+void assign_default_output_path(unsigned int last_op, char *i_infile)
+{
+    char *infile, *strp;
+
+    if (last_op == TODO_LINK)
+        output_path = "a.out";
+    else {
+        infile = strdup(i_infile);
+        if ((strp = strrchr(infile, '.')))
+            *strp = '\0';   /* chop off the extension, if present */
+
+        switch (last_op) {
+            case TODO_PREPROCESS:
+                output_path = "/dev/fd/1";  /* FIXME: make this portable */
+                break;
+            case TODO_COMPILE_TO_BYTECODE:
+                asprintf(&output_path, "%s.bc", infile);
+                break;
+            case TODO_TRANSLATE_BYTECODE:
+                asprintf(&output_path, "%s.s", infile);
+                break;
+            case TODO_ASSEMBLE:
+                asprintf(&output_path, "%s.o", infile);
+        }
+
+        free(infile);
+    }
+}
+
 void prepare_outpath(unsigned int last_op, unsigned int this_op, char *suffix,
     char **outpath, char *template)
 {
@@ -380,9 +402,12 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
     struct arg_list *linker_args)
 {
     char *inpath, *outpath, *template;
+    int need_default_output_path;
     struct arg *arg;
     struct input_file *in;
     unsigned int last_op, n, todo;
+
+    need_default_output_path = (output_path == NULL);
 
     in = input_files;
     while (in) {
@@ -398,6 +423,10 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         mktemp(template);
 
         inpath = strdup(in->path);
+        outpath = inpath;
+
+        if (need_default_output_path)
+            assign_default_output_path(last_op, inpath); 
 
         if (todo & TODO_PREPROCESS) {
             prepare_outpath(last_op, TODO_PREPROCESS, ".i", &outpath,
@@ -463,7 +492,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
     }
 
     /* Run the linking step. */
-    execute_step("LD", "LDFLAGS", linker_args, 2, "-o", output_path);
+    if (req_todo & TODO_LINK)
+        execute_step("LD", "LDFLAGS", linker_args, 2, "-o", output_path);
 }
 
 int main(int argc, char **argv)
