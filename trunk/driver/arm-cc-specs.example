@@ -1,0 +1,13 @@
+# Customize to match your system. Then, place this file in ~/.arm-cc-specs
+# (where ~ represents your home dir).
+PREPROCESS=gcc
+CPPFLAGS=-E
+LLVM_GCC=llvm-gcc
+CFLAGS=-emit-llvm
+LLC=llc
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mattr=+v6
+AS=arm-apple-darwin-as
+ASFLAGS=
+LD=arm-apple-darwin-ld
+LDFLAGS=-Z -L/usr/local/share/iphone/Heavenly1A543a.UserBundle/usr/lib -lSystem -lc /usr/local/share/iphone/csu/crt1.o
+

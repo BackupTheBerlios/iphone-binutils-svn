@@ -58,17 +58,6 @@ struct config_option {
 
 /* Keep this in asciibetical order, because it'll be bsearch()'d. */
 struct arg_spec arg_specs[] = {
-    { "ansi",       FOR_COMPILER,   0,  0 },
-    { "arch",       FOR_IGNORE,     1,  0 },
-    { "c",          FOR_DRIVER,     0,  0 },
-    { "f",          FOR_COMPILER,   0,  1 },
-    { "g",          FOR_COMPILER,   0,  0 },
-    { "l",          FOR_LINKER,     0,  1 },
-    { "o",          FOR_DRIVER,     1,  1 },
-    { "pedantic",   FOR_COMPILER,   0,  0 },
-    { "std",        FOR_COMPILER,   0,  1 },
-    { "v",          FOR_DRIVER,     0,  0 },
-    { "w",          FOR_COMPILER,   0,  0 },
     { "D",          FOR_COMPILER,   0,  1 },
     { "E",          FOR_DRIVER,     0,  0 },
     { "I",          FOR_COMPILER,   0,  1 },
@@ -83,7 +72,18 @@ struct arg_spec arg_specs[] = {
     { "S",          FOR_DRIVER,     0,  0 },
     { "U",          FOR_COMPILER,   0,  1 },
     { "V",          FOR_DRIVER,     0,  0 },
-    { "W",          FOR_COMPILER,   0,  1 }
+    { "W",          FOR_COMPILER,   0,  1 },
+    { "ansi",       FOR_COMPILER,   0,  0 },
+    { "arch",       FOR_IGNORE,     1,  0 },
+    { "c",          FOR_DRIVER,     0,  0 },
+    { "f",          FOR_COMPILER,   0,  1 },
+    { "g",          FOR_COMPILER,   0,  0 },
+    { "l",          FOR_LINKER,     0,  1 },
+    { "o",          FOR_DRIVER,     1,  1 },
+    { "pedantic",   FOR_COMPILER,   0,  0 },
+    { "std",        FOR_COMPILER,   0,  1 },
+    { "v",          FOR_DRIVER,     0,  0 },
+    { "w",          FOR_COMPILER,   0,  0 }
 };
 
 char *prog_name;
@@ -144,7 +144,7 @@ void add_input_file(char *path)
     char *ext;
     unsigned int todo;
     struct input_file *in;
-
+    
     /* Determine the set of operations we're willing to perform on this file.
      * It'll be AND'd with the operations we were actually told to perform to
      * get the final set of operations to do. */
@@ -207,7 +207,6 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     output_path = argv[++i];
                 else if (!strcmp(spec->name, "v"))
                     verbose_on = 1;
-                break;
             } else {
                 switch (spec->for_what) {
                     case FOR_COMPILER:
@@ -222,9 +221,14 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                 if (spec->takes_arg && i < argc - 1)
                     create_arg(this_arg_list, argv[++i]);
             }
-        } else
+        } else 
             add_input_file(argv[i]); 
     } 
+
+    /* by default, perform all stages of compilation */
+    if (!*todo)
+        *todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE
+            | TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
 }
 
 char *get_config_key(char *key, int die_on_error)
@@ -247,7 +251,8 @@ char *get_config_key(char *key, int die_on_error)
 
 void read_config_file()
 {
-    char *home, *path;
+    char ch, *home, *key, *path, *val;
+    int line_len;
     FILE *f;
     struct config_option *opt;
 
@@ -259,19 +264,37 @@ void read_config_file()
     if (!f)
         die("failed to open ~/.arm-cc-specs; see installation instructions");
 
-    while (!feof(f)) {
-        opt = (struct config_option *)malloc(sizeof(struct config_option));
-        opt->key = (char *)malloc(256);
-        opt->value = (char *)malloc(256);
-        if (fscanf(f, "%255[A-Za-z_]=%255s\n", opt->key, opt->value) < 2)
-            free(opt);
-        else {
-            opt->next = config;
-            config = opt;
+    while (1) {
+        line_len = 0;
+        while ((ch = fgetc(f)) != '\n' && !feof(f))
+            line_len++;
+
+        if (feof(f))
+            break;
+        else
+            fseek(f, -(line_len + 1), SEEK_CUR);
+        
+        key = (char *)malloc(line_len + 1);
+        fread(key, line_len, 1, f);
+        fgetc(f);   /* eat the trailing newline */
+        key[line_len] = '\0';
+
+        val = strchr(key, '=');
+        if (!val) {
+            free(key);
+            continue;
         }
+
+        *(val++) = '\0';
+
+        opt = (struct config_option *)malloc(sizeof(struct config_option));
+        opt->key = key;
+        opt->value = val;
+        opt->next = config;
+        config = opt;
     }
 
-    fclose(f);        
+    fclose(f);
 }
 
 void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
@@ -282,12 +305,16 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     va_list ap;
     struct arg *argp;
 
+    flags_line = strdup(get_config_key(flags_opt, 1));
+ 
     strp = flags_line;
     while (*strp) {
         if (*strp == ' ')
             n_args++;
         strp++;
-    } 
+    }
+    if (flags_line[0])
+        n_args++;       /* get the first arg */
 
     if (arg_list) {
         argp = arg_list->first;
@@ -299,15 +326,15 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
 
     n_args += static_arg_count;
     
-    arg_array = (char **)malloc(sizeof(char *) * n_args); 
+    arg_array = (char **)malloc(sizeof(char *) * (n_args + 1)); 
     arg_array[0] = get_config_key(prog_name_opt, 1); 
 
-    flags_line = strdup(get_config_key(flags_opt, 1));
-  
     strh = arg_array + 1; 
-    while ((*strh = strsep(&flags_line, " \t")) != NULL)
-        if (**strh)
-            strh++;
+
+    if (flags_line[0])
+        while ((*strh = strsep(&flags_line, " \t")) != NULL)
+            if (**strh)
+                strh++;
 
     if (arg_list) {
         argp = arg_list->first;
@@ -321,6 +348,8 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     for (i = 0; i < static_arg_count; i++)
         *(strh++) = va_arg(ap, char *);
     va_end(ap);
+
+    *strh = NULL;
 
     if (verbose_on) {
         for (i = 0; i < n_args; i++)
@@ -371,9 +400,9 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         inpath = strdup(in->path);
 
         if (todo & TODO_PREPROCESS) {
-            prepare_outpath(last_op, TODO_PREPROCESS, ".cxx", &outpath,
+            prepare_outpath(last_op, TODO_PREPROCESS, ".i", &outpath,
                 template);
-            execute_step("PREPROCESS", "CFLAGS", compiler_args, 3, "-o",
+            execute_step("PREPROCESS", "CPPFLAGS", compiler_args, 3, "-o",
                 outpath, inpath);
 
             free(inpath);
