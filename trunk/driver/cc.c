@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define TODO_PREPROCESS             1
 #define TODO_COMPILE_TO_BYTECODE    2
@@ -83,6 +86,8 @@ struct arg_spec arg_specs[] = {
     { "W",          FOR_COMPILER,   0,  1 }
 };
 
+char *prog_name;
+int verbose_on = 0;
 struct input_file *input_files = NULL;
 char *output_path = "a.out";
 struct config_option *config = NULL;
@@ -137,7 +142,6 @@ void die(char *fmt, ...)
 void add_input_file(char *path)
 {
     char *ext;
-    size_t len;
     unsigned int todo;
     struct input_file *in;
 
@@ -201,6 +205,8 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                         TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE;
                 else if (!strcmp(spec->name, "o") && i < argc - 1)
                     output_path = argv[++i];
+                else if (!strcmp(spec->name, "v"))
+                    verbose_on = 1;
                 break;
             } else {
                 switch (spec->for_what) {
@@ -257,8 +263,7 @@ void read_config_file()
         opt = (struct config_option *)malloc(sizeof(struct config_option));
         opt->key = (char *)malloc(256);
         opt->value = (char *)malloc(256);
-        if (fscanf(path, "%255[A-Za-z_]=%255s\n", &(opt->name), &(opt->value))
-            < 2)
+        if (fscanf(f, "%255[A-Za-z_]=%255s\n", opt->key, opt->value) < 2)
             free(opt);
         else {
             opt->next = config;
@@ -269,16 +274,75 @@ void read_config_file()
     fclose(f);        
 }
 
-void execute_step(char *prog_name_opt, char *flags_opt, struct arg *arg_list,
-    ...)
+void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
+    arg_list, int static_arg_count, ...)
 {
+    char **arg_array, *flags_line, **strh, *strp;
+    int i, n_args = 1, term_status;
+    va_list ap;
+    struct arg *argp;
+
+    strp = flags_line;
+    while (*strp) {
+        if (*strp == ' ')
+            n_args++;
+        strp++;
+    } 
+
+    if (arg_list) {
+        argp = arg_list->first;
+        while (argp) {
+            n_args++;
+            argp = argp->next;
+        }
+    }
+
+    n_args += static_arg_count;
+    
+    arg_array = (char **)malloc(sizeof(char *) * n_args); 
+    arg_array[0] = get_config_key(prog_name_opt, 1); 
+
+    flags_line = strdup(get_config_key(flags_opt, 1));
+  
+    strh = arg_array + 1; 
+    while ((*strh = strsep(&flags_line, " \t")) != NULL)
+        if (**strh)
+            strh++;
+
+    if (arg_list) {
+        argp = arg_list->first;
+        while (argp) {
+            *(strh++) = argp->data;
+            argp = argp->next;
+        }
+    }
+
+    va_start(ap, static_arg_count); 
+    for (i = 0; i < static_arg_count; i++)
+        *(strh++) = va_arg(ap, char *);
+    va_end(ap);
+
+    if (verbose_on) {
+        for (i = 0; i < n_args; i++)
+            fprintf(stderr, "%s ", arg_array[i]);
+        fprintf(stderr, "\n");
+    }
+
+    if (fork()) {
+        wait(&term_status);
+        if (!(WIFEXITED(term_status) && WEXITSTATUS(term_status) == 0))
+            exit(1);
+    } else {
+        execvp(arg_array[0], (char *const *)arg_array);
+        exit(1);
+    }
 }
 
 void prepare_outpath(unsigned int last_op, unsigned int this_op, char *suffix,
     char **outpath, char *template)
 {
     if (last_op == this_op)
-        *outpath = strdup(*output_path);
+        *outpath = strdup(output_path);
     else
         asprintf(outpath, "%s%s", template, suffix); 
 }
@@ -287,7 +351,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
     struct arg_list *linker_args)
 {
     char *inpath, *outpath, *template;
-    struct arg_list *argl;
+    struct arg *arg;
     struct input_file *in;
     unsigned int last_op, n, todo;
 
@@ -309,8 +373,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_PREPROCESS) {
             prepare_outpath(last_op, TODO_PREPROCESS, ".cxx", &outpath,
                 template);
-            execute_step("PREPROCESS", "CFLAGS", compiler_args, "-o", outpath,
-                inpath, NULL);
+            execute_step("PREPROCESS", "CFLAGS", compiler_args, 3, "-o",
+                outpath, inpath);
 
             free(inpath);
             inpath = outpath;
@@ -319,8 +383,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_COMPILE_TO_BYTECODE) {
             prepare_outpath(last_op, TODO_COMPILE_TO_BYTECODE, ".bc", &outpath,
                 template);
-            execute_step("LLVM_GCC", "CFLAGS", compiler_args, "-c", "-o",
-                outpath, inpath, NULL);
+            execute_step("LLVM_GCC", "CFLAGS", compiler_args, 4, "-c", "-o",
+                outpath, inpath);
             
             free(inpath);
             inpath = outpath;
@@ -329,7 +393,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_TRANSLATE_BYTECODE) {
             prepare_outpath(last_op, TODO_TRANSLATE_BYTECODE, ".s", &outpath,
                 template);
-            execute_step("LLC", "LLCFLAGS", NULL, "-o", outpath, inpath, NULL);
+            execute_step("LLC", "LLCFLAGS", NULL, 3, "-o", outpath, inpath);
             
             free(inpath);
             inpath = outpath;
@@ -337,7 +401,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
 
         if (todo & TODO_ASSEMBLE) {
             prepare_outpath(last_op, TODO_ASSEMBLE, ".o", &outpath, template);
-            execute_step("AS", "ASFLAGS", NULL, "-o", outpath, inpath, NULL); 
+            execute_step("AS", "ASFLAGS", NULL, 3, "-o", outpath, inpath); 
             
             free(inpath);
             inpath = outpath;
@@ -362,21 +426,23 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
             arg = (struct arg *)malloc(sizeof(struct arg));
             arg->data = in->path;
 
-            arg->next = linker_args;
-            linker_args = arg;
+            arg->next = linker_args->first;
+            linker_args->first = arg;
         }
 
         in = in->next;
     }
 
     /* Run the linking step. */
-    execute_step("LD", "LDFLAGS", linker_args, "-o", output_path, NULL);
+    execute_step("LD", "LDFLAGS", linker_args, 2, "-o", output_path);
 }
 
 int main(int argc, char **argv)
 {
     struct arg_list compiler_args, linker_args;
     unsigned int todo;
+
+    prog_name = argv[0];
 
     read_config_file();
     gather_args(argc, argv, &todo, &compiler_args, &linker_args);

@@ -1,2 +1,5 @@
+OPTIM = -O0 ;
+CCFLAGS = -Wall ;
+
 Main arm-apple-darwin-cc : cc.c ;
 
