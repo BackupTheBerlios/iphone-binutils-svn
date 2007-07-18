@@ -13,8 +13,9 @@
 #include "ld.h"
 #include "sections.h"
 
-void arm_reloc(char *contents, struct relocation_info *relocs, struct
-    section_map *map);
+__private_extern__ void arm_reloc(char *contents, struct relocation_info *
+    relocs, struct section_map *section_map, struct live_refs *refs, unsigned
+    long reloc_index);
 
 #endif
 

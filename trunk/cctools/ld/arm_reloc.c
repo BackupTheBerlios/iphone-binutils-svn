@@ -122,7 +122,6 @@ unsigned long reloc_index)
 	else
 	    reloc_index = 0;
 	for(i = reloc_index; i < section_map->s->nreloc; i++){
-	    br14_disp_sign = 0;
 	    force_extern_reloc = FALSE;
 	    /*
 	     * Break out the fields of the relocation entry and set pointer to
@@ -767,9 +766,9 @@ unsigned long reloc_index)
                         break;
 
 			    default:
-				error_with_cur_obj("r_type field of "
+				error_with_cur_obj("r_type field (%d) of "
 				    "relocation entry %lu in section (%.16s,"
-				    "%.16s) invalid", i,
+				    "%.16s) invalid", r_type, i,
 				    section_map->s->segname,
 				    section_map->s->sectname);
 				return;
@@ -850,10 +849,11 @@ unsigned long reloc_index)
                 immediate >>= 2;
                 instruction = ((instruction & 0xff000000) |
                     (immediate & 0x00ffffff));
+                break;
 
 		default:
-		    error_with_cur_obj("r_type field of relocation entry %lu "
-			"in section (%.16s,%.16s) invalid", i,
+		    error_with_cur_obj("r_type field (%d) of relocation entry %lu "
+			"in section (%.16s,%.16s) invalid", r_type, i,
 			section_map->s->segname, section_map->s->sectname);
 		    continue;
 		}
@@ -1082,6 +1082,7 @@ update_reloc:
 				    fine_reloc_output_address(pair_local_map,
 					pair_r_value - pair_local_map->s->addr,
 					pair_local_map->output_section->s.addr);
+            }
 		    }
 		    else{
 			fatal("internal error, in arm_reloc() pair_r_type "

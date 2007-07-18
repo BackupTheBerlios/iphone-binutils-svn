@@ -3635,7 +3635,7 @@ unsigned long *nextrel)
 		    else if(arch_flag.cputype == CPU_TYPE_SPARC)
 			sparc_reloc(fake_contents, fake_relocs, &fake_map);
             else if(arch_flag.cputype == CPU_TYPE_ARM)
-            arm_reloc(fake_contents, fake_relocs, &fake_map);
+            arm_reloc(fake_contents, fake_relocs, &fake_map, NULL, 0);
 #ifndef RLD
 		    else if(arch_flag.cputype == CPU_TYPE_I860)
 			i860_reloc(fake_contents, fake_relocs, map);
@@ -4017,7 +4017,7 @@ struct section_map *map)
 	else if(arch_flag.cputype == CPU_TYPE_SPARC)
 	    sparc_reloc(contents, relocs, map);
     else if(arch_flag.cputype == CPU_TYPE_ARM)
-        arm_reloc(contents, relocs, map);
+        arm_reloc(contents, relocs, map, NULL, 0);
 #ifndef RLD
 	else if(arch_flag.cputype == CPU_TYPE_I860)
 	    i860_reloc(contents, relocs, map);
