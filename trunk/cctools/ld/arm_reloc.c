@@ -99,7 +99,7 @@ unsigned long reloc_index)
     enum reloc_type_arm r_type, pair_r_type;
     unsigned long other_half;
     unsigned long offset;
-    unsigned long br14_disp_sign;
+    int32_t signed_offset, signed_value;
 
 #if defined(DEBUG) || defined(RLD)
 	/*
@@ -431,48 +431,18 @@ unsigned long reloc_index)
 		    else{
 			instruction = get_long((long *)(contents + r_address));
 			switch(r_type){
-			case ARM_RELOC_HI16:
-			    offset = ((instruction & 0xffff) << 16) |
-				     other_half;
-			    break;
-			case ARM_RELOC_LO16:
-			    offset = (other_half << 16) |
-				     (instruction & 0xffff);
-			    break;
-			case ARM_RELOC_HA16:
-			    if((other_half & 0x00008000) != 0)
-				offset = ((instruction & 0xffff) << 16) +
-					 (0xffff0000 + other_half);
-			    else
-				offset = ((instruction & 0xffff) << 16) +
-					 other_half;
-			    break;
-			case ARM_RELOC_LO14:
-			    offset = (other_half << 16) |
-				     (instruction & 0xfffc);
-			    break;
-			case ARM_RELOC_BR14:
-			    offset = instruction & 0xfffc;
-			    /* sign extend if needed */
-			    br14_disp_sign = (offset & 0x8000);
-			    if(br14_disp_sign != 0)
-				    offset |= 0xffff0000;
-			    if(r_pcrel)
-				offset += input_pc;
-			    break;
-			case ARM_RELOC_BR24:
-			    offset = instruction & 0x03fffffc;
-			    /* sign extend if needed */
-			    if((offset & 0x02000000) != 0)
-				offset |= 0xfc000000;
-			    if(r_pcrel)
-				offset += input_pc;
-			    break;
-			case ARM_RELOC_JBSR:
-			    offset = other_half;
+			case ARM_RELOC_PCREL_IMM24:
+                signed_offset = (signed long)(instruction & 0x00ffffff);
+                signed_offset <<= 8;
+                signed_offset >>= 8;    /* sign extend */
+                offset = (unsigned long)signed_offset;
+                offset <<= 2;   /* ARM branch wonkiness */
+
+                if (r_pcrel)
+                    offset += input_pc;
 			    break;
 			default:
-			    /* the error check is catched below */
+			    /* the error check is caught below */
 			    break;
 			}
 		    }
@@ -527,11 +497,7 @@ unsigned long reloc_index)
 		    }
 		    pair_local_map = NULL;
 		    if(r_type == ARM_RELOC_SECTDIFF ||
-		       r_type == ARM_RELOC_LOCAL_SECTDIFF ||
-		       r_type == ARM_RELOC_HI16_SECTDIFF ||
-		       r_type == ARM_RELOC_LO16_SECTDIFF ||
-		       r_type == ARM_RELOC_LO14_SECTDIFF ||
-		       r_type == ARM_RELOC_HA16_SECTDIFF){
+		       r_type == ARM_RELOC_LOCAL_SECTDIFF) {
 			pair_local_map =
 			    &(cur_obj->section_maps[pair_r_symbolnum - 1]);
 			pair_local_map->output_section->referenced = TRUE;
@@ -550,11 +516,7 @@ unsigned long reloc_index)
 		       (pair_local_map == NULL ||
 			pair_local_map->nfine_relocs == 0) ){
 			if(r_type == ARM_RELOC_SECTDIFF ||
-			   r_type == ARM_RELOC_LOCAL_SECTDIFF ||
-			   r_type == ARM_RELOC_HI16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO14_SECTDIFF ||
-			   r_type == ARM_RELOC_HA16_SECTDIFF){
+			   r_type == ARM_RELOC_LOCAL_SECTDIFF) {
 			    value = - local_map->s->addr
 				    + (local_map->output_section->s.addr +
 				       local_map->offset)
@@ -613,7 +575,7 @@ unsigned long reloc_index)
 							  r_address));
 				break;
 			    default:
-				/* the error check is catched below */
+				/* the error check is caught below */
 				break;
 			    }
 			}
@@ -621,55 +583,22 @@ unsigned long reloc_index)
 			    instruction = get_long((long *)(contents +
 							    r_address));
 			    switch(r_type){
-			    case ARM_RELOC_HI16:
-			    case ARM_RELOC_HI16_SECTDIFF:
-				value = ((instruction & 0xffff) << 16) |
-					other_half;
-				break;
-			    case ARM_RELOC_LO16:
-			    case ARM_RELOC_LO16_SECTDIFF:
-				value = (other_half << 16) |
-					(instruction & 0xffff);
-				break;
-			    case ARM_RELOC_HA16:
-			    case ARM_RELOC_HA16_SECTDIFF:
-				if((other_half & 0x00008000) != 0)
-				    value = ((instruction & 0xffff) << 16) +
-					    (0xffff0000 + other_half);
-				else
-				    value = ((instruction & 0xffff) << 16) +
-					    other_half;
-				break;
-			    case ARM_RELOC_LO14:
-			    case ARM_RELOC_LO14_SECTDIFF:
-				value = (other_half << 16) |
-					(instruction & 0xfffc);
-				break;
-			    case ARM_RELOC_BR14:
-				value = instruction & 0xfffc;
-				br14_disp_sign = (value & 0x8000);
-				if(br14_disp_sign != 0)
-				    value |= 0xffff0000;
-				break;
-			    case ARM_RELOC_BR24:
-				value = instruction & 0x03fffffc;
-				if((value & 0x02000000) != 0)
-				    value |= 0xfc000000;
-				break;
-			    case ARM_RELOC_JBSR:
-			        value = other_half;
-			        break;
+                case ARM_RELOC_PCREL_IMM24:
+                    signed_value = instruction & 0x00ffffff;
+                    signed_value <<= 8;
+                    signed_value >>= 8; /* sign extend */
+                    value = (unsigned long)signed_value;
+                    value <<= 2;    /* ARM branch wonkiness again */
+                    value += 8;
+                    break;
+
 			    default:
-				/* the error check is catched below */
+				/* the error check is caught below */
 				break;
 			    }
 			}
 			if(r_type == ARM_RELOC_SECTDIFF ||
-			   r_type == ARM_RELOC_LOCAL_SECTDIFF ||
-			   r_type == ARM_RELOC_HI16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO14_SECTDIFF ||
-			   r_type == ARM_RELOC_HA16_SECTDIFF){
+			   r_type == ARM_RELOC_LOCAL_SECTDIFF) {
 			    /*
 			     * For ARM_RELOC_SECTDIFF's the item to be
 			     * relocated, in value, is the value of the
@@ -710,8 +639,7 @@ unsigned long reloc_index)
 				 * respect to indirect sections.
 				 */
 				legal_reference(section_map, r_address,
-				    local_map, r_value - local_map->s->addr +
-				    offset, i,
+				    local_map, r_value - local_map->s->addr, i,
 				    r_type != ARM_RELOC_LOCAL_SECTDIFF);
 				value = fine_reloc_output_address(local_map,
 					    r_value - local_map->s->addr,
@@ -832,110 +760,12 @@ unsigned long reloc_index)
 			}
 			else{
 			    switch(r_type){
-			    case ARM_RELOC_HI16:
-			    case ARM_RELOC_HI16_SECTDIFF:
-				other_half = value & 0xffff;
-				instruction = (instruction & 0xffff0000) |
-					      ((value >> 16) & 0xffff);
-				break;
-			    case ARM_RELOC_LO16:
-			    case ARM_RELOC_LO16_SECTDIFF:
-				other_half = (value >> 16) & 0xffff;
-				instruction = (instruction & 0xffff0000) |
-					      (value & 0xffff);
-				break;
-			    case ARM_RELOC_HA16:
-			    case ARM_RELOC_HA16_SECTDIFF:
-				other_half = value & 0xffff;
-				if((value & 0x00008000) != 0)
-				    instruction = (instruction & 0xffff0000) |
-				        (((value + 0x00008000) >> 16) & 0xffff);
-				else
-				    instruction = (instruction & 0xffff0000) |
-						  ((value >> 16) & 0xffff);
-				break;
-			    case ARM_RELOC_LO14:
-			    case ARM_RELOC_LO14_SECTDIFF:
-				if((value & 0x3) != 0)
-				    error_with_cur_obj("relocation error "
-					"for relocation entry %lu in section "
-					"(%.16s,%.16s) (relocated value not a "
-					"multiple of 4 bytes)", i,
-					section_map->s->segname,
-					section_map->s->sectname);
-				other_half = (value >> 16) & 0xffff;
-				instruction = (instruction & 0xffff0003) |
-					      (value & 0xfffc);
-				break;
-			    case ARM_RELOC_BR14:
-				br14_disp_sign = (instruction & 0x8000);
-				if((value & 0x3) != 0)
-				    error_with_cur_obj("relocation error "
-					"for relocation entry %lu in section "
-					"(%.16s,%.16s) (displacement not a "
-					"multiple of 4 bytes)", i,
-					section_map->s->segname,
-					section_map->s->sectname);
-				if((value & 0xffff8000) != 0xffff8000 &&
-				   (value & 0xffff8000) != 0x00000000)
-				    error_with_cur_obj("relocation overflow "
-					"for relocation entry %lu in section "
-					"(%.16s,%.16s) (displacement too large)"
-					, i, section_map->s->segname,
-					section_map->s->sectname);
-				instruction = (instruction & 0xffff0003) |
-					      (value & 0xfffc);
-				/*
-				 * If this is a predicted branch conditional
-				 * (r_length is 3) where the branch condition
-				 * is not branch always and the sign of the
-				 * displacement is different after relocation
-				 * then flip the Y-bit to preserve the sense of
-				 * the branch prediction. 
-				 */
-				if(r_length == 3 &&
-				   (instruction & 0xfc000000) == 0x40000000 &&
-				   (instruction & 0x03e00000) != 0x02800000 &&
-				   (instruction & 0x00008000) != br14_disp_sign)
-				    instruction ^= (1 << 21);
-				break;
-			    case ARM_RELOC_BR24:
-				if((value & 0x3) != 0)
-				    error_with_cur_obj("relocation error "
-					"for relocation entry %lu in section "
-					"(%.16s,%.16s) (displacement not a "
-					"multiple of 4 bytes)", i,
-					section_map->s->segname,
-					section_map->s->sectname);
-				if((value & 0xfe000000) != 0xfe000000 &&
-				   (value & 0xfe000000) != 0x00000000)
-				    error_with_cur_obj("relocation overflow "
-					"for relocation entry %lu in section "
-					"(%.16s,%.16s) (displacement too large)"
-					, i, section_map->s->segname,
-					section_map->s->sectname);
-				instruction = (instruction & 0xfc000003) |
-					      (value & 0x03fffffc);
-				break;
-			    case ARM_RELOC_JBSR:
-				other_half = value;
+                    case ARM_RELOC_PCREL_IMM24:
+                        value -= 8;
+                        instruction = ((instruction & 0xff000000) |
+                            ((value >> 2) & 0x00ffffff));
+                        break;
 
-				if(section_map->nfine_relocs == 0)
-				    value -= section_map->output_section->s.addr
-					     + section_map->offset + r_address;
-				else
-				    value -= section_map->output_section->s.addr
-					     + fine_reloc_output_offset(
-						    section_map, r_address);
-				if(save_reloc == 0 &&
-				   (output_for_dyld == FALSE || r_extern == 0 ||
-				    (merged_symbol->nlist.n_type & N_TYPE) !=
-								N_UNDF) &&
-				   (U_ABS(value) <= 0x01ffffff)){
-				    instruction = (instruction & 0xfc000003) |
-						  (value & 0x03fffffc);
-				}
-				break;
 			    default:
 				error_with_cur_obj("r_type field of "
 				    "relocation entry %lu in section (%.16s,"
@@ -1011,126 +841,16 @@ unsigned long reloc_index)
 	    else{
 		instruction = get_long((long *)(contents + r_address));
 		switch(r_type){
-		case ARM_RELOC_HI16:
-		case ARM_RELOC_HI16_SECTDIFF:
-		    immediate = ((instruction & 0xffff) << 16) |
-				other_half;
-		    immediate += value;
-		    instruction = (instruction & 0xffff0000) |
-				  ((immediate >> 16) & 0xffff);
-		    other_half = immediate & 0xffff;
-		    break;
-		case ARM_RELOC_LO16:
-		case ARM_RELOC_LO16_SECTDIFF:
-		    immediate = (other_half << 16) |
-				(instruction & 0xffff);
-		    immediate += value;
-		    instruction = (instruction & 0xffff0000) |
-				  (immediate & 0xffff);
-		    other_half = (immediate >> 16) & 0xffff;
-		    break;
-		case ARM_RELOC_HA16:
-		case ARM_RELOC_HA16_SECTDIFF:
-		    if((other_half & 0x00008000) != 0)
-			immediate = ((instruction & 0xffff) << 16) +
-				    (0xffff0000 + other_half);
-		    else
-			immediate = ((instruction & 0xffff) << 16) +
-				    (other_half);
-		    immediate += value;
-		    if((immediate & 0x00008000) != 0)
-			instruction = (instruction & 0xffff0000) |
-				  (((immediate + 0x00008000) >> 16) & 0xffff);
-		    else
-			instruction = (instruction & 0xffff0000) |
-				      ((immediate >> 16) & 0xffff);
-		    other_half = immediate & 0xffff;
-		    break;
-		case ARM_RELOC_LO14:
-		case ARM_RELOC_LO14_SECTDIFF:
-		    immediate = (other_half << 16) |
-				(instruction & 0xfffc);
-		    immediate += value;
-		    if((immediate & 0x3) != 0)
-			error_with_cur_obj("relocation error for relocation "
-			    "entry %lu in section (%.16s,%.16s) (relocated "
-			    "value not a multiple of 4 bytes)", i,
-			    section_map->s->segname, section_map->s->sectname);
-		    instruction = (instruction & 0xffff0003) |
-				  (immediate & 0xfffc);
-		    other_half = (immediate >> 16) & 0xffff;
-		    break;
-		case ARM_RELOC_BR14:
-		    br14_disp_sign = (instruction & 0x8000);
-		    immediate = instruction & 0xfffc;
-		    if((immediate & 0x8000) != 0)
-			    immediate |= 0xffff0000;
-		    immediate += value;
-		    if((immediate & 0x3) != 0)
-			error_with_cur_obj("relocation error for relocation "
-			    "entry %lu in section (%.16s,%.16s) (displacement "
-			    "not a multiple of 4 bytes)", i,
-			    section_map->s->segname, section_map->s->sectname);
-		    if((immediate & 0xffff8000) != 0xffff8000 &&
-		       (immediate & 0xffff8000) != 0x00000000)
-			error_with_cur_obj("relocation overflow for relocation "
-			    "entry %lu in section (%.16s,%.16s) (displacement "
-			    "too large)", i, section_map->s->segname,
-			    section_map->s->sectname);
-		    instruction = (instruction & 0xffff0003) |
-				  (immediate & 0xfffc);
-		    /*
-		     * If this is a predicted branch conditional
-		     * (r_length is 3) where the branch condition
-		     * is not branch always and the sign of the
-		     * displacement is different after relocation
-		     * then flip the Y-bit to preserve the sense of
-		     * the branch prediction. 
-		     */
-		    if(r_length == 3 &&
-		       (instruction & 0xfc000000) == 0x40000000 &&
-		       (instruction & 0x03e00000) != 0x02800000 &&
-		       (instruction & 0x00008000) != br14_disp_sign)
-			instruction ^= (1 << 21);
-		    break;
-		    break;
-		case ARM_RELOC_BR24:
-		    immediate = instruction & 0x03fffffc;
-		    if((immediate & 0x02000000) != 0)
-			immediate |= 0xfc000000;
-		    immediate += value;
-		    if((immediate & 0x3) != 0)
-			error_with_cur_obj("relocation error for relocation "
-			    "entry %lu in section (%.16s,%.16s) (displacement "
-			    "not a multiple of 4 bytes)", i,
-			    section_map->s->segname, section_map->s->sectname);
-		    if((immediate & 0xfe000000) != 0xfe000000 &&
-		       (immediate & 0xfe000000) != 0x00000000)
-			error_with_cur_obj("relocation overflow for relocation "
-			    "entry %lu in section (%.16s,%.16s) (displacement "
-			    "too large)", i, section_map->s->segname,
-			    section_map->s->sectname);
-		    instruction = (instruction & 0xfc000003) |
-		    		  (immediate & 0x03fffffc);
-		    break;
-		case ARM_RELOC_JBSR:
-		    value += other_half;
-		    other_half = value;
-		    if(section_map->nfine_relocs == 0)
-			value += - (section_map->output_section->s.addr +
-				    section_map->offset + r_address);
-		    else
-			value += - (section_map->output_section->s.addr +
-				    fine_reloc_output_offset(section_map,
-							     r_address));
-		    if(save_reloc == 0 &&
-		       (output_for_dyld == FALSE || r_extern == 0 ||
-			(merged_symbol->nlist.n_type & N_TYPE) != N_UNDF) &&
-		       (U_ABS(value) <= 0x01ffffff)){
-			instruction = (instruction & 0xfc000003) |
-				      (value & 0x03fffffc);
-		    }
-		    break;
+            case ARM_RELOC_PCREL_IMM24:
+                immediate = instruction & 0x00ffffff;
+                immediate |= 0xff000000;
+                immediate <<= 2;
+                immediate += value;
+
+                immediate >>= 2;
+                instruction = ((instruction & 0xff000000) |
+                    (immediate & 0x00ffffff));
+
 		default:
 		    error_with_cur_obj("r_type field of relocation entry %lu "
 			"in section (%.16s,%.16s) invalid", i,
@@ -1337,40 +1057,16 @@ update_reloc:
 		    }
 		}
 		/*
-		 * If their was a paired relocation entry then update the
+		 * If there was a paired relocation entry, then update the
 		 * paired relocation entry.
 		 */
 		if(pair_r_type == ARM_RELOC_PAIR){
-		    if(pair_reloc != NULL){
-			/*
-			 * For a ARM_RELOC_JBSR if the high bit of the "true
-			 * target" address is set we need to use scattered
-			 * relocation entry.  Then place the "true target"
-			 * address in the r_value field.
-			 */
-			if(r_type == ARM_RELOC_JBSR &&
-			   (other_half & 0x80000000) == 0x80000000){
-			    sreloc = (struct scattered_relocation_info *)
-				pair_reloc;
-			    r_scattered = 1;
-			    sreloc->r_scattered = r_scattered;
-			    sreloc->r_address = 0;
-			    sreloc->r_pcrel = r_pcrel;
-			    sreloc->r_length = r_length;
-			    sreloc->r_type = ARM_RELOC_PAIR;
-			    sreloc->r_value = other_half;
-			}
-			else{
+		    if(pair_reloc != NULL)
 			    pair_reloc->r_address = other_half;
-			}
-		    }
+
 		    else if(spair_reloc != NULL){
 			if(r_type == ARM_RELOC_SECTDIFF ||
-			   r_type == ARM_RELOC_LOCAL_SECTDIFF ||
-			   r_type == ARM_RELOC_HI16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO16_SECTDIFF ||
-			   r_type == ARM_RELOC_LO14_SECTDIFF ||
-			   r_type == ARM_RELOC_HA16_SECTDIFF){
+			   r_type == ARM_RELOC_LOCAL_SECTDIFF) {
 			    /*
 			     * For ARM_RELOC_SECTDIFF relocation entries (which
 			     * are always scattered types) the r_value field is
@@ -1386,18 +1082,6 @@ update_reloc:
 				    fine_reloc_output_address(pair_local_map,
 					pair_r_value - pair_local_map->s->addr,
 					pair_local_map->output_section->s.addr);
-			    if(r_type == ARM_RELOC_HI16_SECTDIFF ||
-			       r_type == ARM_RELOC_LO16_SECTDIFF ||
-			       r_type == ARM_RELOC_LO14_SECTDIFF ||
-			       r_type == ARM_RELOC_HA16_SECTDIFF)
-				spair_reloc->r_address = other_half;
-			}
-			else{
-			    if(r_type == ARM_RELOC_JBSR)
-				spair_reloc->r_value = other_half;
-			    else
-				spair_reloc->r_address = other_half;
-			}
 		    }
 		    else{
 			fatal("internal error, in arm_reloc() pair_r_type "
