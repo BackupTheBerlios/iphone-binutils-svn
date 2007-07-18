@@ -104,6 +104,9 @@ __private_extern__ const char *get_arch_name_from_types(
 __private_extern__ const struct arch_flag *get_arch_family_from_cputype(
     cpu_type_t cputype);
 
+__private_extern__ unsigned long get_shared_region_sz_from_flag(const struct
+    arch_flag *cputype);
+
 /*
  * get_byte_sex_from_flag() returns the byte sex of the architecture for the
  * specified cputype and cpusubtype if known.  If unknown it returns

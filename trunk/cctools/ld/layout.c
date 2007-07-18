@@ -920,7 +920,8 @@ layout_segments(void)
 			  (unsigned int)segalign);
 	    }
 	    else{
-		segs_read_write_addr = segs_read_only_addr + 0x10000000;
+		segs_read_write_addr = segs_read_only_addr +
+            get_shared_region_sz_from_flag(&arch_flag);
 	    }
 	}
 	first_msg = merged_segments;

@@ -23,8 +23,8 @@ unsigned int instruction;
 %token <nval> INST_STM
 %token <sval> OPRD_SYM
 %token <nval> COND CCUP LMAM SMAM
-%type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang add_inst
-%type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_operand
+%type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
+%type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <ival> expr
 
 %%
@@ -34,25 +34,21 @@ inst:
     | data_inst         { instruction = $1; }
     | load_inst         { instruction = $1; }
     | load_mult_inst    { instruction = $1; }
-    | add_inst          { instruction = $1; }
-    ;
-
-add_inst:
-      INST_ADD_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP { lexpect(AE_OPRD); } dest_reg ',' OPRD_REG ',' shifter_operand
-        { $$ = ($1 | $3 | $5 | $7 | $9 | $11); }
     ;
 
 branch_inst:
-      INST_BL { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } branch_operand
+      INST_BL { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } branch_am
         {   $$ = ($1 | $3 | $5); }
     | INST_BX { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } OPRD_REG
-        {  $$ = ($1 | $3 | $5); }
+        {   $$ = ($1 | $3 | $5); }
     ;
 
 data_inst:
       INST_MOV_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
         { lexpect(AE_OPRD); } dest_reg ',' shifter_operand
         {   $$ = ($1 | $3 | $5 | $7 | $9); }
+    | INST_ADD_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP { lexpect(AE_OPRD); } dest_reg ',' src_reg ',' shifter_operand
+        { $$ = ($1 | $3 | $5 | $7 | $9 | $11); }
     ;
 
 load_inst:
@@ -77,7 +73,7 @@ maybe_bang:
 
 reg_list:
     /* empty */             { $$ = 0;                   }
-    | OPRD_REG              { $$ = $1;                  }
+    | OPRD_REG              { $$ = (1 << $1);           }
     | reg_list ',' OPRD_REG { $$ = ($1 | (1 << $3));    }
     ;
 
@@ -106,22 +102,22 @@ load_am:
         {
             /* assumes PC-relative addressing */
             register_reloc_type(ARM_RELOC_PCREL_DATA_IMM12, 4, 1);
-            return ((1 << 26) | (1 << 24) | (15 << 16) |
+            $$ = ((1 << 26) | (1 << 24) | (15 << 16) |
                 ($1 < 0 ? -$1 : ($1 | (1 << 23)))); 
         }
     | '[' OPRD_REG ',' '#' expr ']'
         {
             /* TODO: allow symbols here */
-            return ((1 << 26) | (1 << 24) | ($2 << 16) |
+            $$ = ((1 << 26) | (1 << 24) | ($2 << 16) |
                 ($5 < 0 ? -$5 : ($5 | (1 << 23))));
         }
     | '[' OPRD_REG ']'
         {
-            return ((1 << 26) | (1 << 24) | ($2 << 16));
+            $$ = ((1 << 26) | (1 << 24) | ($2 << 16));
         }
     ;
 
-branch_operand:
+branch_am:
       expr
         {
             register_reloc_type(ARM_RELOC_PCREL_IMM24, 4, 1);
