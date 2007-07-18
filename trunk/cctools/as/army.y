@@ -1,9 +1,12 @@
 %{
+#include <stdio.h>
 #include <stdlib.h>
 #include <mach-o/arm/reloc.h>
 
 #include "arm.h"
 #include "struc-symbol.h"
+
+#define YYDEBUG 1
 
 unsigned int instruction;
 %}
@@ -27,11 +30,11 @@ unsigned int instruction;
 %%
 
 inst:
-      branch_inst { instruction = $1; }
-    | data_inst { instruction = $1; }
-    | load_inst { instruction = $1; }
-    | load_mult_inst { instruction = $1; }
-    | add_inst { instruction = $1; }
+      branch_inst       { instruction = $1; }
+    | data_inst         { instruction = $1; }
+    | load_inst         { instruction = $1; }
+    | load_mult_inst    { instruction = $1; }
+    | add_inst          { instruction = $1; }
     ;
 
 add_inst:
@@ -41,7 +44,7 @@ add_inst:
 
 branch_inst:
       INST_BL { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } branch_operand
-        {   $$ = (0x0b000000 | $3 | $5); }
+        {   $$ = ($1 | $3 | $5); }
     | INST_BX { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } OPRD_REG
         {  $$ = ($1 | $3 | $5); }
     ;
@@ -106,15 +109,14 @@ load_am:
             return ((1 << 26) | (1 << 24) | (15 << 16) |
                 ($1 < 0 ? -$1 : ($1 | (1 << 23)))); 
         }
-    | '[' OPRD_REG ',' '#' OPRD_IMM ']'
+    | '[' OPRD_REG ',' '#' expr ']'
         {
-            /* TODO: allow expressions here */
+            /* TODO: allow symbols here */
             return ((1 << 26) | (1 << 24) | ($2 << 16) |
                 ($5 < 0 ? -$5 : ($5 | (1 << 23))));
         }
     | '[' OPRD_REG ']'
         {
-            /* TODO: allow expressions here */
             return ((1 << 26) | (1 << 24) | ($2 << 16));
         }
     ;
@@ -123,18 +125,15 @@ branch_operand:
       expr
         {
             register_reloc_type(ARM_RELOC_PCREL_IMM24, 4, 1);
-            return $$;
+            $$ = $1;
         }
     ;
 
 expr:
-      OPRD_SYM              { register_add_symbol($1, 0);  $$ = 0;  }
-    | OPRD_IMM              { $$ = $1;                              }
-    | expr '+' OPRD_SYM     { register_add_symbol($3, $1); $$ = $1; }
-    | expr '+' OPRD_IMM     { $$ = $1 + $3;                         }
-    | expr '-' OPRD_SYM     { register_sub_symbol($3, $1); $$ = $1; }
-    | expr '-' OPRD_IMM     { $$ = $1 - $3;                         }
-    | '(' expr ')'          { $$ = $2;                              }
+      OPRD_IMM              { $$ = $1;                              }
+    | '+' OPRD_IMM          { $$ = $2;                              }
+    | '-' OPRD_IMM          { $$ = -$2;                             }
+    | OPRD_SYM              { register_add_symbol($1, 0);  $$ = 0;  }
     ;
 
 %%

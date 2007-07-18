@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------- */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <mach/machine.h>
 #include <stuff/bytesex.h>
 
@@ -60,7 +61,6 @@ int md_estimate_size_before_relax(fragS *fragP, int segment_type)
 void md_convert_frag(fragS *fragP)
 {
     as_fatal("relaxation shouldn't occur on the ARM");
-    return 0;
 }
 
 /* Simply writes out a number in little endian form. */
@@ -127,18 +127,21 @@ int yyerror(char *err)
 
 void md_assemble(char *str)
 {
+    unsigned int encoded;
     char *this_frag;
 
     this_fix.needed = 0;
 
     fprintf(stderr, "assembling: %s\n", str);
+    // yydebug = 1;
 
-    cur_ptr = s;
+    cur_ptr = str;
+    yyrestart(NULL);
     lexpect(AE_INIT);
-    yyparse();
+    encoded = yyparse();
 
     this_frag = frag_more(4);
-    md_number_to_chars(thus_frag, instruction, 10);
+    md_number_to_chars(this_frag, instruction, 4);
 }
 
 /* ----------------------------------------------------------------------------
@@ -165,7 +168,7 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             break;
 
         default:
-printf("%d\n", fixP->fx_r_type);
+            fprintf(stderr, "reloc type %d\n", fixP->fx_r_type);
             as_fatal("md_number_to_imm: reloc unimplemented");
     }
 }

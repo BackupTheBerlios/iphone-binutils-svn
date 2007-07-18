@@ -1,27 +1,31 @@
 %{
+#include <stdlib.h>
+#include <string.h>
+
 #include "arm.h"
 #include "army.h"
+#include "messages.h"
+#include "symbols.h"
 
 char *cur_ptr;
 
-#define YY_INPUT(buf,result,max_size) { result = yystringin(buf, max_size); }
+#define YY_NO_UNPUT
+#define YY_INPUT(buf,result,max_size) { result = input_string(buf, max_size); }
 
-int yystringin(char *buf, int max_size)
-    {
-        int result;
-        if (cur_ptr && *cur_ptr) {
-            result = strncpy(buf, cur_ptr, max_size);
-            if (strlen(cur_ptr) > max_size) {
-                result = max_size;
-            } else {
-                result = strlen(cur_ptr);
-            }
-            cur_ptr += result;
-        } else {
-            result = YY_NULL;
-        }
-        return result;
+static int input_string(char *buf, int max_size)
+{
+    int nread = 0;
+
+    if (!cur_ptr)
+        abort();
+
+    while (*cur_ptr && max_size) {
+        *(buf++) = *(cur_ptr++);
+        max_size--; nread++;
     }
+
+    return nread;
+}
 %}
 
 %option noyywrap
@@ -31,8 +35,8 @@ int yystringin(char *buf, int max_size)
 
 <INITIAL>{
     "add"     { yylval.nval = (0x5 << 21); return INST_ADD_LIKE; }
-    "bl"      {                            return INST_BL; }
-    "bx"      { yylval.nval = 0x12FFF30; return INST_BX; }
+    "bl"      { yylval.nval = 0x0b000000;  return INST_BL; }
+    "bx"      { yylval.nval = 0x12FFF30;   return INST_BX; }
     "ldm"     { yylval.nval = (0x1 << 20); return INST_LDM; }
     "ldr"     { yylval.nval = 0x04100000;  return INST_LDR_LIKE; }
     "mov"     { yylval.nval = (0xd << 21); return INST_MOV_LIKE; }
@@ -94,9 +98,14 @@ int yystringin(char *buf, int max_size)
     "sp"        { yylval.nval = 13; return OPRD_REG; }
     "lr"        { yylval.nval = 14; return OPRD_REG; }
     "pc"        { yylval.nval = 15; return OPRD_REG; }
-    [-+]?[0-9]+ {
+    [0-9]+      {
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 10);
                     return OPRD_IMM;
+                }
+    [a-zA-Z_\$][a-zA-Z0-9_\$]+ {
+                    yylval.sval = symbol_find_or_make(yytext);
+                    fprintf(stderr, "symbol '%s'\n", yytext);
+                    return OPRD_SYM;
                 }
 }
 
@@ -112,12 +121,14 @@ int yystringin(char *buf, int max_size)
 
 <*>[ \t]        /* eat whitespace */
 
+<*>.            { as_bad("unexpected character '%s'", yytext); }
+
 %%
 
 void lexpect(int what)
 {
     switch (what) {
-        case AE_INIT:   BEGIN(INITIAL); break;
+        case AE_INIT:   BEGIN(0);       break;
         case AE_COND:   BEGIN(cond);    break;
         case AE_CCUP:   BEGIN(ccup);    break;
         case AE_LMAM:   BEGIN(lmam);    break;

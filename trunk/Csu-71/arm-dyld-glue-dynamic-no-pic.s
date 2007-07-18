@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 #   iphone-binutils: development tools for the Apple iPhone        07/13/2007
 #   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> but freely
-#   redistributable under the terms of the GNU General Public License.
+#   redistributable under the terms of the GNU General Public License v2.
 #
 #   arm-dyld-glue-pic.s: ARM PIC binding helper routines, part of crt1.o
 # -----------------------------------------------------------------------------
