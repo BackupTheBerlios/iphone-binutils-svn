@@ -30,6 +30,7 @@ struct arm_thread_state {
     unsigned int r13;
     unsigned int r14;
     unsigned int r15;
+    unsigned int r16;   /* Apple's thread_state has this 17th reg, bug?? */
 };
 
 typedef struct arm_thread_state arm_thread_state_t;

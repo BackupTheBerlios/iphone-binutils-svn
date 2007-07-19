@@ -1275,7 +1275,7 @@ layout_segments(void)
             output_thread_info.flavor = ARM_THREAD_STATE;
             output_thread_info.count = ARM_THREAD_STATE_COUNT;
             output_thread_info.entry_point = &(arm.r15);
-            output_thread_info.stack_pointer = &(arm.r14);
+            output_thread_info.stack_pointer = &(arm.r13);
             output_thread_info.state = &arm;
             output_thread_info.thread_command.cmdsize += sizeof(long) *
                 ARM_THREAD_STATE_COUNT;
