@@ -1,3 +1,11 @@
+/* ----------------------------------------------------------------------------
+ *   iphone-binutils: development tools for the Apple iPhone       07/18/2007
+ *   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> but freely
+ *   redistributable under the terms of the GNU General Public License v2.
+ *
+ *   mach-o/arm/reloc.h - relocation information for the ARM 
+ * ------------------------------------------------------------------------- */
+
 #ifndef MACH_O_ARM_H
 #define MACH_O_ARM_H 
 

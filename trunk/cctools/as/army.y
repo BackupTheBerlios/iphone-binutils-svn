@@ -1,4 +1,12 @@
 %{
+/* ----------------------------------------------------------------------------
+ *   iphone-binutils: development tools for the Apple iPhone       07/18/2007
+ *   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> but freely
+ *   redistributable under the terms of the GNU General Public License v2.
+ *
+ *   army.y - the parser for ARM assembly
+ * ------------------------------------------------------------------------- */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <mach-o/arm/reloc.h>
