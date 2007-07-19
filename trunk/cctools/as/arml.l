@@ -38,30 +38,40 @@ static int input_string(char *buf, int max_size)
 %}
 
 %option noyywrap
-%x cond ccup lmam oprd smam expr
+%x cond ccup lmam oprd smam expr bytm
 
 %%
 
 <INITIAL>{
-    "adc"   { yylval.nval = (0x5 << 21); return INST_ADD_LIKE; }
-    "add"   { yylval.nval = (0x4 << 21); return INST_ADD_LIKE; }
-    "and"   { yylval.nval = (0x0 << 21); return INST_ADD_LIKE; }
-    "bkpt"  { yylval.nval = 0xe1200070;  return INST_BKPT;     }
-    "bic"   { yylval.nval = (0xe << 21); return INST_ADD_LIKE; }
-    "bl"    { yylval.nval = 0x0b000000;  return INST_BL;       }
-    "bx"    { yylval.nval = 0x12FFF30;   return INST_BX;       }
-    "eor"   { yylval.nval = (0x1 << 21); return INST_ADD_LIKE; }
-    "ldm"   { yylval.nval = (0x1 << 20); return INST_LDM;      }
-    "ldr"   { yylval.nval = 0x04100000;  return INST_LDR_LIKE; }
-    "mov"   { yylval.nval = (0xd << 21); return INST_MOV_LIKE; }
-    "mvn"   { yylval.nval = (0xf << 21); return INST_MOV_LIKE; }
-    "orr"   { yylval.nval = (0xc << 21); return INST_ADD_LIKE; }
-    "rsb"   { yylval.nval = (0x3 << 21); return INST_ADD_LIKE; }
-    "rsc"   { yylval.nval = (0x7 << 21); return INST_ADD_LIKE; }
-    "sbc"   { yylval.nval = (0x6 << 21); return INST_ADD_LIKE; }
-    "stm"   { yylval.nval = 0;           return INST_STM;      }
-    "str"   { yylval.nval = 0x04000000;  return INST_LDR_LIKE; }
-    "sub"   { yylval.nval = (0x2 << 21); return INST_ADD_LIKE; }
+    "adc"   { yylval.nval = (0x5 << 21);            return INST_ADD_LIKE; }
+    "add"   { yylval.nval = (0x4 << 21);            return INST_ADD_LIKE; }
+    "and"   { yylval.nval = (0x0 << 21);            return INST_ADD_LIKE; }
+    "b"     { yylval.nval = 0x0a000000;             return INST_BL;       }
+    "bkpt"  { yylval.nval = 0xe1200070;             return INST_BKPT;     }
+    "bic"   { yylval.nval = (0xe << 21);            return INST_ADD_LIKE; }
+    "bl"    { yylval.nval = 0x0b000000;             return INST_BL;       }
+    "ble"   { /* These two are unfortunate parsing botches, needed to
+               * prevent "blt" from being parsed as "bl" with "t" as the
+               * condition code */
+              yylval.nval = 0x0a000000;  yyless(1); return INST_BL;       }
+    "blt"   { yylval.nval = 0x0a000000;  yyless(1); return INST_BL;       }
+    "bx"    { yylval.nval = 0x12FFF30;              return INST_BX;       }
+    "cmn"   { yylval.nval = (0xb << 21);            return INST_CMP_LIKE; }
+    "cmp"   { yylval.nval = (0xa << 21);            return INST_CMP_LIKE; }
+    "eor"   { yylval.nval = (0x1 << 21);            return INST_ADD_LIKE; }
+    "ldm"   { yylval.nval = (0x1 << 20);            return INST_LDM;      }
+    "ldr"   { yylval.nval = 0x04100000;             return INST_LDR_LIKE; }
+    "mov"   { yylval.nval = (0xd << 21);            return INST_MOV_LIKE; }
+    "mvn"   { yylval.nval = (0xf << 21);            return INST_MOV_LIKE; }
+    "orr"   { yylval.nval = (0xc << 21);            return INST_ADD_LIKE; }
+    "rsb"   { yylval.nval = (0x3 << 21);            return INST_ADD_LIKE; }
+    "rsc"   { yylval.nval = (0x7 << 21);            return INST_ADD_LIKE; }
+    "sbc"   { yylval.nval = (0x6 << 21);            return INST_ADD_LIKE; }
+    "stm"   { yylval.nval = 0;                      return INST_STM;      }
+    "str"   { yylval.nval = 0x04000000;             return INST_LDR_LIKE; }
+    "sub"   { yylval.nval = (0x2 << 21);            return INST_ADD_LIKE; }
+    "teq"   { yylval.nval = (0x9 << 21);            return INST_CMP_LIKE; }
+    "tst"   { yylval.nval = (0x8 << 21);            return INST_CMP_LIKE; }
 }
 
 <cond>{
@@ -96,6 +106,11 @@ static int input_string(char *buf, int max_size)
 
 <smam>{
     "fd"        { yylval.nval = ((1 << 27) | (1 << 24));  return SMAM; }
+}
+
+<bytm>{
+    "b"         { yylval.nval = (1 << 22);                return BYTM; }
+    .           { yyless(0); yylval.nval = 0;             return BYTM; }
 }
 
 <oprd>{
@@ -167,6 +182,7 @@ void lexpect(int what)
         case AE_LMAM:   BEGIN(lmam);    break;
         case AE_OPRD:   BEGIN(oprd);    break;
         case AE_SMAM:   BEGIN(smam);    break;
+        case AE_BYTM:   BEGIN(bytm);    break;
         default:        abort();
     }
 }

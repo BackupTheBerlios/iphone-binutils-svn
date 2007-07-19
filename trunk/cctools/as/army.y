@@ -28,10 +28,10 @@ unsigned int instruction;
 %token <nval> OPRD_REG
 %token <ival> OPRD_IMM
 %token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_MOV_LIKE
-%token <nval> INST_STM INST_BKPT
+%token <nval> INST_STM INST_BKPT INST_CMP_LIKE
 %token <nval> OPRD_LSL_LIKE
 %token <eval> OPRD_EXP
-%token <nval> COND CCUP LMAM SMAM
+%token <nval> COND CCUP LMAM SMAM BYTM
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <nval> exception_inst
@@ -61,12 +61,15 @@ data_inst:
     | INST_ADD_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
         { lexpect(AE_OPRD); } dest_reg ',' src_reg ',' shifter_operand
         { $$ = ($1 | $3 | $5 | $7 | $9 | $11); }
+    | INST_CMP_LIKE { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } src_reg
+        ',' shifter_operand
+        { $$ = ($1 | $3 | $5 | $7); }
     ;
 
 load_inst:
-      INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } dest_reg
-        ',' { lexpect(AE_OPRD); } load_am
-        {   $$ = ($1 | $3 | $5 | $8);   }
+      INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_BYTM); } BYTM
+        { lexpect(AE_OPRD); } dest_reg ',' { lexpect(AE_OPRD); } load_am
+        {   $$ = ($1 | $3 | $5 | $7 | $10);   }
     ; 
 
 load_mult_inst:
@@ -127,11 +130,11 @@ load_am:
             $$ = ((1 << 26) | (1 << 24) | (15 << 16) |
                 ($1 < 0 ? -$1 : ($1 | (1 << 23)))); 
         }
-    | '[' OPRD_REG ',' '#' OPRD_IMM ']'
+    | '[' OPRD_REG ',' '#' OPRD_IMM ']' maybe_bang
         {
             /* TODO: allow symbols here */
             $$ = ((1 << 26) | (1 << 24) | ($2 << 16) |
-                ($5 < 0 ? -$5 : ($5 | (1 << 23))));
+                ($5 < 0 ? -$5 : ($5 | (1 << 23))) | $7);
         }
     | '[' OPRD_REG ']'
         {

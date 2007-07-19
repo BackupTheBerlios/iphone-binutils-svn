@@ -58,26 +58,28 @@ struct config_option {
 
 /* Keep this in asciibetical order, because it'll be bsearch()'d. */
 struct arg_spec arg_specs[] = {
-    { "D",          FOR_COMPILER,   0,  1 },
-    { "E",          FOR_DRIVER,     0,  0 },
-    { "I",          FOR_COMPILER,   0,  1 },
-    { "L",          FOR_LINKER,     0,  1 },
-    { "O",          FOR_COMPILER,   0,  1 },
-    { "S",          FOR_DRIVER,     0,  0 },
-    { "U",          FOR_COMPILER,   0,  1 },
-    { "V",          FOR_DRIVER,     0,  0 },
-    { "W",          FOR_COMPILER,   0,  1 },
-    { "ansi",       FOR_COMPILER,   0,  0 },
-    { "arch",       FOR_IGNORE,     1,  0 },
-    { "c",          FOR_DRIVER,     0,  0 },
-    { "f",          FOR_COMPILER,   0,  1 },
-    { "g",          FOR_COMPILER,   0,  0 },
-    { "l",          FOR_LINKER,     0,  1 },
-    { "o",          FOR_DRIVER,     1,  1 },
-    { "pedantic",   FOR_COMPILER,   0,  0 },
-    { "std",        FOR_COMPILER,   0,  1 },
-    { "v",          FOR_DRIVER,     0,  0 },
-    { "w",          FOR_COMPILER,   0,  0 }
+    { "D",                      FOR_COMPILER,   0,  1 },
+    { "E",                      FOR_DRIVER,     0,  0 },
+    { "I",                      FOR_COMPILER,   0,  1 },
+    { "L",                      FOR_LINKER,     0,  1 },
+    { "O",                      FOR_COMPILER,   0,  1 },
+    { "S",                      FOR_DRIVER,     0,  0 },
+    { "U",                      FOR_COMPILER,   0,  1 },
+    { "V",                      FOR_DRIVER,     0,  0 },
+    { "W",                      FOR_COMPILER,   0,  1 },
+    { "ansi",                   FOR_COMPILER,   0,  0 },
+    { "arch",                   FOR_IGNORE,     1,  0 },
+    { "c",                      FOR_DRIVER,     0,  0 },
+    { "f",                      FOR_COMPILER,   0,  1 },
+    { "g",                      FOR_COMPILER,   0,  0 },
+    { "keep_private_externs",   FOR_LINKER,     0,  0 },
+    { "l",                      FOR_LINKER,     0,  1 },
+    { "o",                      FOR_DRIVER,     1,  1 },
+    { "pedantic",               FOR_COMPILER,   0,  0 },
+    { "r",                      FOR_LINKER,     0,  0 },
+    { "std",                    FOR_COMPILER,   0,  1 },
+    { "v",                      FOR_DRIVER,     0,  0 },
+    { "w",                      FOR_COMPILER,   0,  0 }
 };
 
 char *prog_name;
