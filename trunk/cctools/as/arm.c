@@ -70,7 +70,6 @@ void md_convert_frag(fragS *fragP)
 /* Simply writes out a number in little endian form. */
 void md_number_to_chars(char *buf, signed_expr_t val, int n)
 {
-    fprintf(stderr, "md_number_to_chars: %08x\n", val);
     number_to_chars_littleendian(buf, val, n);
 }
 
@@ -108,8 +107,10 @@ void md_assemble(char *str)
 
     memset(&this_fix, '\0', sizeof(struct fix_info));
 
-    fprintf(stderr, "assembling: %s\n", str);
-    // yydebug = 1;
+#if 0 
+    fprintf(stderr, "assembling: %s\n", str); 
+    yydebug = 1;
+#endif
 
     cur_ptr = str;
     yyrestart(NULL);
@@ -120,7 +121,7 @@ void md_assemble(char *str)
     md_number_to_chars(this_frag, instruction, 4);
 
     if (this_fix.needed) {
-        fprintf(stderr, "generating fix: %d\n", this_fix.type);
+        /* fprintf(stderr, "generating fix: %d\n", this_fix.type); */
         fix_new(frag_now, this_frag - frag_now->fr_literal, 4,
             this_fix.expr->X_add_symbol, this_fix.expr->X_subtract_symbol,
             this_fix.expr->X_add_number, this_fix.pcrel,

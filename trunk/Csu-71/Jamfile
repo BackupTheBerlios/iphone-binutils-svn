@@ -1,4 +1,5 @@
 AS = arm-apple-darwin-cc ;
+ASFLAGS = -c ;
 CC = arm-apple-darwin-cc ;
 CCFLAGS = -Wall -DDYNAMIC_NO_PIC ;
 OPTIM = -O0 ;

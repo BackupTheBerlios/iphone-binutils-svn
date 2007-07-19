@@ -43,15 +43,25 @@ static int input_string(char *buf, int max_size)
 %%
 
 <INITIAL>{
-    "add"     { yylval.nval = (0x5 << 21); return INST_ADD_LIKE; }
-    "bl"      { yylval.nval = 0x0b000000;  return INST_BL; }
-    "bx"      { yylval.nval = 0x12FFF30;   return INST_BX; }
-    "ldm"     { yylval.nval = (0x1 << 20); return INST_LDM; }
-    "ldr"     { yylval.nval = 0x04100000;  return INST_LDR_LIKE; }
-    "mov"     { yylval.nval = (0xd << 21); return INST_MOV_LIKE; }
-    "stm"     { yylval.nval = 0;           return INST_STM; }
-    "str"     { yylval.nval = 0x04000000;  return INST_LDR_LIKE; }
-    "sub"     { yylval.nval = (0x2 << 21); return INST_ADD_LIKE; }
+    "adc"   { yylval.nval = (0x5 << 21); return INST_ADD_LIKE; }
+    "add"   { yylval.nval = (0x4 << 21); return INST_ADD_LIKE; }
+    "and"   { yylval.nval = (0x0 << 21); return INST_ADD_LIKE; }
+    "bkpt"  { yylval.nval = 0xe1200070;  return INST_BKPT;     }
+    "bic"   { yylval.nval = (0xe << 21); return INST_ADD_LIKE; }
+    "bl"    { yylval.nval = 0x0b000000;  return INST_BL;       }
+    "bx"    { yylval.nval = 0x12FFF30;   return INST_BX;       }
+    "eor"   { yylval.nval = (0x1 << 21); return INST_ADD_LIKE; }
+    "ldm"   { yylval.nval = (0x1 << 20); return INST_LDM;      }
+    "ldr"   { yylval.nval = 0x04100000;  return INST_LDR_LIKE; }
+    "mov"   { yylval.nval = (0xd << 21); return INST_MOV_LIKE; }
+    "mvn"   { yylval.nval = (0xf << 21); return INST_MOV_LIKE; }
+    "orr"   { yylval.nval = (0xc << 21); return INST_ADD_LIKE; }
+    "rsb"   { yylval.nval = (0x3 << 21); return INST_ADD_LIKE; }
+    "rsc"   { yylval.nval = (0x7 << 21); return INST_ADD_LIKE; }
+    "sbc"   { yylval.nval = (0x6 << 21); return INST_ADD_LIKE; }
+    "stm"   { yylval.nval = 0;           return INST_STM;      }
+    "str"   { yylval.nval = 0x04000000;  return INST_LDR_LIKE; }
+    "sub"   { yylval.nval = (0x2 << 21); return INST_ADD_LIKE; }
 }
 
 <cond>{
@@ -99,6 +109,10 @@ static int input_string(char *buf, int max_size)
                         (char **)NULL, 10) - 1;
                     return OPRD_REG;
                 }
+    "lsl"       { yylval.nval = 0;          return OPRD_LSL_LIKE; }
+    "lsr"       { yylval.nval = (1 << 5);   return OPRD_LSL_LIKE; }
+    "asr"       { yylval.nval = (1 << 6);   return OPRD_LSL_LIKE; }
+    "ror"       { yylval.nval = (3 << 5);   return OPRD_LSL_LIKE; }
     "wr"        { yylval.nval = 7;  return OPRD_REG; }
     "sb"        { yylval.nval = 9;  return OPRD_REG; }
     "sl"        { yylval.nval = 10; return OPRD_REG; }

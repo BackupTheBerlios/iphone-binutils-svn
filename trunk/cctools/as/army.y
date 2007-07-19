@@ -28,11 +28,13 @@ unsigned int instruction;
 %token <nval> OPRD_REG
 %token <ival> OPRD_IMM
 %token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_MOV_LIKE
-%token <nval> INST_STM
+%token <nval> INST_STM INST_BKPT
+%token <nval> OPRD_LSL_LIKE
 %token <eval> OPRD_EXP
 %token <nval> COND CCUP LMAM SMAM
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
+%type  <nval> exception_inst
 %type  <ival> expr
 
 %%
@@ -42,6 +44,7 @@ inst:
     | data_inst         { instruction = $1; }
     | load_inst         { instruction = $1; }
     | load_mult_inst    { instruction = $1; }
+    | exception_inst    { instruction = $1; }
     ;
 
 branch_inst:
@@ -75,6 +78,11 @@ load_mult_inst:
         {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $11); } 
     ;
 
+exception_inst:
+      INST_BKPT { lexpect(AE_OPRD); } OPRD_IMM
+        {   $$ = ($1 | (($3 & 0xfff0) << 8) | ($3 & 0x000f)); }
+    ;
+
 maybe_bang:
     /* empty */     { $$ = 0; }
     | '!'           { $$ = (0x1 << 21); }
@@ -98,10 +106,15 @@ shifter_operand:
       '#' OPRD_IMM
         {
             /* TODO: support expressions here */
-
             if ($2 > 0xff)
                 abort();    /* FIXME: try to rotate to fit it in */
             $$ = ((0x1 << 25) | $2);
+        }
+    | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
+        {
+            if ($3 > 0xff)
+                yyerror("immediate value too large");
+            $$ = ($1 | $3); 
         }
     | OPRD_REG      { $$ = $1; }
     ;
