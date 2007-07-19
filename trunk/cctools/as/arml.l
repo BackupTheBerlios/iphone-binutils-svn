@@ -55,7 +55,7 @@ static int input_string(char *buf, int max_size)
                * condition code */
               yylval.nval = 0x0a000000;  yyless(1); return INST_BL;       }
     "blt"   { yylval.nval = 0x0a000000;  yyless(1); return INST_BL;       }
-    "bx"    { yylval.nval = 0x12FFF30;              return INST_BX;       }
+    "bx"    { yylval.nval = 0x12FFF10;              return INST_BX;       }
     "cmn"   { yylval.nval = (0xb << 21);            return INST_CMP_LIKE; }
     "cmp"   { yylval.nval = (0xa << 21);            return INST_CMP_LIKE; }
     "eor"   { yylval.nval = (0x1 << 21);            return INST_ADD_LIKE; }

@@ -63,7 +63,7 @@ data_inst:
         { $$ = ($1 | $3 | $5 | $7 | $9 | $11); }
     | INST_CMP_LIKE { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } src_reg
         ',' shifter_operand
-        { $$ = ($1 | $3 | $5 | $7); }
+        { $$ = ($1 | $3 | $5 | $7 | (1 << 20)); }
     ;
 
 load_inst:
@@ -115,9 +115,9 @@ shifter_operand:
         }
     | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
         {
-            if ($3 > 0xff)
+            if ($3 >= (1 << 5))
                 yyerror("immediate value too large");
-            $$ = ($1 | $3); 
+            $$ = ($1 | $3 | ($5 << 7)); 
         }
     | OPRD_REG      { $$ = $1; }
     ;
