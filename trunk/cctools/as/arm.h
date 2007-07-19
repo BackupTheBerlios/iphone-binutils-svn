@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "expr.h"
 #include "struc-symbol.h"
 #include "mach-o/arm/reloc.h"
 
@@ -16,13 +17,11 @@
 struct fix_info {
     int needed;
 
-    symbolS *add_symbol;
-    symbolS *sub_symbol;
-    int offset;
-
     int type;
     int size;
-    int pcrel; 
+    int pcrel;
+
+    expressionS *expr;
 };
 
 extern char *cur_ptr;
@@ -30,8 +29,7 @@ extern unsigned int instruction;
 extern int yydebug;
 
 void register_reloc_type(int type, int size, int pcrel);
-void register_add_symbol(symbolS *symbol, int offset);
-void register_sub_symbol(symbolS *symbol, int offset);
+void register_expression(expressionS *expr);
 
 void lexpect(int what);
 

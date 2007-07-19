@@ -54,4 +54,7 @@ ARMSubtarget::ARMSubtarget(const Module &M, const std::string &FS, bool thumb)
     UseThumbBacktraces = true;
     IsR9Reserved = true;
   }
+
+  /* we don't support Thumb for now --nightwatch */
+  IsThumb = false;
 }

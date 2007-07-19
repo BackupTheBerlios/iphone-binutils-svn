@@ -1347,7 +1347,7 @@ struct relocation_info *riP)
 	count = 1;
 	riP++;
 
-#if !defined(M68K) && !defined(I386)
+#if !defined(M68K) && !defined(I386) && !defined(ARM)
 	/*
 	 * For RISC machines whenever we have a relocation item using the half
 	 * of an address we also emit a relocation item describing the other

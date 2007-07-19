@@ -13,9 +13,10 @@
 #include "arm.h"
 #include "army.h"
 #include "messages.h"
+#include "read.h"
 #include "symbols.h"
 
-char *cur_ptr;
+char *cur_ptr, *saved_input_line_ptr;
 
 #define YY_NO_UNPUT
 #define YY_INPUT(buf,result,max_size) { result = input_string(buf, max_size); }
@@ -37,7 +38,7 @@ static int input_string(char *buf, int max_size)
 %}
 
 %option noyywrap
-%x cond ccup lmam oprd smam
+%x cond ccup lmam oprd smam expr
 
 %%
 
@@ -106,14 +107,24 @@ static int input_string(char *buf, int max_size)
     "sp"        { yylval.nval = 13; return OPRD_REG; }
     "lr"        { yylval.nval = 14; return OPRD_REG; }
     "pc"        { yylval.nval = 15; return OPRD_REG; }
-    [0-9]+      {
+    [+-]?[0-9]+ {
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 10);
                     return OPRD_IMM;
                 }
-    [a-zA-Z_\$][a-zA-Z0-9_\$]+ {
-                    yylval.sval = symbol_find_or_make(yytext);
-                    fprintf(stderr, "symbol '%s'\n", yytext);
-                    return OPRD_SYM;
+    [A-Za-z0-9_]    {
+                        BEGIN(expr);
+                        yyless(0);
+                    }
+}
+
+<expr>{
+.+              {
+                    saved_input_line_ptr = input_line_pointer;
+                    input_line_pointer = yytext;
+                    yylval.eval = calloc(sizeof(expressionS), 1);
+                    expression(yylval.eval);
+                    input_line_pointer = saved_input_line_ptr;
+                    return OPRD_EXP;
                 }
 }
 

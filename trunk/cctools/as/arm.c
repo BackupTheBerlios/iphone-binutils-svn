@@ -16,6 +16,7 @@
 #include "fixes.h"
 #include "messages.h"
 #include "read.h"
+#include "write_object.h"
 
 /* ----------------------------------------------------------------------------
  *   Uninteresting machine-dependent boilerplate code 
@@ -69,26 +70,8 @@ void md_convert_frag(fragS *fragP)
 /* Simply writes out a number in little endian form. */
 void md_number_to_chars(char *buf, signed_expr_t val, int n)
 {
-    switch (n) {
-        case 4:
-            buf[0] = val;
-            buf[1] = (val >> 8);
-            buf[2] = (val >> 16);
-            buf[3] = (val >> 24);
-            break;
-
-        case 2:
-            buf[0] = val;
-            buf[1] = (val >> 8);
-            break;
-
-        case 1:
-            buf[0] = val;
-            break; 
-
-        default:
-            abort();
-    }
+    fprintf(stderr, "md_number_to_chars: %08x\n", val);
+    number_to_chars_littleendian(buf, val, n);
 }
 
 /* ----------------------------------------------------------------------------
@@ -106,19 +89,9 @@ void register_reloc_type(int type, int size, int pcrel)
     this_fix.needed = 1;
 }
 
-void register_add_symbol(symbolS *symbol, int offset)
+void register_expression(expressionS *expr)
 {
-    this_fix.add_symbol = symbol;
-    this_fix.offset = offset;
-
-    this_fix.needed = 1;
-}
-
-void register_sub_symbol(symbolS *symbol, int offset)
-{
-    this_fix.sub_symbol = symbol;
-    this_fix.offset = offset;
-
+    this_fix.expr = expr;
     this_fix.needed = 1;
 }
 
@@ -146,10 +119,13 @@ void md_assemble(char *str)
     this_frag = frag_more(4);
     md_number_to_chars(this_frag, instruction, 4);
 
-    if (this_fix.needed)
+    if (this_fix.needed) {
+        fprintf(stderr, "generating fix: %d\n", this_fix.type);
         fix_new(frag_now, this_frag - frag_now->fr_literal, 4,
-            this_fix.add_symbol, this_fix.sub_symbol, this_fix.offset,
-            this_fix.pcrel, this_fix.pcrel, this_fix.type);
+            this_fix.expr->X_add_symbol, this_fix.expr->X_subtract_symbol,
+            this_fix.expr->X_add_number, this_fix.pcrel,
+            ARM_RELOC_IS_EXPORTABLE(this_fix.type), this_fix.type);
+    }
 }
 
 /* ----------------------------------------------------------------------------
@@ -182,12 +158,15 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
         case NO_RELOC:
             switch (size) {
                 case 4:
-                    *(buf++) = (val >> 24);
-                    *(buf++) = (val >> 16);
-                    /* FALL THROUGH */
-                case 2:
+                    *(buf++) = val;
                     *(buf++) = (val >> 8);
-                    /* FALL THROUGH */
+                    *(buf++) = (val >> 16);
+                    *(buf++) = (val >> 24);
+                    break;
+                case 2:
+                    *(buf++) = val;
+                    *(buf++) = (val >> 8);
+                    break;
                 case 1:
                     *(buf++) = val;
             }
@@ -199,12 +178,13 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             else
                 n = (1 << 23);  /* set U bit */
             assert(val < (1 << 12) && val > 0);
+            val -= 4;
             n |= val;
             fill_reloc_value(buf, n, (1 << 23) | ((1 << 12) - 1));
             break;
 
         case ARM_RELOC_PCREL_IMM24:
-            val -= 0x4;
+            val -= 4;
             val >>= 2;
             n = ((unsigned int)val) & 0x00ffffff;
             fill_reloc_value(buf, n, 0x00ffffff);

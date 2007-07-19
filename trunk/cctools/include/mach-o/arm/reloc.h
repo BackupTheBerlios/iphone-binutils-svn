@@ -21,5 +21,9 @@ enum reloc_type_arm
     ARM_RELOC_PCREL_DATA_IMM12  /* Load and Store Word/Immediate Offset, r15 */
 };
 
+/* Determines whether a reloc can be exported to object files (1) or whether
+ * it's purely for assembler-internal use (0). */
+#define ARM_RELOC_IS_EXPORTABLE(n)  ((n) < ARM_RELOC_PCREL_DATA_IMM12)
+
 #endif
 
