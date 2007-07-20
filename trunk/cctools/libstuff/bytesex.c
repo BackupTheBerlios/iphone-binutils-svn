@@ -2330,7 +2330,7 @@ enum byte_sex target_byte_sex)
 	}
 }
 
-__private_extern__ void swap_arm_thread_state_t(struct arm_thread_state *cpu,
+__private_extern__ void swap_arm_thread_state(struct arm_thread_state *cpu,
     enum byte_sex target_byte_sex)
 {
     cpu->r0 = SWAP_LONG(cpu->r0);
