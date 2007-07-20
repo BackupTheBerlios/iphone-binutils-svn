@@ -343,7 +343,7 @@ army.c:	army.y
 	bison -o ../army.c -d army.y
 
 arml.c:	arml.l army.c
-	flex -o../arml.c arml.l
+	flex -i -o../arml.c arml.l
 
 driver:	driver.o apple_version.o
 	$(CC) $(COPTS) $(CFLAGS) $(RC_CFLAGS) -o $(SYMROOT)/driver \

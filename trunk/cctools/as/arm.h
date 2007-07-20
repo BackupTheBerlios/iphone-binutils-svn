@@ -14,6 +14,8 @@
 #define AE_OPRD 4
 #define AE_SMAM 5
 #define AE_BYTM 6
+#define AE_PSRU 7
+#define AE_LAMS 8
 
 struct fix_info {
     int needed;

@@ -28,13 +28,15 @@ unsigned int instruction;
 %token <nval> OPRD_REG
 %token <ival> OPRD_IMM
 %token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_MOV_LIKE
-%token <nval> INST_STM INST_BKPT INST_CMP_LIKE
-%token <nval> OPRD_LSL_LIKE
+%token <nval> INST_STM INST_BKPT INST_CMP_LIKE INST_MLA INST_MUL
+%token <nval> INST_SMLAL_LIKE
+%token <nval> OPRD_LSL_LIKE OPRD_RRX
 %token <eval> OPRD_EXP
-%token <nval> COND CCUP LMAM SMAM BYTM
+%token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
-%type  <nval> exception_inst
+%type  <nval> exception_inst multiply_inst maybe_am_lsl_subclause
+%type  <nval> load_am_indexed
 %type  <ival> expr
 
 %%
@@ -45,6 +47,7 @@ inst:
     | load_inst         { instruction = $1; }
     | load_mult_inst    { instruction = $1; }
     | exception_inst    { instruction = $1; }
+    | multiply_inst     { instruction = $1; }
     ;
 
 branch_inst:
@@ -61,9 +64,9 @@ data_inst:
     | INST_ADD_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
         { lexpect(AE_OPRD); } dest_reg ',' src_reg ',' shifter_operand
         { $$ = ($1 | $3 | $5 | $7 | $9 | $11); }
-    | INST_CMP_LIKE { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } src_reg
-        ',' shifter_operand
-        { $$ = ($1 | $3 | $5 | $7 | (1 << 20)); }
+    | INST_CMP_LIKE { lexpect(AE_COND); } COND { lexpect(AE_PSRU); } PSRU
+        { lexpect(AE_OPRD); } src_reg ',' shifter_operand
+        { $$ = ($1 | $3 | $5 | $7 | $9 | (1 << 20)); }
     ;
 
 load_inst:
@@ -85,6 +88,21 @@ exception_inst:
       INST_BKPT { lexpect(AE_OPRD); } OPRD_IMM
         {   $$ = ($1 | (($3 & 0xfff0) << 8) | ($3 & 0x000f)); }
     ;
+
+multiply_inst:
+      INST_MUL { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
+        { lexpect(AE_OPRD); } OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        {   $$ = ($1 | $3 | $5 | ($7 << 16) | $9 | ($11 << 8)); }
+    | INST_MLA { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
+        { lexpect(AE_OPRD); } OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        {   $$ = ($1 | $3 | $5 | ($7 << 16) | $9 | ($11 << 8) | ($13 << 12)); }
+    | INST_SMLAL_LIKE { lexpect(AE_COND); } COND { lexpect(AE_CCUP); } CCUP
+        { lexpect(AE_OPRD); } OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        {
+            $$ = ($1 | $3 | $5 | ($7 << 12) | ($9 << 16) | $11 |
+                ($13 << 8));
+        }
+    ; 
 
 maybe_bang:
     /* empty */     { $$ = 0; }
@@ -115,9 +133,17 @@ shifter_operand:
         }
     | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
         {
-            if ($3 >= (1 << 5))
+            if ($5 >= (1 << 5))
                 yyerror("immediate value too large");
             $$ = ($1 | $3 | ($5 << 7)); 
+        }
+    | OPRD_REG ',' OPRD_LSL_LIKE OPRD_REG
+        {
+            $$ = ($1 | $3 | (1 << 4) | ($4 << 8));
+        }
+    | OPRD_REG ',' OPRD_RRX
+        {
+            $$ = ($1 | $3);
         }
     | OPRD_REG      { $$ = $1; }
     ;
@@ -130,16 +156,35 @@ load_am:
             $$ = ((1 << 26) | (1 << 24) | (15 << 16) |
                 ($1 < 0 ? -$1 : ($1 | (1 << 23)))); 
         }
-    | '[' OPRD_REG ',' '#' OPRD_IMM ']' maybe_bang
+    | '[' OPRD_REG ',' { lexpect(AE_LAMS); } load_am_indexed ']' maybe_bang
         {
-            /* TODO: allow symbols here */
-            $$ = ((1 << 26) | (1 << 24) | ($2 << 16) |
-                ($5 < 0 ? -$5 : ($5 | (1 << 23))) | $7);
+            $$ = ((1 << 26) | (1 << 24) | ($2 << 16) | $5 | $7);
         }
+    | '[' OPRD_REG ']' ',' { lexpect(AE_OPRD); } load_am_postindexed
     | '[' OPRD_REG ']'
         {
             $$ = ((1 << 26) | (1 << 24) | ($2 << 16));
         }
+    ;
+
+load_am_postindexed:
+    /* TODO */
+    ;
+
+load_am_indexed:
+      '#' { lexpect(AE_OPRD); } OPRD_IMM
+        {
+            $$ = ($3 < 0 ? -$3 : ($3 | (1 << 23)));
+        }
+    | LAMS { lexpect(AE_OPRD); } OPRD_REG maybe_am_lsl_subclause
+        {
+            $$ = ($1 | $3 | $4);
+        }
+    ;
+
+maybe_am_lsl_subclause:
+      /* empty */                       {   $$ = 0;                 }
+    | ',' OPRD_LSL_LIKE '#' OPRD_IMM    {   $$ = ($2 | ($4 << 7));  }
     ;
 
 branch_am:
