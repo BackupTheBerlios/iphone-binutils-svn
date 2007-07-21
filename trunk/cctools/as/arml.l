@@ -150,7 +150,7 @@ static int input_string(char *buf, int max_size)
 }
 
 <trns>{
-    "t"         { yylval.nval=((1<<26)|(1<<21)|(1<<20));  return TRNS; }
+    "t"         { yylval.nval = ((1 << 26) | (1 << 21));  return TRNS; }
     .           { yyless(0); yylval.nval = 0;             return TRNS; }
 }
 
@@ -188,6 +188,7 @@ static int input_string(char *buf, int max_size)
                     return OPRD_IMM;
                 }
     "0x"[0-9a-fA-F]+ {
+                    /* FIXME: is this incorrect sometimes b/c of signs? */
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 0);
                     return OPRD_IMM;
                 }

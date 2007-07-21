@@ -340,7 +340,7 @@ aarm_build:	$(OBJROOT)/aarm_dir
 	fi
 
 army.c:	army.y
-	bison -o ../army.c -d army.y
+	bison -v -o ../army.c -d army.y
 
 arml.c:	arml.l army.c
 	flex -i -o../arml.c arml.l

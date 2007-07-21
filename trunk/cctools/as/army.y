@@ -38,7 +38,7 @@ unsigned int instruction;
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <nval> exception_inst multiply_inst maybe_am_lsl_subclause
 %type  <nval> load_am_indexed reg_lists reg_list_atom reg_list_contents
-%type  <nval> maybe_hat imm_with_u_bit
+%type  <nval> maybe_hat maybe_imm_rotation
 
 %%
 
@@ -74,7 +74,17 @@ load_inst:
       INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_BYTM); } BYTM
         { lexpect(AE_TRNS); } TRNS { lexpect(AE_OPRD); } dest_reg ','
         { lexpect(AE_OPRD); } load_am
-        {   $$ = ($1 | $3 | $5 | $7 | $9 | $12);   }
+        {   
+            unsigned int n;
+            n = ($1 | $3 | $5 | $7 | $9 | $12);
+            if ($7 && ((n >> 24) & 0xf) == 0x5 && (n & 0x0fff) == 0) {
+                /* if T is set and immediate operand is 0, then convert into
+                 * a post-indexed instruction */
+                n &= ~(1 << 24);    /* clear 24th bit */
+                n |= (1 << 23);     /* set U bit */
+            }
+            $$ = n;
+        }
     ; 
 
 load_mult_inst:
@@ -158,12 +168,12 @@ dest_reg:
     ;
 
 shifter_operand:
-      '#' OPRD_IMM
+      '#' OPRD_IMM maybe_imm_rotation
         {
             /* TODO: support expressions here */
             if ($2 > 0xff)
                 abort();    /* FIXME: try to rotate to fit it in */
-            $$ = ((0x1 << 25) | $2);
+            $$ = ((0x1 << 25) | $2 | $3);
         }
     | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
         {
@@ -185,6 +195,11 @@ shifter_operand:
     | OPRD_REG      { $$ = $1; }
     ;
 
+maybe_imm_rotation:
+      /* empty */       { $$ = 0;               }
+    | ',' OPRD_IMM      { $$ = (($2 / 2) << 8); }
+    ;
+
 load_am:
       expr
         {
@@ -193,7 +208,7 @@ load_am:
             n = $1 - 8;
             register_reloc_type(ARM_RELOC_PCREL_DATA_IMM12, 4, 1);
             $$ = ((1 << 26) | (1 << 24) | (15 << 16) |
-                (n < 0 ? -n : (n | (1 << 23)))); 
+                (n <= 0 ? -n : (n | (1 << 23)))); 
         }
     | '[' OPRD_REG ',' { lexpect(AE_LAMS); } load_am_indexed ']' maybe_bang
         {
@@ -212,8 +227,7 @@ load_am:
 load_am_indexed:
       '#' { lexpect(AE_OPRD); } OPRD_IMM
         {
-            fprintf(stderr, "imm operand is %d\n", $3);
-            $$ = ($3 < 0 ? -$3 : ($3 | (1 << 23)));
+            $$ = ($3 <= 0 ? -$3 : ($3 | (1 << 23)));
         }
     | LAMS { lexpect(AE_OPRD); } OPRD_REG maybe_am_lsl_subclause
         {
@@ -240,10 +254,6 @@ branch_am:
             register_reloc_type(ARM_RELOC_PCREL_IMM24, 4, 1);
             $$ = $1;
         }
-    ;
-
-imm_with_u_bit:
-      OPRD_IMM  { $$ = ($1 < 0 ? -$1 : ($1 | (1 << 23))); }
     ;
 
 expr:
