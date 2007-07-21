@@ -12,6 +12,7 @@
 #include <mach-o/arm/reloc.h>
 
 #include "arm.h"
+#include "messages.h"
 #include "struc-symbol.h"
 
 #define YYDEBUG 1
@@ -33,14 +34,15 @@ unsigned int instruction;
 %token <nval> OPRD_LSL_LIKE OPRD_RRX
 %token <eval> OPRD_EXP
 %token <nval> BYTM_HALF
-%token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS TRNS
+%token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS TRNS LSLK
 %type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <nval> exception_inst multiply_inst maybe_am_lsl_subclause
 %type  <nval> load_am_indexed reg_lists reg_list_atom reg_list_contents
 %type  <nval> maybe_hat maybe_imm_rotation misc_ls_am load_body imm_with_u_bit
-%type  <nval> misc_ls_am_index
+%type  <nval> misc_ls_am_index shifter_imm shifter_operand_lsl_clause
+%type  <nval> shifter_operand_lsl_arg 
 
 %%
 
@@ -92,7 +94,7 @@ load_body:
             $$ = n;
         }
     | BYTM_HALF { lexpect(AE_OPRD); } dest_reg ',' misc_ls_am
-        { $$ = ((1 << 7) | (1 << 5) | (1 << 4) | $1 | $3 | $5); }
+        { $$ = ((1 << 7) | $1 | $3 | $5); }
     ; 
 
 load_mult_inst:
@@ -176,31 +178,48 @@ dest_reg:
     ;
 
 shifter_operand:
-      '#' OPRD_IMM maybe_imm_rotation
+      '#' { lexpect(AE_OPRD); } shifter_imm     { $$ = $3; }
+    | OPRD_REG ',' { lexpect(AE_LSLK); } shifter_operand_lsl_clause
+        { $$ = ($1 | $4); }
+    | OPRD_REG      { $$ = $1; }
+    ;
+
+shifter_operand_lsl_clause:
+      OPRD_LSL_LIKE { lexpect(AE_OPRD); } shifter_operand_lsl_arg
+            { $$ = ($1 | $3); }
+    | OPRD_RRX
+            { $$ = $1; }
+    ;
+
+shifter_operand_lsl_arg:
+      '#' OPRD_IMM
         {
-            /* TODO: support expressions here */
-            if ($2 > 0xff)
-                abort();    /* FIXME: try to rotate to fit it in */
-            $$ = ((0x1 << 25) | $2 | $3);
-        }
-    | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
-        {
-            unsigned int n = $5;
+            unsigned int n = $2;
             if (n == 32)
                 n = 0;
             if (n >= (1 << 5))
                 yyerror("immediate value too large");
-            $$ = ($1 | $3 | (n << 7)); 
+            $$ = (n << 7); 
         }
-    | OPRD_REG ',' OPRD_LSL_LIKE OPRD_REG
+    | OPRD_REG
         {
-            $$ = ($1 | $3 | (1 << 4) | ($4 << 8));
+            $$ = ((1 << 4) | ($1 << 8));
         }
-    | OPRD_REG ',' OPRD_RRX
+    ;
+
+shifter_imm:
+      OPRD_IMM maybe_imm_rotation
         {
-            $$ = ($1 | $3);
+            /* TODO: try to rotate to fit the imm in automatically */
+            if ($1 > 0xff || $1 < 0)
+                as_bad("immediate constant too large");
+            $$ = ((0x1 << 25) | $1 | $2);
         }
-    | OPRD_REG      { $$ = $1; }
+    | expr
+        {
+            register_reloc_type(ARM_RELOC_SHIFT_IMM12, 4, 0);
+            $$ = ((0x1 << 25) | $1);
+        }
     ;
 
 maybe_imm_rotation:
@@ -213,13 +232,15 @@ misc_ls_am:
         { $$ = ((1 << 24) | (1 << 7) | (1 << 4) | $2 | $5 | $7); }
     | '[' src_reg ']' ',' { lexpect(AE_LAMS); } misc_ls_am_index
         { $$ = ($2 | $6); }
+    | '[' src_reg ']'
+        { $$ = ((1 << 22) | $2); }
     ;
 
 misc_ls_am_index:
       '#' { lexpect(AE_OPRD); } imm_with_u_bit
         {
-            $$ = ((1 << 22) | (1 << 7) | (1 << 4) | ((($3 & 0xf0) >> 4) << 8) |
-                ($3 & 0x0f));
+            $$ = ((1 << 22) | ((($3 & 0xf0) >> 4) << 8) | ($3 & 0x0f) |
+                ($3 & (1 << 23)));
         }
     | LAMS { lexpect(AE_OPRD); } OPRD_REG
         { $$ = ((1 << 7) | (1 << 4) | $1 | $3); }
@@ -266,14 +287,15 @@ load_am_indexed:
 
 maybe_am_lsl_subclause:
       /* empty */                       {   $$ = 0;                 }
-    | ',' OPRD_LSL_LIKE '#' OPRD_IMM
+    | ',' { lexpect(AE_LSLK); } OPRD_LSL_LIKE { lexpect(AE_OPRD); } '#'
+        OPRD_IMM
         {
-            unsigned int n = $4;
+            unsigned int n = $6;
             if (n == 32)
                 n = 0;
             if (n >= (1 << 5))
                 yyerror("immediate value too large");
-            $$ = ($2 | (n << 7));
+            $$ = ($3 | (n << 7));
         }
     ;
 
@@ -287,7 +309,7 @@ branch_am:
 
 expr:
       OPRD_EXP  { register_expression($1); $$ = $1->X_add_number;  }
-    | OPRD_IMM  { $$ = $1; }
+    ;
 
 %%
 

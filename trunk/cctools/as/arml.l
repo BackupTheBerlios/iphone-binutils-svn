@@ -38,7 +38,9 @@ static int input_string(char *buf, int max_size)
 %}
 
 %option noyywrap
-%x cond ccup lmam oprd smam expr bytm psru lams trns
+%x cond ccup lmam oprd smam expr bytm psru lams trns lslk
+
+W   ([^a-zA-Z0-9_])
 
 %%
 
@@ -47,14 +49,13 @@ static int input_string(char *buf, int max_size)
     "add"   { yylval.nval = (0x4 << 21);            return INST_ADD_LIKE;   }
     "and"   { yylval.nval = (0x0 << 21);            return INST_ADD_LIKE;   }
     "b"     { yylval.nval = 0x0a000000;             return INST_BL;         }
+    "b"/le  { yylval.nval = 0x0a000000;             return INST_BL;         }
+    "b"/lo  { yylval.nval = 0x0a000000;             return INST_BL;         }
+    "b"/ls  { yylval.nval = 0x0a000000;             return INST_BL;         }
+    "b"/lt  { yylval.nval = 0x0a000000;             return INST_BL;         }
     "bkpt"  { yylval.nval = 0xe1200070;             return INST_BKPT;       }
     "bic"   { yylval.nval = (0xe << 21);            return INST_ADD_LIKE;   }
     "bl"    { yylval.nval = 0x0b000000;             return INST_BL;         }
-    "ble"   { /* These two are unfortunate parsing botches, needed to
-               * prevent "blt" from being parsed as "bl" with "t" as the
-               * condition code */
-              yylval.nval = 0x0a000000;  yyless(1); return INST_BL;         }
-    "blt"   { yylval.nval = 0x0a000000;  yyless(1); return INST_BL;         }
     "bx"    { yylval.nval = 0x12FFF10;              return INST_BX;         }
     "cmn"   { yylval.nval = (0xb << 21);            return INST_CMP_LIKE;   }
     "cmp"   { yylval.nval = (0xa << 21);            return INST_CMP_LIKE;   }
@@ -135,6 +136,8 @@ static int input_string(char *buf, int max_size)
 <bytm>{
     "b"         { yylval.nval = (1 << 22);                return BYTM;      }
     "h"         { yylval.nval = 0xb0;                     return BYTM_HALF; }
+    "sh"        { yylval.nval = 0xf0;                     return BYTM_HALF; }
+    "sb"        { yylval.nval = 0xd0;                     return BYTM_HALF; }
     .           { yyless(0); yylval.nval = 0;             return BYTM;      }
 }
 
@@ -171,11 +174,6 @@ static int input_string(char *buf, int max_size)
                         (char **)NULL, 0) + 3;
                     return OPRD_REG;
                 }
-    [al]"sl"    { yylval.nval = 0;          return OPRD_LSL_LIKE; }
-    "lsr"       { yylval.nval = (1 << 5);   return OPRD_LSL_LIKE; }
-    "asr"       { yylval.nval = (1 << 6);   return OPRD_LSL_LIKE; }
-    "ror"       { yylval.nval = (3 << 5);   return OPRD_LSL_LIKE; }
-    "rrx"       { yylval.nval = (3 << 5);   return OPRD_RRX;      }
     "wr"        { yylval.nval = 7;  return OPRD_REG; }
     "sb"        { yylval.nval = 9;  return OPRD_REG; }
     "sl"        { yylval.nval = 10; return OPRD_REG; }
@@ -193,14 +191,19 @@ static int input_string(char *buf, int max_size)
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 0);
                     return OPRD_IMM;
                 }
-    [A-Za-z0-9_]    {
-                        BEGIN(expr);
-                        yyless(0);
-                    }
+    [A-Za-z0-9_\$]+ { yyless(0); BEGIN(expr); }
+}
+
+<lslk>{
+    [al]"sl"    { yylval.nval = 0;          return OPRD_LSL_LIKE; }
+    "lsr"       { yylval.nval = (1 << 5);   return OPRD_LSL_LIKE; }
+    "asr"       { yylval.nval = (1 << 6);   return OPRD_LSL_LIKE; }
+    "ror"       { yylval.nval = (3 << 5);   return OPRD_LSL_LIKE; }
+    "rrx"       { yylval.nval = (3 << 5);   return OPRD_RRX;      }
 }
 
 <expr>{
-.+              {
+    [^,]+       {
                     saved_input_line_ptr = input_line_pointer;
                     input_line_pointer = yytext;
                     yylval.eval = calloc(sizeof(expressionS), 1);
@@ -208,6 +211,7 @@ static int input_string(char *buf, int max_size)
                     input_line_pointer = saved_input_line_ptr;
                     return OPRD_EXP;
                 }
+    .           {   yyless(0); BEGIN(oprd);     }
 }
 
 <*>"#"          { return '#'; }
@@ -241,6 +245,7 @@ void lexpect(int what)
         case AE_PSRU:   BEGIN(psru);    break;
         case AE_LAMS:   BEGIN(lams);    break;
         case AE_TRNS:   BEGIN(trns);    break;
+        case AE_LSLK:   BEGIN(lslk);    break;
         default:        abort();
     }
 }

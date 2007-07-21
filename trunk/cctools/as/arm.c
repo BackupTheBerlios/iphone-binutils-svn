@@ -191,6 +191,12 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             fill_reloc_value(buf, n, 0x00ffffff);
             break;
 
+        case ARM_RELOC_SHIFT_IMM12:
+            if (val > 0xff)
+                as_bad("immediate value too large");
+            fill_reloc_value(buf, (unsigned int)val, 0x000000ff); 
+            break;
+
         default:
             fprintf(stderr, "reloc type %d\n", fixP->fx_r_type);
             as_fatal("md_number_to_imm: reloc unimplemented");
