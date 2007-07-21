@@ -27,17 +27,18 @@ unsigned int instruction;
 
 %token <nval> OPRD_REG
 %token <ival> OPRD_IMM
-%token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_MOV_LIKE
-%token <nval> INST_STM INST_BKPT INST_CMP_LIKE INST_MLA INST_MUL
+%token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_STM
+%token <nval> INST_MOV_LIKE INST_BKPT INST_CMP_LIKE INST_MLA INST_MUL INST_SWI
 %token <nval> INST_SMLAL_LIKE
 %token <nval> OPRD_LSL_LIKE OPRD_RRX
 %token <eval> OPRD_EXP
-%token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS
+%token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS TRNS
+%type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <nval> exception_inst multiply_inst maybe_am_lsl_subclause
-%type  <nval> load_am_indexed
-%type  <ival> expr
+%type  <nval> load_am_indexed reg_lists reg_list_atom reg_list_contents
+%type  <nval> maybe_hat
 
 %%
 
@@ -71,22 +72,25 @@ data_inst:
 
 load_inst:
       INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_BYTM); } BYTM
-        { lexpect(AE_OPRD); } dest_reg ',' { lexpect(AE_OPRD); } load_am
-        {   $$ = ($1 | $3 | $5 | $7 | $10);   }
+        { lexpect(AE_TRNS); } TRNS { lexpect(AE_OPRD); } dest_reg ','
+        { lexpect(AE_OPRD); } load_am
+        {   $$ = ($1 | $3 | $5 | $7 | $9 | $12);   }
     ; 
 
 load_mult_inst:
       INST_LDM { lexpect(AE_COND); } COND { lexpect(AE_LMAM); } LMAM
-        { lexpect(AE_OPRD); } src_reg maybe_bang ',' '{' reg_list '}'
-        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $11); } 
+        { lexpect(AE_OPRD); } src_reg maybe_bang ',' reg_lists maybe_hat
+        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $10 | $11); } 
     | INST_STM { lexpect(AE_COND); } COND { lexpect(AE_SMAM); } SMAM
-        { lexpect(AE_OPRD); } src_reg maybe_bang ',' '{' reg_list '}'
-        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $11); } 
+        { lexpect(AE_OPRD); } src_reg maybe_bang ',' reg_lists maybe_hat
+        {   $$ = ((1 << 27) | $1 | $3 | $5 | $7 | $8 | $10 | $11); } 
     ;
 
 exception_inst:
       INST_BKPT { lexpect(AE_OPRD); } OPRD_IMM
         {   $$ = ($1 | (($3 & 0xfff0) << 8) | ($3 & 0x000f)); }
+    | INST_SWI { lexpect(AE_COND); } COND { lexpect(AE_OPRD); } OPRD_IMM
+        {   $$ = ($1 | $3 | $5);    }
     ;
 
 multiply_inst:
@@ -104,15 +108,45 @@ multiply_inst:
         }
     ; 
 
+maybe_hat:
+      /* empty */   { $$ = 0;           }
+    | '^'           { $$ = (1 << 22);   }
+    ;
+
 maybe_bang:
     /* empty */     { $$ = 0; }
     | '!'           { $$ = (0x1 << 21); }
     ;
 
+reg_lists:
+      reg_list                                  { $$ = $1;          }
+    | reg_lists plus_or_bar reg_list            { $$ = ($1 | $3);   }
+    ;
+
+plus_or_bar:
+      '+'
+    | '|'
+    ;
+
 reg_list:
-    /* empty */             { $$ = 0;                   }
-    | OPRD_REG              { $$ = (1 << $1);           }
-    | reg_list ',' OPRD_REG { $$ = ($1 | (1 << $3));    }
+      '{' reg_list_contents '}'     { $$ = $2; }
+    | OPRD_IMM                      { $$ = $1; }
+
+reg_list_contents:
+      /* empty */                           { $$ = 0;           }
+    | reg_list_atom                         { $$ = $1;          }
+    | reg_list_contents ',' reg_list_atom   { $$ = ($1 | $3);   }
+    ;
+
+reg_list_atom:
+      OPRD_REG                      { $$ = (1 << $1);   }
+    | OPRD_REG '-' OPRD_REG         {
+                                        int i;
+                                        unsigned int n = 0;
+                                        for (i = $1; i <= $3; i++)
+                                            n |= (1 << i);
+                                        $$ = n;
+                                    }
     ;
 
 src_reg:
@@ -133,9 +167,12 @@ shifter_operand:
         }
     | OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
         {
-            if ($5 >= (1 << 5))
+            unsigned int n = $5;
+            if (n == 32)
+                n = 0;
+            if (n >= (1 << 5))
                 yyerror("immediate value too large");
-            $$ = ($1 | $3 | ($5 << 7)); 
+            $$ = ($1 | $3 | (n << 7)); 
         }
     | OPRD_REG ',' OPRD_LSL_LIKE OPRD_REG
         {
@@ -160,15 +197,14 @@ load_am:
         {
             $$ = ((1 << 26) | (1 << 24) | ($2 << 16) | $5 | $7);
         }
-    | '[' OPRD_REG ']' ',' { lexpect(AE_OPRD); } load_am_postindexed
+    | '[' OPRD_REG ']' ',' { lexpect(AE_LAMS); } load_am_indexed
+        {
+            $$ = ((1 << 26) | $2 | $6); 
+        }
     | '[' OPRD_REG ']'
         {
             $$ = ((1 << 26) | (1 << 24) | ($2 << 16));
         }
-    ;
-
-load_am_postindexed:
-    /* TODO */
     ;
 
 load_am_indexed:
@@ -178,13 +214,21 @@ load_am_indexed:
         }
     | LAMS { lexpect(AE_OPRD); } OPRD_REG maybe_am_lsl_subclause
         {
-            $$ = ($1 | $3 | $4);
+            $$ = ($1 | $3 | $4 | (1 << 25));
         }
     ;
 
 maybe_am_lsl_subclause:
       /* empty */                       {   $$ = 0;                 }
-    | ',' OPRD_LSL_LIKE '#' OPRD_IMM    {   $$ = ($2 | ($4 << 7));  }
+    | ',' OPRD_LSL_LIKE '#' OPRD_IMM
+        {
+            unsigned int n = $4;
+            if (n == 32)
+                n = 0;
+            if (n >= (1 << 5))
+                yyerror("immediate value too large");
+            $$ = ($2 | (n << 7));
+        }
     ;
 
 branch_am:

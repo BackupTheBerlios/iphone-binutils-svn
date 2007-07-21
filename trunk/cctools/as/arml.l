@@ -38,7 +38,7 @@ static int input_string(char *buf, int max_size)
 %}
 
 %option noyywrap
-%x cond ccup lmam oprd smam expr bytm psru lams
+%x cond ccup lmam oprd smam expr bytm psru lams trns
 
 %%
 
@@ -74,6 +74,7 @@ static int input_string(char *buf, int max_size)
     "stm"   { yylval.nval = 0;                      return INST_STM;        }
     "str"   { yylval.nval = 0x04000000;             return INST_LDR_LIKE;   }
     "sub"   { yylval.nval = (0x2 << 21);            return INST_ADD_LIKE;   }
+    "swi"   { yylval.nval = (0xf << 24);            return INST_SWI;        }
     "teq"   { yylval.nval = (0x9 << 21);            return INST_CMP_LIKE;   }
     "tst"   { yylval.nval = (0x8 << 21);            return INST_CMP_LIKE;   }
     "umlal" { yylval.nval = (0x5 << 21)|(0x9 << 4); return INST_SMLAL_LIKE; }
@@ -108,11 +109,27 @@ static int input_string(char *buf, int max_size)
 }
 
 <lmam>{
-    "fd"        { yylval.nval = ((1 << 27) | (1 << 23));  return LMAM; }
+    "fa"        { yylval.nval = (1 << 27);                  return LMAM; }
+    "fd"        { yylval.nval = ((1 << 27) | (1 << 23));    return LMAM; }
+    "ea"        { yylval.nval = ((1 << 27) | (1 << 24));    return LMAM; }
+    "ed"        { yylval.nval = ((1<<27)|(1<<24)|(1<<23));  return LMAM; }
+
+    "ia"        { yylval.nval = ((1 << 27) | (1 << 23));    return LMAM; }
+    "ib"        { yylval.nval = ((1<<27)|(1<<24)|(1<<23));  return LMAM; }
+    "da"        { yylval.nval = (1 << 27);                  return LMAM; }
+    "db"        { yylval.nval = ((1 << 27) | (1 << 24));    return LMAM; }
 }
 
 <smam>{
-    "fd"        { yylval.nval = ((1 << 27) | (1 << 24));  return SMAM; }
+    "fd"        { yylval.nval = ((1 << 27) | (1 << 24));    return SMAM; }
+    "ed"        { yylval.nval = (1 << 27);                  return SMAM; }
+    "ea"        { yylval.nval = ((1 << 27) | (1 << 23));    return SMAM; }
+    "fa"        { yylval.nval = ((1<<27)|(1<<24)|(1<<23));  return SMAM; }
+
+    "ia"        { yylval.nval = ((1 << 27) | (1 << 23));    return SMAM; }
+    "ib"        { yylval.nval = ((1<<27)|(1<<24)|(1<<23));  return SMAM; }
+    "da"        { yylval.nval = (1 << 27);                  return SMAM; }
+    "db"        { yylval.nval = ((1 << 27) | (1 << 24));    return SMAM; }
 }
 
 <bytm>{
@@ -132,20 +149,25 @@ static int input_string(char *buf, int max_size)
     .           { yyless(0); yylval.nval = (1 << 23);     return LAMS; }
 }
 
+<trns>{
+    "t"         { yylval.nval=((1<<26)|(1<<21)|(1<<20));  return TRNS; }
+    .           { yyless(0); yylval.nval = 0;             return TRNS; }
+}
+
 <oprd>{
     "r"[0-9]+   {
                     yylval.nval = (unsigned int)strtol(yytext + 1,
-                        (char **)NULL, 10);
+                        (char **)NULL, 0);
                     return OPRD_REG;
                 }
     "a"[0-9]+   {
                     yylval.nval = (unsigned int)strtol(yytext + 1,
-                        (char **)NULL, 10) - 1;
+                        (char **)NULL, 0) - 1;
                     return OPRD_REG;
                 }
     "v"[0-9]+   {
                     yylval.nval = (unsigned int)strtol(yytext + 1,
-                        (char **)NULL, 10) + 3;
+                        (char **)NULL, 0) + 3;
                     return OPRD_REG;
                 }
     "lsl"       { yylval.nval = 0;          return OPRD_LSL_LIKE; }
@@ -162,7 +184,11 @@ static int input_string(char *buf, int max_size)
     "lr"        { yylval.nval = 14; return OPRD_REG; }
     "pc"        { yylval.nval = 15; return OPRD_REG; }
     [+-]?[0-9]+ {
-                    yylval.ival = (int)strtol(yytext, (char **)NULL, 10);
+                    yylval.ival = (int)strtol(yytext, (char **)NULL, 0);
+                    return OPRD_IMM;
+                }
+    "0x"[0-9a-fA-F]+ {
+                    yylval.ival = (int)strtol(yytext, (char **)NULL, 0);
                     return OPRD_IMM;
                 }
     [A-Za-z0-9_]    {
@@ -191,6 +217,8 @@ static int input_string(char *buf, int max_size)
 <*>"!"          { return '!'; }
 <*>"+"          { return '+'; }
 <*>"-"          { return '-'; }
+<*>"|"          { return '|'; }
+<*>"^"          { return '^'; }
 
 <*>[ \t]        /* eat whitespace */
 
@@ -210,6 +238,7 @@ void lexpect(int what)
         case AE_BYTM:   BEGIN(bytm);    break;
         case AE_PSRU:   BEGIN(psru);    break;
         case AE_LAMS:   BEGIN(lams);    break;
+        case AE_TRNS:   BEGIN(trns);    break;
         default:        abort();
     }
 }
