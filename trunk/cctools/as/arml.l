@@ -170,9 +170,9 @@ static int input_string(char *buf, int max_size)
                         (char **)NULL, 0) + 3;
                     return OPRD_REG;
                 }
-    "lsl"       { yylval.nval = 0;          return OPRD_LSL_LIKE; }
+    [al]"sl"    { yylval.nval = 0;          return OPRD_LSL_LIKE; }
     "lsr"       { yylval.nval = (1 << 5);   return OPRD_LSL_LIKE; }
-    "as"[rl]    { yylval.nval = (1 << 6);   return OPRD_LSL_LIKE; }
+    "asr"       { yylval.nval = (1 << 6);   return OPRD_LSL_LIKE; }
     "ror"       { yylval.nval = (3 << 5);   return OPRD_LSL_LIKE; }
     "rrx"       { yylval.nval = (3 << 5);   return OPRD_RRX;      }
     "wr"        { yylval.nval = 7;  return OPRD_REG; }

@@ -174,12 +174,12 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             break;
 
         case ARM_RELOC_PCREL_DATA_IMM12:
+            val -= 4;
             if (val < 0)
                 val = -val;
             else
                 n = (1 << 23);  /* set U bit */
             assert(val < (1 << 12) && val > 0);
-            val -= 4;
             n |= val;
             fill_reloc_value(buf, n, (1 << 23) | ((1 << 12) - 1));
             break;
