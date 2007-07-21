@@ -29,16 +29,18 @@ unsigned int instruction;
 %token <ival> OPRD_IMM
 %token <nval> INST_BL INST_BX INST_ADD_LIKE INST_LDM INST_LDR_LIKE INST_STM
 %token <nval> INST_MOV_LIKE INST_BKPT INST_CMP_LIKE INST_MLA INST_MUL INST_SWI
-%token <nval> INST_SMLAL_LIKE
+%token <nval> INST_SMLAL_LIKE INST_LDRH_LIKE
 %token <nval> OPRD_LSL_LIKE OPRD_RRX
 %token <eval> OPRD_EXP
+%token <nval> BYTM_HALF
 %token <nval> COND CCUP LMAM SMAM BYTM PSRU LAMS TRNS
 %type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
 %type  <nval> reg_list src_reg dest_reg shifter_operand load_am branch_am
 %type  <nval> exception_inst multiply_inst maybe_am_lsl_subclause
 %type  <nval> load_am_indexed reg_lists reg_list_atom reg_list_contents
-%type  <nval> maybe_hat maybe_imm_rotation
+%type  <nval> maybe_hat maybe_imm_rotation misc_ls_am load_body imm_with_u_bit
+%type  <nval> misc_ls_am_index
 
 %%
 
@@ -71,13 +73,17 @@ data_inst:
     ;
 
 load_inst:
-      INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_BYTM); } BYTM
-        { lexpect(AE_TRNS); } TRNS { lexpect(AE_OPRD); } dest_reg ','
+      INST_LDR_LIKE { lexpect(AE_COND); } COND { lexpect(AE_BYTM); } load_body
+        { $$ = ($1 | $3 | $5); }
+    ;
+
+load_body:
+      BYTM { lexpect(AE_TRNS); } TRNS { lexpect(AE_OPRD); } dest_reg ','
         { lexpect(AE_OPRD); } load_am
         {   
             unsigned int n;
-            n = ($1 | $3 | $5 | $7 | $9 | $12);
-            if ($7 && ((n >> 24) & 0xf) == 0x5 && (n & 0x0fff) == 0) {
+            n = ((1 << 26) | $1 | $3 | $5 | $8);
+            if ($3 && ((n >> 24) & 0xf) == 0x5 && (n & 0x0fff) == 0) {
                 /* if T is set and immediate operand is 0, then convert into
                  * a post-indexed instruction */
                 n &= ~(1 << 24);    /* clear 24th bit */
@@ -85,6 +91,8 @@ load_inst:
             }
             $$ = n;
         }
+    | BYTM_HALF { lexpect(AE_OPRD); } dest_reg ',' misc_ls_am
+        { $$ = ((1 << 7) | (1 << 5) | (1 << 4) | $1 | $3 | $5); }
     ; 
 
 load_mult_inst:
@@ -198,6 +206,27 @@ shifter_operand:
 maybe_imm_rotation:
       /* empty */       { $$ = 0;               }
     | ',' OPRD_IMM      { $$ = (($2 / 2) << 8); }
+    ;
+
+misc_ls_am:
+      '[' src_reg ',' { lexpect(AE_LAMS); } misc_ls_am_index ']' maybe_bang
+        { $$ = ((1 << 24) | (1 << 7) | (1 << 4) | $2 | $5 | $7); }
+    | '[' src_reg ']' ',' { lexpect(AE_LAMS); } misc_ls_am_index
+        { $$ = ($2 | $6); }
+    ;
+
+misc_ls_am_index:
+      '#' { lexpect(AE_OPRD); } imm_with_u_bit
+        {
+            $$ = ((1 << 22) | (1 << 7) | (1 << 4) | ((($3 & 0xf0) >> 4) << 8) |
+                ($3 & 0x0f));
+        }
+    | LAMS { lexpect(AE_OPRD); } OPRD_REG
+        { $$ = ((1 << 7) | (1 << 4) | $1 | $3); }
+    ;
+
+imm_with_u_bit:
+      OPRD_IMM      { $$ = ($1 <= 0 ? -$1 : ((1 << 23) | $1)); }
     ;
 
 load_am:

@@ -60,7 +60,7 @@ static int input_string(char *buf, int max_size)
     "cmp"   { yylval.nval = (0xa << 21);            return INST_CMP_LIKE;   }
     "eor"   { yylval.nval = (0x1 << 21);            return INST_ADD_LIKE;   }
     "ldm"   { yylval.nval = (0x1 << 20);            return INST_LDM;        }
-    "ldr"   { yylval.nval = 0x04100000;             return INST_LDR_LIKE;   }
+    "ldr"   { yylval.nval = (0x1 << 20);            return INST_LDR_LIKE;   }
     "mla"   { yylval.nval = (0x9 << 4)|(0x1 << 21); return INST_MLA;        }
     "mov"   { yylval.nval = (0xd << 21);            return INST_MOV_LIKE;   }
     "mul"   { yylval.nval = (0x9 << 4);             return INST_MUL;        }
@@ -72,7 +72,7 @@ static int input_string(char *buf, int max_size)
     "smlal" { yylval.nval = (0x7 << 21)|(0x9 << 4); return INST_SMLAL_LIKE; }
     "smull" { yylval.nval = (0x6 << 21)|(0x9 << 4); return INST_SMLAL_LIKE; }
     "stm"   { yylval.nval = 0;                      return INST_STM;        }
-    "str"   { yylval.nval = 0x04000000;             return INST_LDR_LIKE;   }
+    "str"   { yylval.nval = 0;                      return INST_LDR_LIKE;   }
     "sub"   { yylval.nval = (0x2 << 21);            return INST_ADD_LIKE;   }
     "swi"   { yylval.nval = (0xf << 24);            return INST_SWI;        }
     "teq"   { yylval.nval = (0x9 << 21);            return INST_CMP_LIKE;   }
@@ -133,8 +133,9 @@ static int input_string(char *buf, int max_size)
 }
 
 <bytm>{
-    "b"         { yylval.nval = (1 << 22);                return BYTM; }
-    .           { yyless(0); yylval.nval = 0;             return BYTM; }
+    "b"         { yylval.nval = (1 << 22);                return BYTM;      }
+    "h"         { yylval.nval = 0xb0;                     return BYTM_HALF; }
+    .           { yyless(0); yylval.nval = 0;             return BYTM;      }
 }
 
 <psru>{
