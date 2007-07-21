@@ -5,7 +5,7 @@ CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__
 LLVM_GCC=llvm-gcc
 CFLAGS=-emit-llvm
 LLC=llc
-LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mattr=+v6
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic
 AS=arm-apple-darwin-as
 ASFLAGS=-arch arm
 LD=arm-apple-darwin-ld
