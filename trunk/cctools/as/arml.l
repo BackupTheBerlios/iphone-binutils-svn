@@ -187,7 +187,6 @@ W   ([^a-zA-Z0-9_])
                     return OPRD_IMM;
                 }
     "0x"[0-9a-fA-F]+ {
-                    /* FIXME: is this incorrect sometimes b/c of signs? */
                     yylval.ival = (int)strtol(yytext, (char **)NULL, 0);
                     return OPRD_IMM;
                 }

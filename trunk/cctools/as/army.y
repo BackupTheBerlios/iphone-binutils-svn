@@ -233,7 +233,7 @@ misc_ls_am:
     | '[' src_reg ']' ',' { lexpect(AE_LAMS); } misc_ls_am_index
         { $$ = ($2 | $6); }
     | '[' src_reg ']'
-        { $$ = ((1 << 22) | $2); }
+        { $$ = ((1 << 24) | (1 << 22) | (1 << 23) | $2); }
     ;
 
 misc_ls_am_index:
@@ -247,7 +247,7 @@ misc_ls_am_index:
     ;
 
 imm_with_u_bit:
-      OPRD_IMM      { $$ = ($1 <= 0 ? -$1 : ((1 << 23) | $1)); }
+      OPRD_IMM      { $$ = ($1 < 0 ? -$1 : ((1 << 23) | $1)); }
     ;
 
 load_am:
@@ -258,7 +258,7 @@ load_am:
             n = $1 - 8;
             register_reloc_type(ARM_RELOC_PCREL_DATA_IMM12, 4, 1);
             $$ = ((1 << 26) | (1 << 24) | (15 << 16) |
-                (n <= 0 ? -n : (n | (1 << 23)))); 
+                (n < 0 ? -n : (n | (1 << 23)))); 
         }
     | '[' OPRD_REG ',' { lexpect(AE_LAMS); } load_am_indexed ']' maybe_bang
         {
@@ -270,14 +270,14 @@ load_am:
         }
     | '[' OPRD_REG ']'
         {
-            $$ = ((1 << 26) | (1 << 24) | ($2 << 16));
+            $$ = ((1 << 26) | (1 << 24) | (1 << 23) | ($2 << 16));
         }
     ;
 
 load_am_indexed:
       '#' { lexpect(AE_OPRD); } OPRD_IMM
         {
-            $$ = ($3 <= 0 ? -$3 : ($3 | (1 << 23)));
+            $$ = ($3 < 0 ? -$3 : ($3 | (1 << 23)));
         }
     | LAMS { lexpect(AE_OPRD); } OPRD_REG maybe_am_lsl_subclause
         {
