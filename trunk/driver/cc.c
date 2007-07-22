@@ -23,7 +23,8 @@
 #define FOR_DRIVER                  0
 #define FOR_COMPILER                1
 #define FOR_LINKER                  2
-#define FOR_IGNORE                  3
+#define FOR_LLC                     3 
+#define FOR_IGNORE                  4
 
 struct arg_spec {
     char *name;
@@ -77,6 +78,7 @@ struct arg_spec arg_specs[] = {
     { "o",                      FOR_DRIVER,     1,  1 },
     { "pedantic",               FOR_COMPILER,   0,  0 },
     { "r",                      FOR_LINKER,     0,  0 },
+    { "relocation-model",       FOR_LLC,        0,  1 },
     { "std",                    FOR_COMPILER,   0,  1 },
     { "v",                      FOR_DRIVER,     0,  0 },
     { "w",                      FOR_COMPILER,   0,  0 }
@@ -87,6 +89,7 @@ int verbose_on = 0;
 struct input_file *input_files = NULL;
 char *output_path = NULL;
 struct config_option *config = NULL;
+struct arg_list *llc_args;
 
 void create_arg(struct arg_list *arg_list, char *data)
 {
@@ -178,6 +181,7 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
     *todo = 0;
     compiler_args->first = compiler_args->last = NULL;
     linker_args->first = linker_args->last = NULL;
+    llc_args = (struct arg_list *)calloc(sizeof(struct arg_list), 1);
 
     for (i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -207,6 +211,9 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                         break;
                     case FOR_LINKER:
                         this_arg_list = linker_args;
+                        break;
+                    case FOR_LLC:
+                        this_arg_list = llc_args;
                 }
 
                 create_arg(this_arg_list, argv[i]);
@@ -453,7 +460,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_TRANSLATE_BYTECODE) {
             prepare_outpath(last_op, TODO_TRANSLATE_BYTECODE, ".s", &outpath,
                 template);
-            execute_step("LLC", "LLCFLAGS", NULL, 3, "-o", outpath, inpath);
+            execute_step("LLC", "LLCFLAGS", llc_args, 3, "-o", outpath,
+                inpath);
             
             free(inpath);
             inpath = outpath;

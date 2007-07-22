@@ -146,6 +146,9 @@ unsigned long r_type)
 	      return(TRUE);
 	    break;
     case CPU_TYPE_ARM:
+        if (r_type == ARM_RELOC_SECTDIFF ||
+            r_type == ARM_RELOC_LOCAL_SECTDIFF)
+            return TRUE;
         return FALSE;
 	default:
 	    fatal("internal error: reloc_has_pair() called with unknown "

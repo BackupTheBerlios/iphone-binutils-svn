@@ -117,6 +117,8 @@ __private_extern__ struct arch_flag arch_flag =
     { "ppc",    CPU_TYPE_POWERPC, CPU_SUBTYPE_POWERPC_ALL };
 #elif __i386__
     { "i386",   CPU_TYPE_I386,    CPU_SUBTYPE_I386_ALL };
+#elif __arm__
+    { "arm",    CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_ALL };
 #elif
 #error "unsupported architecture for static KLD"
 #endif
