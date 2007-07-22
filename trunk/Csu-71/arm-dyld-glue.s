@@ -21,9 +21,9 @@ Ldyld_stub_binding_helper$dclb_scv:
     ldr pc,[pc,r12]
 
 Ldyld_stub_binding_helper$mhsn:
-    .long dyld__mh_execute_header-(Ldyld_stub_binding_helper$mhsn_scv+8)
+    .long dyld__mh_dylib_header-(Ldyld_stub_binding_helper$mhsn_scv+8)
 Ldyld_stub_binding_helper$dclb:
-    .long Ldyld_content_lazy_binder-(Ldyld_stub_binding_helper$dclb_scv+8)
+    .long dyld_content_lazy_binder-(Ldyld_stub_binding_helper$dclb_scv+8)
 #else
     str ip,[sp,#-4]!
     ldr ip,Ldyld_stub_binding_helper$mhsn
@@ -34,7 +34,7 @@ Ldyld_stub_binding_helper$dclb:
 Ldyld_stub_binding_helper$mhsn:
     .long MACH_HEADER_SYMBOL_NAME
 Ldyld_stub_binding_helper$dclb:
-    .long Ldyld_content_lazy_binder
+    .long dyld_content_lazy_binder
 #endif
 
     .text
@@ -58,12 +58,17 @@ Ldyld_func_lookup$dcfl:
 
     .data
     .align 2 
+#ifdef __PIC__
+dyld__mh_dylib_header:
+    .long MACH_HEADER_SYMBOL_NAME
+#else
 dyld__mh_execute_header:
     .long MACH_HEADER_SYMBOL_NAME
+#endif
 
     .dyld
     .align 2 
-Ldyld_content_lazy_binder:
+dyld_content_lazy_binder:
     .long 0x8fe01000
 dyld_func_lookup_pointer:
     .long 0x8fe01008
