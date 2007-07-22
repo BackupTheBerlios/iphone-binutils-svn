@@ -6,7 +6,7 @@ LINK = ../../cctools/ld/ld_dir/ld.NEW  ;
 LINKFLAGS = -r -keep_private_externs ;
 
 SEARCH_SOURCE = .. ;
-CCFLAGS = -v -Wall -DDYNAMIC_NO_PIC -relocation-model=dynamic-no-pic
+CCFLAGS = -v -Wall -DDYNAMIC_NO_PIC
     -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__ ;
 
 Objects arm-start.s arm-dyld-glue.s crt.c ;
