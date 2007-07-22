@@ -71,6 +71,7 @@ struct arg_spec arg_specs[] = {
     { "ansi",                   FOR_COMPILER,   0,  0 },
     { "arch",                   FOR_IGNORE,     1,  0 },
     { "c",                      FOR_DRIVER,     0,  0 },
+    { "dynamiclib",             FOR_DRIVER,     0,  0 },
     { "f",                      FOR_COMPILER,   0,  1 },
     { "g",                      FOR_COMPILER,   0,  0 },
     { "keep_private_externs",   FOR_LINKER,     0,  0 },
@@ -85,7 +86,7 @@ struct arg_spec arg_specs[] = {
 };
 
 char *prog_name;
-int verbose_on = 0;
+int verbose_on = 0, make_dylib = 0;
 struct input_file *input_files = NULL;
 char *output_path = NULL;
 struct config_option *config = NULL;
@@ -204,6 +205,8 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     output_path = argv[++i];
                 else if (!strcmp(spec->name, "v"))
                     verbose_on = 1;
+                else if (!strcmp(spec->name, "dynamiclib"))
+                    make_dylib = 1;
             } else {
                 switch (spec->for_what) {
                     case FOR_COMPILER:
@@ -460,8 +463,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_TRANSLATE_BYTECODE) {
             prepare_outpath(last_op, TODO_TRANSLATE_BYTECODE, ".s", &outpath,
                 template);
-            execute_step("LLC", "LLCFLAGS", llc_args, 3, "-o", outpath,
-                inpath);
+            execute_step("LLC", make_dylib ? "LLCFLAGS_DYLIB" : "LLCFLAGS",
+                llc_args, 3, "-o", outpath, inpath);
             
             free(inpath);
             inpath = outpath;
@@ -503,7 +506,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
 
     /* Run the linking step. */
     if (req_todo & TODO_LINK)
-        execute_step("LD", "LDFLAGS", linker_args, 2, "-o", output_path);
+        execute_step("LD", make_dylib ? "LDFLAGS_DYLIB" : "LDFLAGS",
+            linker_args, 2, "-o", output_path);
 }
 
 int main(int argc, char **argv)

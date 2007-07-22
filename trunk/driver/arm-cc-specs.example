@@ -5,10 +5,13 @@ CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__
 LLVM_GCC=llvm-gcc
 CFLAGS=-emit-llvm
 LLC=llc
-LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic
-AS=arm-apple-darwin-as
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic -f
+LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=generic -relocation-model=pic
+AS=/usr/local/share/iphone/bin/as
 ASFLAGS=-arch arm
-LD=arm-apple-darwin-ld
-LDFLAGS=-syslibroot /usr/local/share/iphone/Heavenly1A543a.UserBundle -lSystem -lgcc_s_v6.1 /usr/local/share/iphone/csu/crt1.o
+LD=/usr/local/share/iphone/bin/ld.NEW
+LDFLAGS=-syslibroot /usr/local/share/iphone/Heavenly1A543a.UserBundle -lSystem -lgcc_s_v6.1 /usr/local/share/iphone/csu/dynamic-no-pic/crt1.o
+LDFLAGS_DYLIB=-syslibroot /usr/local/share/iphone/Heavenly1A543a.UserBundle -lSystem -lgcc_s_v6.1 -L/usr/local/share/iphone/csu/pic -ldylib1.o -single_module -dylib -dynamic
+
 
 
