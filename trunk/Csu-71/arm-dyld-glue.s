@@ -10,33 +10,56 @@
     .private_extern dyld_stub_binding_helper
     .align 2 
 dyld_stub_binding_helper:
+#ifdef __PIC__
+    str r12,[sp,#-4]!
+    ldr r12,Ldyld_stub_binding_helper$mhsn
+Ldyld_stub_binding_helper$mhsn_scv:
+    ldr r12,[pc,r12]
+    str r12,[sp,#-4]!
+    ldr r12,Ldyld_stub_binding_helper$dclb
+Ldyld_stub_binding_helper$dclb_scv:
+    ldr pc,[pc,r12]
+
+Ldyld_stub_binding_helper$mhsn:
+    .long dyld__mh_execute_header-(Ldyld_stub_binding_helper$mhsn_scv+8)
+Ldyld_stub_binding_helper$dclb:
+    .long Ldyld_content_lazy_binder-(Ldyld_stub_binding_helper$mhsn_scv+8)
+#else
     str ip,[sp,#-4]!
-Ldyld_stub_binding_helper$scv:
     ldr ip,Ldyld_stub_binding_helper$mhsn
     str ip,[sp,#-4]!
-Ldyld_stub_binding_helper$scv2:
     ldr ip,Ldyld_stub_binding_helper$dclb
     ldr pc,[ip,#0]
 
 Ldyld_stub_binding_helper$mhsn:
-    .long __mh_execute_header
+    .long MACH_HEADER_SYMBOL_NAME
 Ldyld_stub_binding_helper$dclb:
     .long Ldyld_content_lazy_binder
+#endif
 
     .text
     .private_extern __dyld_func_lookup
     .align 2 
 __dyld_func_lookup:
+#ifdef __PIC__
+    ldr r12,[pc,#0]
+Ldyld_func_lookup$dcfl_scv:
+    ldr pc,[pc,r12]
+
+Ldyld_func_lookup$dcfl:
+    .long dyld_func_lookup_pointer-(Ldyld_func_lookup$dcfl_scv+8)
+#else
     ldr ip,Ldyld_func_lookup$dcfl
     ldr pc,[ip,#0]
 
 Ldyld_func_lookup$dcfl:
     .long dyld_func_lookup_pointer
+#endif
 
     .data
     .align 2 
 dyld__mh_execute_header:
-    .long __mh_execute_header
+    .long MACH_HEADER_SYMBOL_NAME
 
     .dyld
     .align 2 
