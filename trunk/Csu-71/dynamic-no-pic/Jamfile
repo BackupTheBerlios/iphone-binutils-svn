@@ -1,5 +1,5 @@
 AS = arm-apple-darwin-cc ;
-ASFLAGS = -c ;
+ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -v ;
 CC = arm-apple-darwin-cc ;
 OPTIM = -O0 ;
 LINK = ../../cctools/ld/ld_dir/ld.NEW  ;

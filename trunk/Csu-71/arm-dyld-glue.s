@@ -23,7 +23,7 @@ Ldyld_stub_binding_helper$dclb_scv:
 Ldyld_stub_binding_helper$mhsn:
     .long dyld__mh_execute_header-(Ldyld_stub_binding_helper$mhsn_scv+8)
 Ldyld_stub_binding_helper$dclb:
-    .long Ldyld_content_lazy_binder-(Ldyld_stub_binding_helper$mhsn_scv+8)
+    .long Ldyld_content_lazy_binder-(Ldyld_stub_binding_helper$dclb_scv+8)
 #else
     str ip,[sp,#-4]!
     ldr ip,Ldyld_stub_binding_helper$mhsn
