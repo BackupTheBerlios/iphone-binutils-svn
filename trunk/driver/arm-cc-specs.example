@@ -1,7 +1,7 @@
 # Customize to match your system. Then, place this file in ~/.arm-cc-specs
 # (where ~ represents your home dir).
 PREPROCESS=llvm-gcc
-CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__
+CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__ -isystem /usr/share/iphone/include
 LLVM_GCC=llvm-gcc
 CFLAGS=-emit-llvm
 LLC=llc
