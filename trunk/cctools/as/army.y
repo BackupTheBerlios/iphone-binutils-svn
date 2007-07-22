@@ -198,7 +198,7 @@ shifter_operand_lsl_arg:
             if (n == 32)
                 n = 0;
             if (n >= (1 << 5))
-                yyerror("immediate value too large");
+                as_bad("immediate value (%d) too large", $2);
             $$ = (n << 7); 
         }
     | OPRD_REG
@@ -294,7 +294,7 @@ maybe_am_lsl_subclause:
             if (n == 32)
                 n = 0;
             if (n >= (1 << 5))
-                yyerror("immediate value too large");
+                as_bad("immediate value (%d) too large", $6);
             $$ = ($3 | (n << 7));
         }
     ;

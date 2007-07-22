@@ -72,6 +72,27 @@ void md_number_to_chars(char *buf, signed_expr_t val, int n)
 {
     number_to_chars_littleendian(buf, val, n);
 }
+/* ----------------------------------------------------------------------------
+ *   Utility routines
+ * ------------------------------------------------------------------------- */
+
+unsigned int generate_shifted_immediate(unsigned int n)
+{
+    unsigned int k = 0, m;
+
+    for (k = 0; k < 32; k += 2) {
+        m = ROTL(n, k);
+
+        if (k != 0)
+            fprintf(stderr, "rotating %d by %d to make %d\n", n, k, m);
+
+        if (m <= 0xff)
+            return (((k / 2) << 8) | m);
+    }
+
+    as_bad("immediate value (%d) too large", n);
+    return 0;
+}
 
 /* ----------------------------------------------------------------------------
  *   Tokenizing and parsing 
@@ -192,9 +213,8 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             break;
 
         case ARM_RELOC_SHIFT_IMM12:
-            if (val > 0xff)
-                as_bad("immediate value too large");
-            fill_reloc_value(buf, (unsigned int)val, 0x000000ff); 
+            n = generate_shifted_immediate(val);
+            fill_reloc_value(buf, (unsigned int)n, 0x00000fff); 
             break;
 
         default:

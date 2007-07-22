@@ -1,0 +1,4 @@
+This will be a project to create a floating point library for the ARM. Apple
+forgot to export some floating point glue functions, so we will fill in the
+gap with a dylib of our own.
+

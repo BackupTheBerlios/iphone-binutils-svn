@@ -7,6 +7,8 @@
 #include "struc-symbol.h"
 #include "mach-o/arm/reloc.h"
 
+#define ROTL(n, k)  (((n) << (k)) | ((n) >> (32 - (k))))
+
 /* We INITialize in this phase. */
 #define AE_INIT 0
 /* Expect a CONDition. */
