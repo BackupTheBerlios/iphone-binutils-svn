@@ -38,9 +38,10 @@ static int input_string(char *buf, int max_size)
 %}
 
 %option noyywrap
-%x cond ccup lmam oprd smam expr bytm psru lams trns lslk
+%x cond ccup lmam oprd smam expr bytm psru lams trns lslk space
 
 W   ([^a-zA-Z0-9_])
+SPACE [ \t]
 
 %%
 
@@ -213,6 +214,11 @@ W   ([^a-zA-Z0-9_])
     .           {   yyless(0); BEGIN(oprd);     }
 }
 
+<space>{
+    {SPACE}+    { return SP; }
+    .           { as_bad("unexpected character '%s', expecting white space", yytext); }
+}
+
 <*>"#"          { return '#'; }
 <*>"["          { return '['; }
 <*>"]"          { return ']'; }
@@ -225,7 +231,7 @@ W   ([^a-zA-Z0-9_])
 <*>"|"          { return '|'; }
 <*>"^"          { return '^'; }
 
-<*>[ \t]        /* eat whitespace */
+<*>{SPACE}      /* eat whitespace */
 
 <*>.            { as_bad("unexpected character '%s'", yytext); }
 
@@ -245,6 +251,7 @@ void lexpect(int what)
         case AE_LAMS:   BEGIN(lams);    break;
         case AE_TRNS:   BEGIN(trns);    break;
         case AE_LSLK:   BEGIN(lslk);    break;
+        case AE_SP:     BEGIN(space);   break;
         default:        abort();
     }
 }

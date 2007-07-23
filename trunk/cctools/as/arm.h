@@ -32,6 +32,8 @@
  * because GAS eliminates any whitespace between the keyword and a register
  * name, if one follows it (resulting in junk like "mov r5,r6,asrr7") */
 #define AE_LSLK 10
+/* used to separate instructions from operands */
+#define AE_SP 11
 
 struct fix_info {
     int needed;
