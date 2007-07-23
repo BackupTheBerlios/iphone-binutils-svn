@@ -1,7 +1,7 @@
 VPATH = ../../../.././gdb/testsuite/gdb.apple/xcode
 srcdir = ../../../.././gdb/testsuite/gdb.apple/xcode
 
-SUBDIRS = 
+SUBDIRS =  gdb.stabs
 
 all:
 	@echo "Nothing to be done for all..."

@@ -32,12 +32,11 @@ ac_cv_env_build_alias_value=i686-apple-darwin8.10.1
 ac_cv_env_host_alias_set=set
 ac_cv_env_host_alias_value=i686-apple-darwin8.10.1
 ac_cv_env_target_alias_set=set
-ac_cv_env_target_alias_value=arm-unknown-darwin
+ac_cv_env_target_alias_value=arm-apple-darwin
 ac_cv_exeext=${ac_cv_exeext=}
 ac_cv_func___argz_count=${ac_cv_func___argz_count=no}
 ac_cv_func___argz_next=${ac_cv_func___argz_next=no}
 ac_cv_func___argz_stringify=${ac_cv_func___argz_stringify=no}
-ac_cv_func__doprnt=${ac_cv_func__doprnt=no}
 ac_cv_func__mcleanup=${ac_cv_func__mcleanup=no}
 ac_cv_func_alloca_works=${ac_cv_func_alloca_works=yes}
 ac_cv_func_canonicalize_file_name=${ac_cv_func_canonicalize_file_name=no}
@@ -46,10 +45,7 @@ ac_cv_func_fork_works=${ac_cv_func_fork_works=yes}
 ac_cv_func_getcwd=${ac_cv_func_getcwd=yes}
 ac_cv_func_getgid=${ac_cv_func_getgid=yes}
 ac_cv_func_getpagesize=${ac_cv_func_getpagesize=yes}
-ac_cv_func_gettimeofday=${ac_cv_func_gettimeofday=yes}
 ac_cv_func_getuid=${ac_cv_func_getuid=yes}
-ac_cv_func_memcpy=${ac_cv_func_memcpy=yes}
-ac_cv_func_memmove=${ac_cv_func_memmove=yes}
 ac_cv_func_mmap_fixed_mapped=${ac_cv_func_mmap_fixed_mapped=yes}
 ac_cv_func_monstartup=${ac_cv_func_monstartup=yes}
 ac_cv_func_munmap=${ac_cv_func_munmap=yes}
@@ -58,7 +54,6 @@ ac_cv_func_pread64=${ac_cv_func_pread64=no}
 ac_cv_func_putenv=${ac_cv_func_putenv=yes}
 ac_cv_func_realpath=${ac_cv_func_realpath=yes}
 ac_cv_func_sbrk=${ac_cv_func_sbrk=yes}
-ac_cv_func_select=${ac_cv_func_select=yes}
 ac_cv_func_setenv=${ac_cv_func_setenv=yes}
 ac_cv_func_setlocale=${ac_cv_func_setlocale=yes}
 ac_cv_func_setpgid=${ac_cv_func_setpgid=yes}
@@ -67,18 +62,14 @@ ac_cv_func_setpgrp_void=${ac_cv_func_setpgrp_void=no}
 ac_cv_func_sigaction=${ac_cv_func_sigaction=yes}
 ac_cv_func_sigprocmask=${ac_cv_func_sigprocmask=yes}
 ac_cv_func_sigsetmask=${ac_cv_func_sigsetmask=yes}
-ac_cv_func_socket=${ac_cv_func_socket=yes}
 ac_cv_func_socketpair=${ac_cv_func_socketpair=yes}
 ac_cv_func_stpcpy=${ac_cv_func_stpcpy=yes}
 ac_cv_func_strcasecmp=${ac_cv_func_strcasecmp=yes}
 ac_cv_func_strchr=${ac_cv_func_strchr=yes}
-ac_cv_func_strtod=${ac_cv_func_strtod=yes}
-ac_cv_func_strtoul=${ac_cv_func_strtoul=yes}
 ac_cv_func_syscall=${ac_cv_func_syscall=yes}
 ac_cv_func_ttrace=${ac_cv_func_ttrace=no}
 ac_cv_func_vfork=${ac_cv_func_vfork=yes}
 ac_cv_func_vfork_works=${ac_cv_func_vfork_works=yes}
-ac_cv_func_vprintf=${ac_cv_func_vprintf=yes}
 ac_cv_func_wborder=${ac_cv_func_wborder=yes}
 ac_cv_func_wctype=${ac_cv_func_wctype=yes}
 ac_cv_have_decl_free=${ac_cv_have_decl_free=yes}
@@ -96,7 +87,6 @@ ac_cv_header_ctype_h=${ac_cv_header_ctype_h=yes}
 ac_cv_header_cursesX_h=${ac_cv_header_cursesX_h=no}
 ac_cv_header_curses_h=${ac_cv_header_curses_h=yes}
 ac_cv_header_dirent_dirent_h=${ac_cv_header_dirent_dirent_h=yes}
-ac_cv_header_fcntl_h=${ac_cv_header_fcntl_h=yes}
 ac_cv_header_gnu_libc_version_h=${ac_cv_header_gnu_libc_version_h=no}
 ac_cv_header_inttypes_h=${ac_cv_header_inttypes_h=yes}
 ac_cv_header_libintl_h=${ac_cv_header_libintl_h=yes}
@@ -141,7 +131,6 @@ ac_cv_header_sys_reg_h=${ac_cv_header_sys_reg_h=no}
 ac_cv_header_sys_select_h=${ac_cv_header_sys_select_h=yes}
 ac_cv_header_sys_stat_h=${ac_cv_header_sys_stat_h=yes}
 ac_cv_header_sys_syscall_h=${ac_cv_header_sys_syscall_h=yes}
-ac_cv_header_sys_time_h=${ac_cv_header_sys_time_h=yes}
 ac_cv_header_sys_types_h=${ac_cv_header_sys_types_h=yes}
 ac_cv_header_sys_user_h=${ac_cv_header_sys_user_h=yes}
 ac_cv_header_sys_wait_h=${ac_cv_header_sys_wait_h=yes}
@@ -149,7 +138,6 @@ ac_cv_header_term_h=${ac_cv_header_term_h=yes}
 ac_cv_header_termio_h=${ac_cv_header_termio_h=no}
 ac_cv_header_termios_h=${ac_cv_header_termios_h=yes}
 ac_cv_header_thread_db_h=${ac_cv_header_thread_db_h=no}
-ac_cv_header_time=${ac_cv_header_time=yes}
 ac_cv_header_time_h=${ac_cv_header_time_h=yes}
 ac_cv_header_unistd_h=${ac_cv_header_unistd_h=yes}
 ac_cv_header_values_h=${ac_cv_header_values_h=no}
@@ -192,7 +180,6 @@ ac_cv_prog_cc_static_works=${ac_cv_prog_cc_static_works=no}
 ac_cv_prog_cc_stdc=${ac_cv_prog_cc_stdc=}
 ac_cv_prog_cc_wl=${ac_cv_prog_cc_wl=-Wl,}
 ac_cv_prog_egrep=${ac_cv_prog_egrep='grep -E'}
-ac_cv_prog_gcc_traditional=${ac_cv_prog_gcc_traditional=no}
 ac_cv_prog_make_make_set=${ac_cv_prog_make_make_set=yes}
 ac_cv_search_gethostbyname=${ac_cv_search_gethostbyname='none required'}
 ac_cv_search_opendir=${ac_cv_search_opendir='none required'}
@@ -200,8 +187,8 @@ ac_cv_search_socketpair=${ac_cv_search_socketpair='none required'}
 ac_cv_search_strerror=${ac_cv_search_strerror='none required'}
 ac_cv_search_tgetent=${ac_cv_search_tgetent='none required'}
 ac_cv_search_waddstr=${ac_cv_search_waddstr=-lncurses}
-ac_cv_target=${ac_cv_target=arm-unknown-darwin}
-ac_cv_target_alias=${ac_cv_target_alias=arm-unknown-darwin}
+ac_cv_target=${ac_cv_target=arm-apple-darwin}
+ac_cv_target_alias=${ac_cv_target_alias=arm-apple-darwin}
 ac_cv_type_off_t=${ac_cv_type_off_t=yes}
 ac_cv_type_pid_t=${ac_cv_type_pid_t=yes}
 ac_cv_type_signal=${ac_cv_type_signal=void}
@@ -210,7 +197,6 @@ ac_cv_type_socklen_t=${ac_cv_type_socklen_t=yes}
 ac_cv_type_uintptr_t=${ac_cv_type_uintptr_t=yes}
 ac_cv_var__etext=${ac_cv_var__etext=no}
 ac_cv_working_alloca_h=${ac_cv_working_alloca_h=yes}
-am_cv_CC_dependencies_compiler_type=${am_cv_CC_dependencies_compiler_type=gcc3}
 am_cv_func_iconv=${am_cv_func_iconv=yes}
 am_cv_lib_iconv=${am_cv_lib_iconv=yes}
 am_cv_prog_cc_stdc=${am_cv_prog_cc_stdc=}

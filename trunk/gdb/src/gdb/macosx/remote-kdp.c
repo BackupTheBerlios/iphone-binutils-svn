@@ -33,6 +33,12 @@
 #undef KDP_TARGET_POWERPC
 #endif
 
+#if TARGET_ARM
+#define KDP_TARGET_ARM 1
+#else
+#undef KDP_TARGET_ARM
+#endif
+
 #if KDP_TARGET_POWERPC
 #include "ppc-macosx-thread-status.h"
 #include "ppc-macosx-regs.h"
@@ -310,6 +316,8 @@ kdp_attach (char *args, int from_tty)
   kdp_set_little_endian (&c);
 #elif KDP_TARGET_I386
   kdp_set_big_endian (&c);
+#elif KDP_TARGET_ARM
+  kdp_set_little_endian (&c);
 #else
 #error "unsupported architecture"
 #endif
@@ -499,6 +507,8 @@ kdp_reattach_command (char *args, int from_tty)
   kdp_set_little_endian (&c);
 #elif KDP_TARGET_I386
   kdp_set_big_endian (&c);
+#elif KDP_TARGET_ARM
+  kdp_set_little_endian(&c);
 #else
 #error "unsupported architecture"
 #endif
@@ -552,6 +562,8 @@ kdp_reboot_command (char *args, int from_tty)
   kdp_set_little_endian (&c);
 #elif KDP_TARGET_I386
   kdp_set_big_endian (&c);
+#elif KDP_TARGET_ARM
+  kdp_set_little_endian(&c);
 #else
 #error "unsupported architecture"
 #endif

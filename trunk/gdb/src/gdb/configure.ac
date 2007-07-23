@@ -1486,7 +1486,7 @@ fi
 
 target_makefile_frag=${srcdir}/config/${gdb_target_cpu}/${gdb_target}.mt
 if test ! -f ${target_makefile_frag}; then
-  AC_MSG_ERROR("*** Gdb does not support target ${target}")
+  AC_MSG_ERROR("*** Gdb does not support target ${target} (looked for ${gdb_target_cpu}/${gdb_target}.mt)")
 fi
 frags="$frags $target_makefile_frag"
 

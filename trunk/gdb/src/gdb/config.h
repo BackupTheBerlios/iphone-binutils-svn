@@ -43,7 +43,7 @@
 /* #undef GDB_OSABI_DEFAULT */
 
 /* targetfile */
-#define GDB_TM_FILE "config/arm/tm-embed.h"
+#define GDB_TM_FILE "config/arm/tm-arm-macosx.h"
 
 /* hostfile */
 /* #undef GDB_XM_FILE */

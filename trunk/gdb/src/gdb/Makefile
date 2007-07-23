@@ -22,8 +22,8 @@ prefix = /usr/local
 exec_prefix = ${prefix}
 
 host_alias = i686-apple-darwin8.10.1
-target_alias = arm-unknown-darwin
-program_transform_name = s,^,arm-darwin-,
+target_alias = arm-apple-darwin
+program_transform_name = s,^,arm-apple-darwin-,
 bindir = ${exec_prefix}/bin
 libdir = ${exec_prefix}/lib
 tooldir = $(libdir)/$(target_alias)
@@ -438,13 +438,27 @@ SIM_OBS =
 # Host and target-dependent makefile fragments come in here.
 
 
-# Target: ARM embedded system
-TDEPFILES= arm-tdep.o remote-rdp.o remote-rdi.o
-TDEPLIBS= rdi-share/libangsd.a
-DEPRECATED_TM_FILE= config/arm/tm-embed.h
+# APPLE LOCAL file Darwin
+# Target: ARM running Mac OS X
 
-SIM_OBS = remote-sim.o
-SIM = ../sim/arm/libsim.a
+MT_CFLAGS = \
+	-DTARGET_ARM \
+	-I$(srcdir)/macosx
+
+TDEPFILES = \
+    arm-tdep.o \
+	core-macho.o \
+	remote-kdp.o \
+	kdp-udp.o \
+	kdp-transactions.o \
+	kdp-protocol.o \
+	macosx-tdep.o \
+	machoread.o \
+	symread.o \
+	pefread.o
+
+DEPRECATED_TM_FILE = config/arm/tm-arm-macosx.h
+
 # End of host and target-dependent makefile fragments
 
 # Possibly ignore the simulator.  If the simulator is being ignored,
@@ -485,7 +499,7 @@ FLAGS_TO_PASS = \
 # Flags that we pass when building the testsuite.
 
 # empty for native, $(target_alias)/ for cross
-target_subdir = arm-unknown-darwin/
+target_subdir = arm-apple-darwin/
 
 CC_FOR_TARGET = ` \
   if [ -f $${rootme}/../gcc/xgcc ] ; then \
@@ -982,7 +996,7 @@ BASE_OBS = \
 
 TSOBS = inflow.o
 
-SUBDIRS =  doc testsuite rdi-share
+SUBDIRS =  doc testsuite
 
 # For now, shortcut the "configure GDB for fewer languages" stuff.
 YYFILES = c-exp.c \
@@ -1375,7 +1389,7 @@ subdir_do: force
 		else true ; fi ; \
 	done
 
-Makefile: Makefile.in config.status  .././gdb/config/arm/embed.mt
+Makefile: Makefile.in config.status  .././gdb/config/arm/macosx.mt
 	$(SHELL) config.status
 	touch Makefile stamp-h
 

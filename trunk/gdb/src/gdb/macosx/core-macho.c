@@ -28,6 +28,7 @@
 #elif defined (TARGET_I386)
 #include "i386-macosx-thread-status.h"
 #include "i386-macosx-tdep.h"
+#elif defined(TARGET_ARM)
 #else
 #error "unsupported architecture"
 #endif
@@ -78,6 +79,8 @@ check_thread (bfd *abfd, asection *asect, unsigned int num)
   const char *expected = "LC_THREAD.PPC_THREAD_STATE.";
 #elif defined (TARGET_I386)
   const char *expected = "LC_THREAD.i386_THREAD_STATE.";
+#elif defined(TARGET_ARM)
+  const char *expected = "LC_THREAD.ARM_THREAD_STATE.";
 #else
 #error "unsupported architecture"
 #endif
@@ -281,6 +284,8 @@ core_fetch_section_registers (asection *sec, int regno)
   ppc_macosx_fetch_gp_registers ((gdb_ppc_thread_state_t *) regs);
 #elif defined (TARGET_I386)
   i386_macosx_fetch_gp_registers ((gdb_i386_thread_state_t *) regs);
+#elif defined(TARGET_ARM)
+    /* TODO */
 #else
 #error "unsupported architecture"
 #endif

@@ -31,7 +31,7 @@ ac_cv_env_build_alias_value=i686-apple-darwin8.10.1
 ac_cv_env_host_alias_set=set
 ac_cv_env_host_alias_value=i686-apple-darwin8.10.1
 ac_cv_env_target_alias_set=set
-ac_cv_env_target_alias_value=arm-unknown-darwin
+ac_cv_env_target_alias_value=arm-apple-darwin
 ac_cv_exeext=${ac_cv_exeext=}
 ac_cv_func___argz_count=${ac_cv_func___argz_count=no}
 ac_cv_func___argz_next=${ac_cv_func___argz_next=no}
@@ -102,7 +102,7 @@ lt_cv_path_NM=${lt_cv_path_NM=nm}
 lt_cv_path_SED=${lt_cv_path_SED=/usr/bin/sed}
 lt_cv_prog_cc_can_build_shared=${lt_cv_prog_cc_can_build_shared=yes}
 lt_cv_prog_cc_no_builtin=${lt_cv_prog_cc_no_builtin=}
-lt_cv_prog_cc_pic=${lt_cv_prog_cc_pic=' -fno-common'}
+lt_cv_prog_cc_pic=${lt_cv_prog_cc_pic='    -fno-common'}
 lt_cv_prog_cc_pic_works=${lt_cv_prog_cc_pic_works=yes}
 lt_cv_prog_cc_shlib=${lt_cv_prog_cc_shlib=}
 lt_cv_prog_cc_static=${lt_cv_prog_cc_static=}

@@ -23000,8 +23000,8 @@ fi
 
 target_makefile_frag=${srcdir}/config/${gdb_target_cpu}/${gdb_target}.mt
 if test ! -f ${target_makefile_frag}; then
-  { { echo "$as_me:$LINENO: error: \"*** Gdb does not support target ${target}\"" >&5
-echo "$as_me: error: \"*** Gdb does not support target ${target}\"" >&2;}
+  { { echo "$as_me:$LINENO: error: \"*** Gdb does not support target ${target} (looked for ${gdb_target_cpu}/${gdb_target}.mt)\"" >&5
+echo "$as_me: error: \"*** Gdb does not support target ${target} (looked for ${gdb_target_cpu}/${gdb_target}.mt)\"" >&2;}
    { (exit 1); exit 1; }; }
 fi
 frags="$frags $target_makefile_frag"

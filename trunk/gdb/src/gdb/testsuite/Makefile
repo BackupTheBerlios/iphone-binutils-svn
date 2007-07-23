@@ -25,16 +25,16 @@ prefix = /usr/local
 exec_prefix = ${prefix}
 
 host_alias = i686-apple-darwin8.10.1
-target_alias = arm-unknown-darwin
-program_transform_name = s,^,arm-darwin-,
+target_alias = arm-apple-darwin
+program_transform_name = s,^,arm-apple-darwin-,
 build_canonical = i686-apple-darwin8.10.1
 host_canonical = i686-apple-darwin8.10.1
-target_canonical = arm-unknown-darwin
+target_canonical = arm-apple-darwin
 target_cpu = @gdb_target_cpu@
 
 SHELL = /bin/sh
 EXEEXT = 
-SUBDIRS = 
+SUBDIRS =  gdb.stabs
 RPATH_ENVVAR = RPATH_ENVVAR
 ALL_SUBDIRS = gdb.ada gdb.arch gdb.asm gdb.base gdb.cp gdb.disasm \
 	gdb.dwarf2 \

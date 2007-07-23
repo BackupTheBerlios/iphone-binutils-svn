@@ -47,7 +47,7 @@ available_tags=
 # objext="" exeext="" reload_flag=" -r" \
 # deplibs_check_method="file_magic Mach-O dynamically linked shared library" \
 # file_magic_cmd="/usr/bin/file -L" \
-#   /Users/pcwalton/Projects/iphone-binutils/gdb/src/gdb/../ltconfig --cache-file=./config.cache --disable-shared --with-gcc --no-verify --build=i686-apple-darwin8.10.1 /Users/pcwalton/Projects/iphone-binutils/gdb/src/gdb/../ltmain.sh i686-apple-darwin8.10.1
+#   /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltconfig --cache-file=./config.cache --disable-shared --with-gcc --no-verify --build=i686-apple-darwin8.10.1 /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltmain.sh i686-apple-darwin8.10.1
 #
 # Compiler and other test output produced by ltconfig, useful for
 # debugging ltconfig, is in ./config.log if it exists.
