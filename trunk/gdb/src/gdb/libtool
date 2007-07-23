@@ -39,15 +39,15 @@ available_tags=
 ### BEGIN LIBTOOL CONFIG
 # Libtool was configured as follows, on host zigzagoon.lan:
 #
-# AR="ar" AR_FLAGS="" LTCC="gcc" CC="gcc" \
-# CFLAGS="-g -O2 " CPPFLAGS="" \
-# MAGIC_CMD="" LD="ld" LDFLAGS="" LIBS="" \
-# LN_S="ln -s" NM="nm" RANLIB="ranlib" STRIP="strip" \
-# AS="as" DLLTOOL="dlltool" OBJDUMP="" \
+# AR="arm-apple-darwin-ar" AR_FLAGS="rc" LTCC="arm-apple-darwin-cc" CC="arm-apple-darwin-cc" \
+# CFLAGS="-O0 " CPPFLAGS="" \
+# MAGIC_CMD="" LD="arm-apple-darwin-ld" LDFLAGS="" LIBS="" \
+# LN_S="ln -s" NM="arm-apple-darwin-nm" RANLIB=":" STRIP="arm-apple-darwin-strip" \
+# AS="arm-apple-darwin-as" DLLTOOL="arm-apple-darwin-dlltool" OBJDUMP="" \
 # objext="" exeext="" reload_flag=" -r" \
 # deplibs_check_method="file_magic Mach-O dynamically linked shared library" \
 # file_magic_cmd="/usr/bin/file -L" \
-#   /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltconfig --cache-file=./config.cache --disable-shared --with-gcc --no-verify --build=i686-apple-darwin8.10.1 /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltmain.sh i686-apple-darwin8.10.1
+#   /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltconfig --cache-file=./config.cache --disable-shared --with-gcc --no-verify --build=i686-apple-darwin8.10.1 /Users/pcwalton/Projects/iphone-binutils/trunk/gdb/src/gdb/../ltmain.sh arm-apple-darwin
 #
 # Compiler and other test output produced by ltconfig, useful for
 # debugging ltconfig, is in ./config.log if it exists.
@@ -71,48 +71,48 @@ build_old_libs=yes
 fast_install=needless
 
 # The host system.
-host_alias=i686-apple-darwin8.10.1
-host=i686-apple-darwin8.10.1
+host_alias=arm-apple-darwin
+host=arm-apple-darwin
 
 # An echo program that does not interpret backslashes.
 echo="echo"
 
 # The archiver.
-AR="ar"
-AR_FLAGS="cru"
+AR="arm-apple-darwin-ar"
+AR_FLAGS="rc"
 
 # A C compiler.
-LTCC="gcc"
+LTCC="arm-apple-darwin-cc"
 
 # A language-specific compiler.
-CC="gcc"
+CC="arm-apple-darwin-cc"
 
 # Is the compiler the GNU C compiler?
 with_gcc=yes
 
 # The linker used to build libraries.
-LD="ld"
+LD="arm-apple-darwin-ld"
 
 # Whether we need hard or soft links.
 LN_S="ln -s"
 
 # A BSD-compatible nm program.
-NM="nm"
+NM="arm-apple-darwin-nm"
 
 # A symbol stripping program
-STRIP=strip
+STRIP=arm-apple-darwin-strip
 
 # Used to examine libraries when file_magic_cmd begins "file"
 MAGIC_CMD=file
 
 # Used on cygwin: DLL creation program.
-DLLTOOL="dlltool"
+DLLTOOL="arm-apple-darwin-dlltool"
 
 # Used on cygwin: object dumper.
 OBJDUMP="objdump"
 
 # Used on cygwin: assembler.
-AS="as"
+AS="arm-apple-darwin-as"
 
 # The name of the directory that contains temporary libtool files.
 objdir=.libs
@@ -190,7 +190,7 @@ library_names_spec="\${libname}\${release}\${versuffix}.\`test .\$module = .yes 
 soname_spec="\${libname}\${release}\${major}.\`test .\$module = .yes && echo so || echo dylib\`"
 
 # Commands used to build and install an old-style archive.
-RANLIB="ranlib"
+RANLIB=":"
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs\$old_deplibs~\$RANLIB \$oldlib"
 old_postinstall_cmds="\$RANLIB \$oldlib~chmod 644 \$oldlib"
 old_postuninstall_cmds=""
@@ -208,8 +208,8 @@ postinstall_cmds=""
 postuninstall_cmds=""
 
 # Commands to strip libraries.
-old_striplib=""
-striplib=""
+old_striplib="arm-apple-darwin-strip --strip-debug"
+striplib="arm-apple-darwin-strip --strip-unneeded"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -250,10 +250,10 @@ finish_cmds=""
 finish_eval=""
 
 # Take the output of nm and produce a listing of raw symbols and C names.
-global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([BCDEGRST][BCDEGRST]*\\)[ 	][ 	]*\\(_\\)\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 \\2\\3 \\3/p'"
+global_symbol_pipe=""
 
 # Transform the output of nm in a proper C declaration
-global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern char \\1;/p'"
+global_symbol_to_cdecl=""
 
 # This is the shared library runtime path variable.
 runpath_var=

@@ -56,45 +56,45 @@ build_libtool_need_lc=yes
 fast_install=needless
 
 # The host system.
-host_alias=i686-apple-darwin8.10.1
-host=i686-apple-darwin8.10.1
+host_alias=arm-apple-darwin
+host=arm-apple-darwin
 
 # An echo program that does not interpret backslashes.
 echo="echo"
 
 # The archiver.
-AR="ar"
+AR="arm-apple-darwin-ar"
 AR_FLAGS="cru"
 
 # The default C compiler.
-CC="gcc"
+CC="arm-apple-darwin-cc"
 
 # Is the compiler the GNU C compiler?
 with_gcc=yes
 
 # The linker used to build libraries.
-LD="ld"
+LD="arm-apple-darwin-ld"
 
 # Whether we need hard or soft links.
 LN_S="ln -s"
 
 # A BSD-compatible nm program.
-NM="nm"
+NM="arm-apple-darwin-nm"
 
 # A symbol stripping program
-STRIP=strip
+STRIP=arm-apple-darwin-strip
 
 # Used to examine libraries when file_magic_cmd begins "file"
 MAGIC_CMD=file
 
 # Used on cygwin: DLL creation program.
-DLLTOOL="dlltool"
+DLLTOOL="arm-apple-darwin-dlltool"
 
 # Used on cygwin: object dumper.
 OBJDUMP="objdump"
 
 # Used on cygwin: assembler.
-AS="as"
+AS="arm-apple-darwin-as"
 
 # The name of the directory that contains temporary libtool files.
 objdir=.libs
@@ -116,7 +116,7 @@ libext="a"
 exeext=""
 
 # Additional compiler flags for building library objects.
-pic_flag="    -fno-common"
+pic_flag="  -fno-common"
 pic_mode=default
 
 # Does compiler simultaneously support -c and -o options?
@@ -172,7 +172,7 @@ library_names_spec="\${libname}\${release}\${versuffix}.\$(test .\$module = .yes
 soname_spec="\${libname}\${release}\${major}.\$(test .\$module = .yes && echo so || echo dylib)"
 
 # Commands used to build and install an old-style archive.
-RANLIB="ranlib"
+RANLIB=":"
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs\$old_deplibs~\$RANLIB \$oldlib"
 old_postinstall_cmds="\$RANLIB \$oldlib~chmod 644 \$oldlib"
 old_postuninstall_cmds=""
@@ -190,8 +190,8 @@ postinstall_cmds=""
 postuninstall_cmds=""
 
 # Commands to strip libraries.
-old_striplib=""
-striplib=""
+old_striplib="arm-apple-darwin-strip --strip-debug"
+striplib="arm-apple-darwin-strip --strip-unneeded"
 
 # Method to check whether dependent libraries are shared objects.
 deplibs_check_method="file_magic Mach-O dynamically linked shared library"
@@ -212,13 +212,13 @@ finish_cmds=""
 finish_eval=""
 
 # Take the output of nm and produce a listing of raw symbols and C names.
-global_symbol_pipe="sed -n -e 's/^.*[ 	]\\([BCDEGRST][BCDEGRST]*\\)[ 	][ 	]*\\(_\\)\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 \\2\\3 \\3/p'"
+global_symbol_pipe=""
 
 # Transform the output of nm in a proper C declaration
-global_symbol_to_cdecl="sed -n -e 's/^. .* \\(.*\\)\$/extern char \\1;/p'"
+global_symbol_to_cdecl=""
 
 # Transform the output of nm in a C name address pair
-global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^[BCDEGRST] \\([^ ]*\\) \\([^ ]*\\)\$/  {\"\\2\", (lt_ptr) \\&\\2},/p'"
+global_symbol_to_c_name_address=""
 
 # This is the shared library runtime path variable.
 runpath_var=

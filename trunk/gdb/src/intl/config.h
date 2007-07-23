@@ -18,7 +18,7 @@
 #define HAVE_ALLOCA_H 1
 
 /* Define if you have a working `mmap' system call.  */
-#define HAVE_MMAP 1
+/* #undef HAVE_MMAP */
 
 /* Define as __inline if that's what the C compiler calls it.  */
 /* #undef inline */

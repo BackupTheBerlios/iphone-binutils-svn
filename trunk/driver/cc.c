@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -71,8 +72,10 @@ struct arg_spec arg_specs[] = {
     { "ansi",                   FOR_COMPILER,   0,  0 },
     { "arch",                   FOR_IGNORE,     1,  0 },
     { "c",                      FOR_DRIVER,     0,  0 },
+    { "dynamic",                FOR_DRIVER,     0,  0 },
     { "dynamiclib",             FOR_DRIVER,     0,  0 },
     { "f",                      FOR_COMPILER,   0,  1 },
+    { "framework",              FOR_DRIVER,     1,  0 },
     { "g",                      FOR_COMPILER,   0,  0 },
     { "keep_private_externs",   FOR_LINKER,     0,  0 },
     { "l",                      FOR_LINKER,     0,  1 },
@@ -172,6 +175,24 @@ void add_input_file(char *path)
     input_files = in;
 }
 
+char *get_config_key(char *key, int die_on_error)
+{
+    struct config_option *opt;
+
+    /* linear search... but who really cares? */
+    opt = config;
+    while (opt) {
+        if (!strcmp(key, opt->key))
+            return opt->value;
+        opt = opt->next;
+    }
+
+    if (die_on_error)
+        die("required configuration setting '%s' is not present", key);
+
+    return NULL;
+}
+
 void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
     compiler_args, struct arg_list *linker_args)
 {
@@ -207,6 +228,14 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     verbose_on = 1;
                 else if (!strcmp(spec->name, "dynamiclib"))
                     make_dylib = 1;
+                else if (!strcmp(spec->name, "dynamic"))
+                    make_dylib = 1;
+                else if (!strcmp(spec->name, "framework")) {
+                    create_arg(linker_args, get_config_key(
+                        "LDFLAGS_FRAMEWORKSDIR", 1));
+                   
+                    die("frameworks unimplemented");
+                }
             } else {
                 switch (spec->for_what) {
                     case FOR_COMPILER:
@@ -232,24 +261,6 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
     if (!*todo)
         *todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE
             | TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
-}
-
-char *get_config_key(char *key, int die_on_error)
-{
-    struct config_option *opt;
-
-    /* linear search... but who really cares? */
-    opt = config;
-    while (opt) {
-        if (!strcmp(key, opt->key))
-            return opt->value;
-        opt = opt->next;
-    }
-
-    if (die_on_error)
-        die("required configuration setting '%s' is not present", key);
-
-    return NULL;
 }
 
 void read_config_file()
@@ -357,8 +368,9 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     *strh = NULL;
 
     if (verbose_on) {
-        for (i = 0; i < n_args; i++)
+        for (i = 0; i < n_args; i++) {
             fprintf(stderr, "%s ", arg_array[i]);
+        }
         fprintf(stderr, "\n");
     }
 
@@ -374,7 +386,7 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
 
 void assign_default_output_path(unsigned int last_op, char *i_infile)
 {
-    char *infile, *strp;
+    char *infile, *inptr, *strp;
 
     if (last_op == TODO_LINK)
         output_path = "a.out";
@@ -383,18 +395,24 @@ void assign_default_output_path(unsigned int last_op, char *i_infile)
         if ((strp = strrchr(infile, '.')))
             *strp = '\0';   /* chop off the extension, if present */
 
+        /* Remove any path specification. */
+        if ((inptr = strrchr(infile, '/')))
+            inptr++;
+        else
+            inptr = infile; 
+
         switch (last_op) {
             case TODO_PREPROCESS:
                 output_path = "/dev/fd/1";  /* FIXME: make this portable */
                 break;
             case TODO_COMPILE_TO_BYTECODE:
-                asprintf(&output_path, "%s.bc", infile);
+                asprintf(&output_path, "%s.bc", inptr);
                 break;
             case TODO_TRANSLATE_BYTECODE:
-                asprintf(&output_path, "%s.s", infile);
+                asprintf(&output_path, "%s.s", inptr);
                 break;
             case TODO_ASSEMBLE:
-                asprintf(&output_path, "%s.o", infile);
+                asprintf(&output_path, "%s.o", inptr);
         }
 
         free(infile);
@@ -426,6 +444,8 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         todo = (req_todo & (in->todo));
 
         n = todo; last_op = 1;
+        if (!todo)
+            break;
         while (n != 1) {
             n = (n >> 1);
             last_op = (last_op << 1);
@@ -514,6 +534,12 @@ int main(int argc, char **argv)
 {
     struct arg_list compiler_args, linker_args;
     unsigned int todo;
+
+#if 0
+    int i;
+    for (i = 0; i < argc; i++)
+        syslog(LOG_ERR, "got arg: %s\n", argv[i]);
+#endif
 
     prog_name = argv[0];
 

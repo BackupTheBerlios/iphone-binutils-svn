@@ -750,14 +750,15 @@ fi
 AC_SUBST(LIBXML2_INCLUDES)
 AC_SUBST(LIBXML2_LIBS)
 
-case "$host" in
-  *-apple-darwin* | *-apple-macos*)
-  AC_MSG_CHECKING([for Carbon framework])
-  if test -d /System/Library/Frameworks/Carbon.framework ; then
-    CARBON_LIBS="-framework Carbon"
-  fi
-  ;;
-esac
+CARBON_LIBS=""
+# case "$host" in
+#   *-apple-darwin* | *-apple-macos*)
+#   AC_MSG_CHECKING([for Carbon framework])
+#   if test -d /System/Library/Frameworks/Carbon.framework ; then
+#     CARBON_LIBS="-framework Carbon"
+#   fi
+#   ;;
+# esac
 AC_SUBST(CARBON_LIBS)
 # APPLE LOCAL end
 
