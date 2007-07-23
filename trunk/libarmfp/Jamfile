@@ -1,0 +1,7 @@
+CC = arm-apple-darwin-cc ;
+CCFLAGS = -O0 -dynamiclib ;
+LINK = arm-apple-darwin-cc ;
+LINKFLAGS = -dynamiclib ;
+
+Main libarmfp.dylib : armfp.c ; 
+
