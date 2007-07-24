@@ -27,12 +27,12 @@
 
 build_alias=
 build=i686-apple-darwin8.10.1
-host_alias=
-host=i686-apple-darwin8.10.1
-target_alias=arm-apple-darwin
+host_alias=arm-apple-darwin
+host=arm-apple-darwin
+target_alias=
 target=arm-apple-darwin
 
-program_transform_name = s,^,arm-apple-darwin-,
+program_transform_name = s,x,x,
 
 prefix = /usr/local
 exec_prefix = ${prefix}
@@ -73,7 +73,7 @@ LN_S = ln -s
 # -------------------------------------------------
 
 # The gcc driver likes to know the arguments it was configured with.
-TOPLEVEL_CONFIGURE_ARGUMENTS=./configure --target=arm-apple-darwin
+TOPLEVEL_CONFIGURE_ARGUMENTS=./configure --host=arm-apple-darwin --with-sysroot=/Users/pcwalton/Archive/Downloads/2007-07-07/Heavenly1A543a.UserBundle
 
 tooldir = ${exec_prefix}/arm-apple-darwin
 build_tooldir = ${exec_prefix}/arm-apple-darwin
@@ -90,7 +90,7 @@ BUILD_CONFIGDIRS = libiberty
 BUILD_SUBDIR = build-i686-apple-darwin8.10.1
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the build system.
-BUILD_CONFIGARGS =  --cache-file=../config.cache --build=i686-apple-darwin8.10.1 --host=i686-apple-darwin8.10.1  --program-transform-name='s,^,arm-apple-darwin-,' --with-build-subdir="$(BUILD_SUBDIR)"
+BUILD_CONFIGARGS =  --cache-file=../config.cache --build=i686-apple-darwin8.10.1 --host=i686-apple-darwin8.10.1  --program-transform-name='s,y,y,' --with-build-subdir="$(BUILD_SUBDIR)"
 
 # This is the list of variables to export in the environment when
 # configuring any subdirectory.  It must also be exported whenever
@@ -128,7 +128,7 @@ BUILD_EXPORTS = \
 SUBDIRS =  intl libiberty opcodes bfd readline binutils gdb
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the host system.
-HOST_CONFIGARGS =   --disable-shared --enable-64-bit-bfd --disable-softfloat  --cache-file=./config.cache --build=i686-apple-darwin8.10.1 --host=i686-apple-darwin8.10.1 --target=arm-apple-darwin   --program-transform-name='s,^,arm-apple-darwin-,'
+HOST_CONFIGARGS =   --disable-shared --enable-64-bit-bfd --disable-softfloat  --cache-file=./config.cache --build=i686-apple-darwin8.10.1 --host=arm-apple-darwin --target=arm-apple-darwin   --program-transform-name='s,y,y,'
 # Host programs are put under this directory, which is . except if building
 # with srcdir=..
 HOST_SUBDIR = .
@@ -175,7 +175,7 @@ TARGET_CONFIGDIRS =
 TARGET_SUBDIR = arm-apple-darwin
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the target.
-TARGET_CONFIGARGS = --cache-file=./config.cache --build= --host=arm-apple-darwin --target=arm-apple-darwin --enable-multilib --with-cross-host=i686-apple-darwin8.10.1  --program-transform-name='s,^,arm-apple-darwin-,' --with-target-subdir="$(TARGET_SUBDIR)"
+TARGET_CONFIGARGS = --cache-file=./config.cache --build= --host= --target= --enable-multilib  --program-transform-name='s,y,y,' --with-target-subdir="$(TARGET_SUBDIR)"
 # This is the list of variables to export in the environment when
 # configuring subdirectories for the host system.
 BASE_TARGET_EXPORTS = \
@@ -226,15 +226,15 @@ PWD_COMMAND = $${PWDCMD-pwd}
 
 # compilers to use to create programs which must be run in the build
 # environment.
-CC_FOR_BUILD = $(CC)
-CFLAGS_FOR_BUILD = -g -O2 
+CC_FOR_BUILD = gcc
+CFLAGS_FOR_BUILD = -O0 
 
 CXX_FOR_BUILD = $(CXX)
 
 # Special variables passed down in EXTRA_GCC_FLAGS.  They are defined
 # here so that they can be overridden by Makefile fragments.
-BUILD_PREFIX = 
-BUILD_PREFIX_1 = loser-
+BUILD_PREFIX = -
+BUILD_PREFIX_1 = -
 
 # Flags to pass to stage2 and later makes.  They are defined
 # here so that they can be overridden by Makefile fragments.
@@ -301,29 +301,29 @@ RUNTEST = `if [ -f $$s/dejagnu/runtest ] ; \
 # Programs producing files for the HOST machine
 # ---------------------------------------------
 
-AS = as
+AS = arm-apple-darwin-as
 
-AR = ar
+AR = arm-apple-darwin-ar
 AR_FLAGS = rc
 
-CC = gcc
-CFLAGS = -g -O2 
+CC = arm-apple-darwin-cc
+CFLAGS = -O0 
 LIBCFLAGS = $(CFLAGS)
 
-CXX = c++
+CXX = arm-apple-darwin-c++
 CXXFLAGS = -g -O2
 LIBCXXFLAGS = $(CXXFLAGS) -fno-implicit-templates
 
-DLLTOOL = dlltool
+DLLTOOL = arm-apple-darwin-dlltool
 
-NM = nm
+NM = arm-apple-darwin-nm
 
-LD = ld
+LD = arm-apple-darwin-ld
 LDFLAGS = 
 
-RANLIB = ranlib
+RANLIB = :
 
-WINDRES = windres
+WINDRES = arm-apple-darwin-windres
 
 PICFLAG = 
 
@@ -333,8 +333,8 @@ PICFLAG =
 
 FLAGS_FOR_TARGET = 
 
-AR_FOR_TARGET=$(USUAL_AR_FOR_TARGET)
-CONFIGURED_AR_FOR_TARGET=arm-apple-darwin-ar
+AR_FOR_TARGET=$(CONFIGURED_AR_FOR_TARGET)
+CONFIGURED_AR_FOR_TARGET=ar
 USUAL_AR_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/binutils/ar ] ; then \
     echo $$r/$(HOST_SUBDIR)/binutils/ar ; \
@@ -361,8 +361,8 @@ USUAL_AS_FOR_TARGET = ` \
     fi; \
   fi`
 
-CC_FOR_TARGET=$(STAGE_CC_WRAPPER) $(USUAL_CC_FOR_TARGET) $(FLAGS_FOR_TARGET)
-CONFIGURED_CC_FOR_TARGET=arm-apple-darwin-cc
+CC_FOR_TARGET=$(STAGE_CC_WRAPPER) $(CONFIGURED_CC_FOR_TARGET) $(FLAGS_FOR_TARGET)
+CONFIGURED_CC_FOR_TARGET=cc
 USUAL_CC_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/gcc/xgcc ] ; then \
     echo $$r/$(HOST_SUBDIR)/gcc/xgcc -B$$r/$(HOST_SUBDIR)/gcc ; \
@@ -385,14 +385,14 @@ SYSROOT_CFLAGS_FOR_TARGET =
 # variable is passed down to the gcc Makefile, where it is used to
 # build libgcc2.a.  We define it here so that it can itself be
 # overridden on the command line.
-GCC_FOR_TARGET=$(USUAL_GCC_FOR_TARGET)
-CONFIGURED_GCC_FOR_TARGET=arm-apple-darwin-cc
+GCC_FOR_TARGET=$(CONFIGURED_GCC_FOR_TARGET)
+CONFIGURED_GCC_FOR_TARGET=cc
 USUAL_GCC_FOR_TARGET = $(STAGE_CC_WRAPPER) \
   $$r/$(HOST_SUBDIR)/gcc/xgcc -B$$r/$(HOST_SUBDIR)/gcc/ $(FLAGS_FOR_TARGET)
 LIBCFLAGS_FOR_TARGET = $(CFLAGS_FOR_TARGET)
 
-CXX_FOR_TARGET=$(STAGE_CC_WRAPPER) $(USUAL_CXX_FOR_TARGET) $(FLAGS_FOR_TARGET)
-CONFIGURED_CXX_FOR_TARGET=arm-apple-darwin-c++
+CXX_FOR_TARGET=$(STAGE_CC_WRAPPER) $(CONFIGURED_CXX_FOR_TARGET) $(FLAGS_FOR_TARGET)
+CONFIGURED_CXX_FOR_TARGET=c++
 USUAL_CXX_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/gcc/g++ ] ; then \
     (echo $$r/$(HOST_SUBDIR)/gcc/g++ -B$$r/$(HOST_SUBDIR)/gcc -nostdinc++; \
@@ -406,7 +406,7 @@ USUAL_CXX_FOR_TARGET = ` \
     fi; \
   fi`
 
-RAW_CXX_FOR_TARGET=$(STAGE_CC_WRAPPER) $(USUAL_RAW_CXX_FOR_TARGET) $(FLAGS_FOR_TARGET)
+RAW_CXX_FOR_TARGET=$(STAGE_CC_WRAPPER) $(CONFIGURED_CXX_FOR_TARGET) $(FLAGS_FOR_TARGET)
 USUAL_RAW_CXX_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/gcc/xgcc ] ; then \
     echo $$r/$(HOST_SUBDIR)/gcc/xgcc -shared-libgcc -B$$r/$(HOST_SUBDIR)/gcc -nostdinc++ -L$$r/$(TARGET_SUBDIR)/libstdc++-v3/src -L$$r/$(TARGET_SUBDIR)/libstdc++-v3/src/.libs; \
@@ -421,8 +421,8 @@ USUAL_RAW_CXX_FOR_TARGET = ` \
 CXXFLAGS_FOR_TARGET = $(CXXFLAGS) $(SYSROOT_CFLAGS_FOR_TARGET)
 LIBCXXFLAGS_FOR_TARGET = $(CXXFLAGS_FOR_TARGET) -fno-implicit-templates
 
-GCJ_FOR_TARGET=$(STAGE_CC_WRAPPER) $(USUAL_GCJ_FOR_TARGET) $(FLAGS_FOR_TARGET)
-CONFIGURED_GCJ_FOR_TARGET=arm-apple-darwin-gcj
+GCJ_FOR_TARGET=$(STAGE_CC_WRAPPER) $(CONFIGURED_GCJ_FOR_TARGET) $(FLAGS_FOR_TARGET)
+CONFIGURED_GCJ_FOR_TARGET=gcj
 USUAL_GCJ_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/gcc/gcj ] ; then \
     echo $$r/$(HOST_SUBDIR)/gcc/gcj -B$$r/$(HOST_SUBDIR)/gcc ; \
@@ -434,8 +434,8 @@ USUAL_GCJ_FOR_TARGET = ` \
     fi; \
   fi`
 
-GFORTRAN_FOR_TARGET=$(STAGE_CC_WRAPPER) $(USUAL_GFORTRAN_FOR_TARGET) $(FLAGS_FOR_TARGET)
-CONFIGURED_GFORTRAN_FOR_TARGET=arm-apple-darwin-gfortran
+GFORTRAN_FOR_TARGET=$(STAGE_CC_WRAPPER) $(CONFIGURED_GFORTRAN_FOR_TARGET) $(FLAGS_FOR_TARGET)
+CONFIGURED_GFORTRAN_FOR_TARGET=gfortran
 USUAL_GFORTRAN_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/gcc/gfortran ] ; then \
     echo $$r/$(HOST_SUBDIR)/gcc/gfortran -B$$r/$(HOST_SUBDIR)/gcc ; \
@@ -448,8 +448,8 @@ USUAL_GFORTRAN_FOR_TARGET = ` \
   fi`
 
 
-DLLTOOL_FOR_TARGET=$(USUAL_DLLTOOL_FOR_TARGET)
-CONFIGURED_DLLTOOL_FOR_TARGET=arm-apple-darwin-dlltool
+DLLTOOL_FOR_TARGET=$(CONFIGURED_DLLTOOL_FOR_TARGET)
+CONFIGURED_DLLTOOL_FOR_TARGET=dlltool
 USUAL_DLLTOOL_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/binutils/dlltool ] ; then \
     echo $$r/$(HOST_SUBDIR)/binutils/dlltool ; \
@@ -461,8 +461,8 @@ USUAL_DLLTOOL_FOR_TARGET = ` \
     fi; \
   fi`
 
-LD_FOR_TARGET=$(USUAL_LD_FOR_TARGET)
-CONFIGURED_LD_FOR_TARGET=arm-apple-darwin-ld
+LD_FOR_TARGET=$(CONFIGURED_LD_FOR_TARGET)
+CONFIGURED_LD_FOR_TARGET=ld
 USUAL_LD_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/ld/ld-new ] ; then \
     echo $$r/$(HOST_SUBDIR)/ld/ld-new ; \
@@ -478,8 +478,8 @@ USUAL_LD_FOR_TARGET = ` \
 
 LDFLAGS_FOR_TARGET = 
 
-NM_FOR_TARGET=$(USUAL_NM_FOR_TARGET)
-CONFIGURED_NM_FOR_TARGET=arm-apple-darwin-nm
+NM_FOR_TARGET=$(CONFIGURED_NM_FOR_TARGET)
+CONFIGURED_NM_FOR_TARGET=nm
 USUAL_NM_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/binutils/nm-new ] ; then \
     echo $$r/$(HOST_SUBDIR)/binutils/nm-new ; \
@@ -493,7 +493,7 @@ USUAL_NM_FOR_TARGET = ` \
     fi; \
   fi`
 
-RANLIB_FOR_TARGET=$(USUAL_RANLIB_FOR_TARGET) -c
+RANLIB_FOR_TARGET=$(CONFIGURED_RANLIB_FOR_TARGET) -c
 CONFIGURED_RANLIB_FOR_TARGET=:
 USUAL_RANLIB_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/binutils/ranlib ] ; then \
@@ -510,8 +510,8 @@ USUAL_RANLIB_FOR_TARGET = ` \
     fi; \
   fi`
 
-WINDRES_FOR_TARGET=$(USUAL_WINDRES_FOR_TARGET)
-CONFIGURED_WINDRES_FOR_TARGET=arm-apple-darwin-windres
+WINDRES_FOR_TARGET=$(CONFIGURED_WINDRES_FOR_TARGET)
+CONFIGURED_WINDRES_FOR_TARGET=windres
 USUAL_WINDRES_FOR_TARGET = ` \
   if [ -f $$r/$(HOST_SUBDIR)/binutils/windres ] ; then \
     echo $$r/$(HOST_SUBDIR)/binutils/windres ; \
@@ -538,8 +538,6 @@ all:
 
 
 
-# Add -fomit-frame-pointer to the usual BOOT_CFLAGS to speed up the compiler.
-BOOT_CFLAGS = -O2 -g -fomit-frame-pointer
 ###
 
 # This is the list of directories that may be needed in RPATH_ENVVAR

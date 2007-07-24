@@ -416,6 +416,8 @@ typedef struct {
 static int 
 open_file_with_LS (const char *file_path, int lineno)
 {
+    return 0;
+#if 0
   AEKeyDesc selection_desc;
   LSApplicationParameters app_params;
   FSRef item_refs[1], out_app;
@@ -537,6 +539,7 @@ open_file_with_LS (const char *file_path, int lineno)
     }
     
   return 1;
+#endif
 }
 
 /* Opens the file pointed to in ARGS with the default editor

@@ -24,11 +24,11 @@ srcdir = ../.././gdb/testsuite
 prefix = /usr/local
 exec_prefix = ${prefix}
 
-host_alias = i686-apple-darwin8.10.1
+host_alias = arm-apple-darwin
 target_alias = arm-apple-darwin
-program_transform_name = s,^,arm-apple-darwin-,
+program_transform_name = s,y,y,
 build_canonical = i686-apple-darwin8.10.1
-host_canonical = i686-apple-darwin8.10.1
+host_canonical = arm-apple-darwin
 target_canonical = arm-apple-darwin
 target_cpu = @gdb_target_cpu@
 

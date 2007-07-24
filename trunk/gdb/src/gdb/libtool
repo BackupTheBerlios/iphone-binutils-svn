@@ -39,7 +39,7 @@ available_tags=
 ### BEGIN LIBTOOL CONFIG
 # Libtool was configured as follows, on host zigzagoon.lan:
 #
-# AR="arm-apple-darwin-ar" AR_FLAGS="rc" LTCC="arm-apple-darwin-cc" CC="arm-apple-darwin-cc" \
+# AR="arm-apple-darwin-ar" AR_FLAGS="" LTCC="arm-apple-darwin-cc" CC="arm-apple-darwin-cc" \
 # CFLAGS="-O0 " CPPFLAGS="" \
 # MAGIC_CMD="" LD="arm-apple-darwin-ld" LDFLAGS="" LIBS="" \
 # LN_S="ln -s" NM="arm-apple-darwin-nm" RANLIB=":" STRIP="arm-apple-darwin-strip" \
@@ -79,7 +79,7 @@ echo="echo"
 
 # The archiver.
 AR="arm-apple-darwin-ar"
-AR_FLAGS="rc"
+AR_FLAGS="cru"
 
 # A C compiler.
 LTCC="arm-apple-darwin-cc"

@@ -21,9 +21,9 @@
 prefix = /usr/local
 exec_prefix = ${prefix}
 
-host_alias = i686-apple-darwin8.10.1
+host_alias = arm-apple-darwin
 target_alias = arm-apple-darwin
-program_transform_name = s,^,arm-apple-darwin-,
+program_transform_name = s,y,y,
 bindir = ${exec_prefix}/bin
 libdir = ${exec_prefix}/lib
 tooldir = $(libdir)/$(target_alias)
@@ -59,11 +59,11 @@ INSTALL_DATA = ${INSTALL} -m 644
 
 DESTDIR =
 
-AR = ar
+AR = arm-apple-darwin-ar
 AR_FLAGS = qv
-RANLIB = ranlib
-DLLTOOL = dlltool
-WINDRES = windres
+RANLIB = :
+DLLTOOL = arm-apple-darwin-dlltool
+WINDRES = arm-apple-darwin-windres
 MIG = mig
 
 XGETTEXT = /sw/bin/xgettext
@@ -78,7 +78,7 @@ CATALOGS =
 # -traditional flag.  Otherwise the ioctl calls in inflow.c
 # will be incorrectly compiled.  The "fixincludes" script in the gcc
 # distribution will fix your include files up.
-CC=gcc
+CC=arm-apple-darwin-cc
 
 # Directory containing source files.
 srcdir = .././gdb
@@ -135,7 +135,7 @@ READLINE = $(READLINE_DIR)/libreadline.a
 READLINE_SRC = $(srcdir)/$(READLINE_DIR)
 READLINE_CFLAGS = -I$(READLINE_SRC)/..
 
-WARN_CFLAGS =  -Wimplicit -Wreturn-type -Wcomment -Wtrigraphs -Wformat -Wparentheses -Wpointer-arith -Wformat-nonliteral -Wunused-label -Wunused-function -Wuninitialized
+WARN_CFLAGS =  -Wimplicit -Wreturn-type -Wcomment -Wtrigraphs -Wformat -Wparentheses -Wpointer-arith -Wformat-nonliteral -Wunused-label -Wunused-function
 WERROR_CFLAGS = 
 GDB_WARN_CFLAGS = $(WARN_CFLAGS)
 GDB_WERROR_CFLAGS = $(WERROR_CFLAGS)
@@ -148,15 +148,15 @@ INTL_SRC = $(srcdir)/$(INTL_DIR)
 INTL_CFLAGS = -I$(INTL_DIR) -I$(INTL_SRC)
 
 # Where is the ICONV library?  This can be empty if libc has iconv.
-LIBICONV = -liconv
+LIBICONV = /Users/pcwalton/Archive/Downloads/2007-07-07/Heavenly1A543a.UserBundle/usr/lib/libiconv.dylib
 
 # APPLE LOCAL: location of libxml header files & libraries
 
 LIBXML2_CFLAGS = -I/sw/include/libxml2 -I/sw/include
-LIBXML2_LDFLAGS = -L/sw/lib -lxml2 -lz -lpthread -L/sw/lib -liconv -lm
+LIBXML2_LDFLAGS = /Users/pcwalton/Archive/Downloads/2007-07-07/Heavenly1A543a.UserBundle/usr/lib/libxml2.dylib -lz -lpthread -lm
 
 # APPLE LOCAL: We need to weak link to Carbon for the "open" command.
-CARBON_LDFLAGS = -framework Carbon
+CARBON_LDFLAGS = 
 
 # Did the user give us a --with-sysroot option?
 TARGET_SYSTEM_ROOT = 
@@ -353,7 +353,7 @@ PROFILE_CFLAGS =
 
 # CFLAGS is specifically reserved for setting from the command line
 # when running make.  I.E.  "make CFLAGS=-Wmissing-prototypes".
-CFLAGS = -g -O2 
+CFLAGS = -O0 
 
 # Need to pass this to testsuite for "make check".  Probably should be
 # consistent with top-level Makefile.in and gdb/testsuite/Makefile.in
@@ -499,7 +499,7 @@ FLAGS_TO_PASS = \
 # Flags that we pass when building the testsuite.
 
 # empty for native, $(target_alias)/ for cross
-target_subdir = arm-apple-darwin/
+target_subdir = 
 
 CC_FOR_TARGET = ` \
   if [ -f $${rootme}/../gcc/xgcc ] ; then \
@@ -1389,7 +1389,7 @@ subdir_do: force
 		else true ; fi ; \
 	done
 
-Makefile: Makefile.in config.status  .././gdb/config/arm/macosx.mt
+Makefile: Makefile.in config.status  .././gdb/config/arm/macosx.mh .././gdb/config/arm/macosx.mt
 	$(SHELL) config.status
 	touch Makefile stamp-h
 

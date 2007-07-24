@@ -34,7 +34,7 @@
 #define GDB_HOST_FLOAT_FORMAT &floatformat_ieee_single_little
 
 /* Host long double floatformat */
-#define GDB_HOST_LONG_DOUBLE_FORMAT &floatformat_i387_ext
+#define GDB_HOST_LONG_DOUBLE_FORMAT &floatformat_ieee_double_big
 
 /* nativefile */
 /* #undef GDB_NM_FILE */
