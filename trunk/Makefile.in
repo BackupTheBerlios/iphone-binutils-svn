@@ -1,0 +1,57 @@
+##
+ # Copyright (C) 2007 iZsh 
+ # 
+ # This software is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public
+ # License version 2, as published by the Free Software Foundation.
+ #
+ # This software is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ #
+ # See the GNU General Public License version 2 for more details
+ ##
+
+PREFIX = @prefix@
+HEAVENLY = @heavenly@
+
+all: heavenly includes llvmgcc llvm cctools driver csu libarmfp
+	
+heavenly:
+	install -d $(PREFIX)/heavenly && cp -Rn $(HEAVENLY)/* $(PREFIX)/heavenly
+
+includes:
+	install -d $(PREFIX)/include
+	cp -Rn include/* $(PREFIX)/include
+
+llvmgcc:
+	./install-llvmgcc.sh
+
+llvm:
+	cd llvm-2.0 && ./configure --prefix=$(PREFIX)
+	cd llvm-2.0 && $(MAKE)
+	cd llvm-2.0 && $(MAKE) ENABLE_OPTIMIZED=1
+	cd llvm-2.0 && $(MAKE) install
+
+cctools:
+	install /usr/include/ar.h cctools/include
+	cd cctools && $(MAKE)
+	install cctools/as/aarm_dir/as $(PREFIX)/bin/arm-apple-darwin-as
+	install cctools/ld/ld_dir/ld.NEW $(PREFIX)/bin/arm-apple-darwin-ld
+
+driver:
+	cd driver && $(MAKE)
+	cd driver && $(MAKE) install
+
+csu:
+	cd Csu-71 && $(MAKE)
+	install -d $(PREFIX)/csu
+	install Csu-71/crt1.o $(PREFIX)/csu
+	install Csu-71/dylib1.o $(PREFIX)/csu
+
+libarmfp:
+	cd libarmfp && $(MAKE)
+	cd libarmfp && $(MAKE) install
+
+.PHONY : heavenly includes llvmgcc llvm cctools driver csu libarmfp
+

@@ -12,6 +12,8 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <libgen.h>
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -263,20 +265,71 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
             | TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
 }
 
-void read_config_file()
+char * get_full_path(char *prog_name)
 {
-    char ch, *home, *key, *path, *val;
+    char *path, *dir, *test_path;
+
+    if (prog_name[0] == '/' || prog_name[0] == '.')
+        return strdup(prog_name);
+
+    path = getenv("PATH");
+    if (!path)
+        return NULL;
+    for (dir = strtok(path, ":"); dir != NULL; dir = strtok(NULL, ":")) {
+        asprintf(&test_path, "%s/%s", dir, prog_name);
+        if (!access(test_path, X_OK)) {
+            return test_path;
+        }
+        free(test_path);
+    }
+
+    return NULL;
+}
+
+char * find_config_file_path(char * prog_name)
+{
+    char *home, *path, *cfg_dir;
+    char resolved_path[PATH_MAX + 1];
+
+    // Check user's config
+    if (!(home = getenv("HOME")))
+        die("didn't find a $HOME environment variable");
+    asprintf(&path, "%s/.arm-cc-specs", home);
+    if (!access(path, R_OK))
+        return path;
+
+    // Check general config
+    path = get_full_path(prog_name);
+    if (!path)
+        return NULL;
+    if (!realpath(path, resolved_path))
+        return NULL;
+    free(path);
+    path = dirname(resolved_path);
+    asprintf(&cfg_dir, "%s/../etc/arm-cc-specs", path);
+    free(path);
+    if (!realpath(cfg_dir, resolved_path))
+        return NULL;
+    free(cfg_dir);
+    if (access(resolved_path, R_OK))
+        return NULL;
+    return strdup(resolved_path);
+}
+
+void read_config_file(char * prog_name)
+{
+    char ch, *key, *path, *val;
     int line_len;
     FILE *f;
     struct config_option *opt;
 
-    if (!(home = getenv("HOME")))
-        die("didn't find a $HOME environment variable");
-    asprintf(&path, "%s/.arm-cc-specs", home);
+    path = find_config_file_path(prog_name);
+    if (!path)
+        die("Failed to locate the arm-cc-specs config file; see installation instructions");
 
     f = fopen(path, "r");
     if (!f)
-        die("failed to open ~/.arm-cc-specs; see installation instructions");
+        die("failed to open arm-cc-specs; see installation instructions");
 
     free(path);
 
@@ -543,7 +596,7 @@ int main(int argc, char **argv)
 
     prog_name = argv[0];
 
-    read_config_file();
+    read_config_file(prog_name);
     gather_args(argc, argv, &todo, &compiler_args, &linker_args);
     perform_operations(todo, &compiler_args, &linker_args);
 

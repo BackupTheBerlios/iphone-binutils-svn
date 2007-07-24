@@ -329,7 +329,7 @@ libkld.a: $(OBJS)
 	$(CC) $(COPTS) $(CFLAGS) $(RC_CFLAGS) -nostdlib -r \
 		-o $(SYMROOT)/prehack_libkld.a $(OBJS) $(LIBSTUFF) $(LIBMACHO)
 	nmedit -p $(SYMROOT)/prehack_libkld.a
-	seg_hack __KLD $(SYMROOT)/prehack_libkld.a -o $(SYMROOT)/static_libkld.o
+	../../misc/seg_hack.NEW __KLD $(SYMROOT)/prehack_libkld.a -o $(SYMROOT)/static_libkld.o
 	libtool -o $(SYMROOT)/libkld.a $(SYMROOT)/static_libkld.o
 
 libkld.dylib: $(OBJS)

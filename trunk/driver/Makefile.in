@@ -13,18 +13,18 @@
  ##
 IPHONEROOT = @prefix@
 
-CC = $(IPHONEROOT)/bin/arm-apple-darwin-cc
-CCFLAGS = -O0 -dynamiclib
-LINKFLAGS = -dynamiclib
+OPTIM = -O0
+CCFLAGS = -g -Wall
+CC = @CC@
 
-RESULT = libarmfp.dylib
-SRCS = armfp.c
+RESULT = arm-apple-darwin-cc
+SRCS = cc.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(RESULT)
 
 $(RESULT): $(OBJS)
-	$(CC) -o $(RESULT) $(CCFLAGS) $(LINKFLAGS) $(OBJS)
+	$(CC) -o $(RESULT) $(OPTIM) $(CCFLAGS) $(OBJS)
 
 clean:
 	rm -f $(OBJS) *~
@@ -33,8 +33,10 @@ dist-clean: clean
 	rm -f $(RESULT)
 
 install: all
-	install $(RESULT) $(IPHONEROOT)/lib
+	install $(RESULT) $(IPHONEROOT)/bin
+	install -d $(IPHONEROOT)/etc
+	install arm-cc-specs $(IPHONEROOT)/etc 
 
 %.o: %.c
-	$(CC) -c $(LINKFLAGS) $(CCFLAGS) -o $@ $<
+	$(CC) -c $(OPTIM) $(CCFLAGS) -o $@ $<
 

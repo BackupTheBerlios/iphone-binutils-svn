@@ -150,10 +150,11 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             exit(0);
             break;
         default:
-            fprintf(stderr, "Available Weasel commands:\n");
+            fprintf(stderr, "Available weasel commands:\n");
             fprintf(stderr, "    b set a breakpoint\n");
             fprintf(stderr, "    c continue execution\n");
-            fprintf(stderr, "    q quit Weasel and inferior\n");
+            fprintf(stderr, "    d disassemble starting at address or last\n");
+            fprintf(stderr, "    q quit weasel and inferior\n");
     }
 }
 

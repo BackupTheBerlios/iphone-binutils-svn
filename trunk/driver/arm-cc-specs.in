@@ -1,0 +1,15 @@
+# Customize to match your system. Then, place this file in ~/.arm-cc-specs
+# (where ~ represents your home dir).
+PREPROCESS=@prefix@/bin/llvm-gcc
+CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__ -isystem @prefix@/include
+LLVM_GCC=@prefix@/bin/llvm-gcc
+CFLAGS=-emit-llvm
+LLC=@prefix@/bin/llc
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic -f
+LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=generic -relocation-model=pic
+AS=@prefix@/bin/arm-apple-darwin-as
+ASFLAGS=-arch arm
+LD=@prefix@/bin/arm-apple-darwin-ld
+LDFLAGS=-syslibroot @prefix@/heavenly -lSystem -lgcc_s_v6.1 @prefix@/csu/crt1.o
+LDFLAGS_DYLIB=-syslibroot @prefix@/heavenly -lSystem -lgcc_s_v6.1 -L@prefix@/csu -ldylib1.o -single_module -dylib -dynamic
+
