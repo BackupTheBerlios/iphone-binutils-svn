@@ -4,6 +4,7 @@
  *   terms specified in the COPYING file.
  * ------------------------------------------------------------------------- */
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,7 +15,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/* TODO: make a sys header for this guy */
+kern_return_t task_threads(task_t target_task, thread_array_t *act_list,
+    mach_msg_type_number_t *act_listCnt);
+
+int inferior_in_ptrace = 1;
 task_t inferior_task;
+thread_array_t inferior_threads = NULL;
+unsigned int inferior_thread_count = 0;
 
 pid_t start_inferior(int argc, char **argv)
 {
@@ -32,9 +40,10 @@ pid_t start_inferior(int argc, char **argv)
         exit(0);
     }
 
-    child_args = (char **)malloc(sizeof(char *) * argc);
-    memcpy(child_args, argv + 1, sizeof(char *) * (argc - 1));
-    child_args[argc - 1] = NULL;
+    fprintf(stderr, "argc=%d\n", argc);
+    child_args = (char **)malloc(sizeof(char *) * (argc + 1));
+    memcpy(child_args, argv, sizeof(char *) * argc);
+    child_args[argc] = NULL;
 
     ptrace(PT_TRACE_ME, 0, 0, 0);
     execvp(argv[0], child_args);
@@ -48,8 +57,6 @@ pid_t start_inferior(int argc, char **argv)
 void attach_to_process(pid_t inferior)
 {
     kern_return_t err;
-    thread_array_t threads = NULL;
-    unsigned int i, thread_count = 0;
 
     if ((err = task_for_pid(mach_task_self(), (int)inferior, &inferior_task) !=
         KERN_SUCCESS)) {
@@ -58,30 +65,110 @@ void attach_to_process(pid_t inferior)
         exit(1);
     }
 
-    if (task_threads(inferior_task, &threads, &thread_count) != KERN_SUCCESS) {
+    if (task_threads(inferior_task, &inferior_threads, &inferior_thread_count)
+        != KERN_SUCCESS) {
         fprintf(stderr, "Failed to get list of task's threads.\n");
         exit(1);
-    } else
-        fprintf(stderr, "Target has %d thread(s).\n", (int)thread_count);
+    }
 
-    for (i = 0; i < thread_count; i++) {
-        unsigned int gp_regs[32];
-        unsigned int gp_count = 32;
-     
-        if ((err = thread_get_state(threads[i], 1, (thread_state_t) &gp_regs,
-            &gp_count)) != KERN_SUCCESS) {
+}
+
+void get_inferior_status(unsigned int *regs)
+{
+    kern_return_t err;
+    unsigned int gp_count;
+    unsigned int i;
+
+    for (i = 0; i < inferior_thread_count; i++) {
+        gp_count = 17;     
+        if ((err = thread_get_state(inferior_threads[i], 1, (thread_state_t)
+            regs, &gp_count)) != KERN_SUCCESS) {
             fprintf(stderr, "Failed to get thread %d state (%d).\n", (int)i,
                 (int)err);
-            exit(1);
         }
+    }
+}
 
-        fprintf(stderr, "Thread %d: got regs.\n", (int)i); 
-    } 
+void show_registers(unsigned int *regs)
+{
+    int i;
+
+    for (i = 0; i < 16; i += 8) {
+        fprintf(stderr, "R %8d %8d %8d %8d %8d %8d %8d %8d\n", i, i+1, i+2,
+            i+3, i+4, i+5, i+6, i+7);
+        fprintf(stderr, "= %08x %08x %08x %08x %08x %08x %08x %08x\n", regs[i],
+            regs[i+1], regs[i+2], regs[i+3], regs[i+4], regs[i+5], regs[i+6],
+            regs[i+7]);
+    }
+}
+
+void set_breakpoint(unsigned int addr)
+{
+    kern_return_t err;
+    unsigned int inst;
+
+    /* We know this is in the right endianness because it's our own! */
+    inst = ((0xe12 << 20) | (0x7 << 4));
+
+    err = vm_protect(inferior_task, addr, 4, 0, VM_PROT_READ | VM_PROT_WRITE |
+        VM_PROT_EXECUTE); 
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to unprotect memory: %d.\n", err);
+        return;
+    }
+
+    err = vm_write(inferior_task, addr, &inst, 4);
+    if (err == KERN_SUCCESS)
+        fprintf(stderr, "Breakpoint set at $%08x.\n", addr);
+    else
+        fprintf(stderr, "Failed to set breakpoint at $%08x: %d.\n", addr,
+            (int)err);
+}
+
+void parse_and_handle_input(char *buf, pid_t inferior)
+{
+    int status;
+    unsigned int addr;
+
+    switch (buf[0]) {
+        case 'b':
+            if (sscanf(buf, "b %x", &addr) < 1) {
+                fprintf(stderr, "usage: b addr-in-hex\n");
+                break;
+            }
+            set_breakpoint(addr); 
+            break;
+        case 'c':
+            if (inferior_in_ptrace)
+                ptrace(PT_DETACH, inferior, 0, 0);
+            /* task_resume(inferior_task); */
+            wait(&status);
+            break;
+        case 'q':
+            ptrace(PT_KILL, inferior, 0, 0);
+            wait(&status);
+            exit(0);
+            break;
+        default:
+            fprintf(stderr, "Available Weasel commands:\n");
+            fprintf(stderr, "    b set a breakpoint\n");
+            fprintf(stderr, "    c continue execution\n");
+            fprintf(stderr, "    q quit Weasel and inferior\n");
+    }
 }
 
 void main_loop(char *inferior_name, pid_t inferior)
 {
-    // printf("(%s@$%08x weasel) ", inferior_name);
+    char buf[256];
+    unsigned int regs[17];
+
+    while (1) {
+        get_inferior_status(regs);
+        printf("[$%08x weasel] ", regs[15]);
+        fflush(stdout);
+        fgets(buf, 255, stdin);
+        parse_and_handle_input(buf, inferior);
+    }
 }
 
 int main(int argc, char **argv)
