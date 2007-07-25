@@ -5,5 +5,5 @@ all:	weasel
 weasel:	weasel.o disasm.o
 
 clean:	
-	rm weasel.o weasel disasm.o
+	rm -f weasel.o weasel disasm.o
 

@@ -8,9 +8,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <mach/exception_types.h>
 #include <mach/mach_init.h>
+#include <mach/mach_port.h>
 #include <mach/mach_traps.h>
+#include <mach/task.h>
+#include <mach/task_info.h>
 #include <mach/thread_act.h>
+#include <mach/thread_info.h>
 #include <mach/vm_map.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
@@ -33,18 +38,39 @@ kern_return_t task_threads(task_t target_task, thread_array_t *act_list,
     mach_msg_type_number_t *act_listCnt);
 
 int inferior_in_ptrace = 1;
-task_t inferior_task;
-thread_array_t inferior_threads = NULL;
 unsigned int inferior_thread_count = 0;
 unsigned int last_disassembly_point = 0;
-struct weasel_symbol **symbol_table = NULL;
 unsigned int symbol_table_size = 0;
+struct weasel_symbol **symbol_table = NULL;
+mach_port_t exception_port; 
+exception_type_t exception_type;
+exception_data_t exception_data;
+task_t inferior_task;
+thread_array_t inferior_threads = NULL;
+
+void child_handler(int pid)
+{
+    int status;
+
+    wait(&status);
+    if (WIFEXITED(status)) {
+        fprintf(stderr, "Inferior exited with status %d.\n", (int)
+            WEXITSTATUS(status));
+        exit(0);
+    } else if (WIFSIGNALED(status)) {
+        fprintf(stderr, "Inferior exited with signal %d.\n", (int)WTERMSIG(
+            status));
+        exit(0);
+    }
+}
 
 pid_t start_inferior(int argc, char **argv)
 {
     char **child_args;
     int status;
     pid_t kid;
+
+    fprintf(stderr, "Starting process...\n");
 
     if ((kid = fork())) {
         wait(&status);
@@ -56,7 +82,6 @@ pid_t start_inferior(int argc, char **argv)
         exit(0);
     }
 
-    fprintf(stderr, "argc=%d\n", argc);
     child_args = (char **)malloc(sizeof(char *) * (argc + 1));
     memcpy(child_args, argv, sizeof(char *) * argc);
     child_args[argc] = NULL;
@@ -74,6 +99,8 @@ void attach_to_process(pid_t inferior)
 {
     kern_return_t err;
 
+    signal(SIGCHLD, child_handler);
+
     if ((err = task_for_pid(mach_task_self(), (int)inferior, &inferior_task) !=
         KERN_SUCCESS)) {
         fprintf(stderr, "Failed to get task for pid %d: %d.\n", (int)inferior,
@@ -87,6 +114,21 @@ void attach_to_process(pid_t inferior)
         exit(1);
     }
 
+    if (mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE,
+        &exception_port) != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to create exception port.\n");
+        exit(1);
+    }
+    if (mach_port_insert_right(mach_task_self(), exception_port,
+        exception_port, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to acquire insertion rights on the port.\n");
+        exit(1);
+    }
+    if (task_set_exception_ports(inferior_task, EXC_MASK_ALL, exception_port,
+        EXCEPTION_DEFAULT, THREAD_STATE_NONE) != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to set the inferior's exception ports.\n");
+        exit(1);
+    }
 }
 
 void get_inferior_status(unsigned int *regs)
@@ -182,6 +224,39 @@ void nm()
     }
 }
 
+kern_return_t catch_exception_raise(mach_port_t exception_port, mach_port_t
+    thread, mach_port_t task, exception_type_t exception, exception_data_t
+    code, mach_msg_type_number_t code_count)
+{
+    exception_type = exception;
+    exception_data = code;
+
+    return KERN_SUCCESS;
+}
+
+void wait_for_events()
+{
+    char data[1024];
+    kern_return_t err;
+    mach_msg_header_t msg, out_msg;
+
+    fprintf(stderr, "Listening for exceptions.\n");
+
+    err = mach_msg(&msg, MACH_RCV_MSG, 0, sizeof(data), exception_port, 0,
+        MACH_PORT_NULL);
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Event listening failed.\n");
+        return;
+    }
+
+    fprintf(stderr, "Exceptional event recieved.\n");
+
+    exc_server(&msg, &out_msg);
+
+    fprintf(stderr, "Inferior received exception %x, %x.\n", (unsigned int)
+        exception_type, (unsigned int)exception_data);
+}
+
 void parse_and_handle_input(char *buf, pid_t inferior)
 {
     int status;
@@ -198,8 +273,10 @@ void parse_and_handle_input(char *buf, pid_t inferior)
         case 'c':
             if (inferior_in_ptrace)
                 ptrace(PT_DETACH, inferior, 0, 0);
-            /* task_resume(inferior_task); */
-            wait(&status);
+            else
+                task_resume(inferior_task);
+            fprintf(stderr, "Continuing.\n");
+            wait_for_events();
             break;
         case 'd':
             if (sscanf(buf, "d %x", &addr) < 1)
@@ -224,7 +301,7 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             fprintf(stderr,
                 "    d disassemble starting at address\n");
             fprintf(stderr,
-                "      (if no args given, continues disassembly)\n");
+                "         (if no args given, continues disassembly)\n");
             fprintf(stderr,
                 "    n print the symbol table\n");
             fprintf(stderr,

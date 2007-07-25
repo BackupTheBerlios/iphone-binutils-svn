@@ -13,6 +13,8 @@
 #define ARM_THREAD_STATE_COUNT ((mach_msg_type_number_t) \
     ( sizeof (arm_thread_state_t) / sizeof (int) ))
 
+#define THREAD_STATE_NONE 1
+
 struct arm_thread_state {
     unsigned int r0;
     unsigned int r1;
