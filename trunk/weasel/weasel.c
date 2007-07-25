@@ -11,9 +11,22 @@
 #include <mach/mach_init.h>
 #include <mach/mach_traps.h>
 #include <mach/thread_act.h>
+#include <mach/vm_map.h>
+#include <mach-o/loader.h>
+#include <mach-o/nlist.h>
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+#include "weasel.h"
+
+struct weasel_symbol {
+    unsigned int addr;
+    union {
+        char *str;
+        unsigned int index;
+    } name;
+};
 
 /* TODO: make a sys header for this guy */
 kern_return_t task_threads(task_t target_task, thread_array_t *act_list,
@@ -23,6 +36,9 @@ int inferior_in_ptrace = 1;
 task_t inferior_task;
 thread_array_t inferior_threads = NULL;
 unsigned int inferior_thread_count = 0;
+unsigned int last_disassembly_point = 0;
+struct weasel_symbol **symbol_table = NULL;
+unsigned int symbol_table_size = 0;
 
 pid_t start_inferior(int argc, char **argv)
 {
@@ -117,12 +133,53 @@ void set_breakpoint(unsigned int addr)
         return;
     }
 
-    err = vm_write(inferior_task, addr, &inst, 4);
+    err = vm_write(inferior_task, addr, (pointer_t)&inst,
+        (mach_msg_type_number_t)4);
     if (err == KERN_SUCCESS)
         fprintf(stderr, "Breakpoint set at $%08x.\n", addr);
     else
         fprintf(stderr, "Failed to set breakpoint at $%08x: %d.\n", addr,
             (int)err);
+}
+
+void do_disassembly(unsigned int addr)
+{
+    char *assembler;
+    unsigned int i, inst, size;
+    kern_return_t err;
+
+    err = vm_protect(inferior_task, addr, 4 * 23, 0, VM_PROT_READ |
+        VM_PROT_WRITE | VM_PROT_EXECUTE); 
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to unprotect memory: %d.\n", err);
+        return;
+    }
+
+    for (i = addr; i < addr + 4 * 23; i += 4) {
+        size = 4;
+        err = vm_read_overwrite(inferior_task, i, 4, (pointer_t)&inst,
+            &size);
+        if (err != KERN_SUCCESS) {
+            fprintf(stderr, "%08x ????????\t(inaccessible)\n", i);
+            continue;
+        }
+
+        assembler = disassemble(inst, i); 
+        fprintf(stderr, "%08x %08x\t%s\n", i, inst, assembler);
+        free(assembler);
+    }
+
+    last_disassembly_point = i;
+}
+
+void nm()
+{
+    int i;
+
+    for (i = 0; i < symbol_table_size; i++) {
+        fprintf(stderr, "%08x %s\n", symbol_table[i]->addr,
+            symbol_table[i]->name.str);
+    }
 }
 
 void parse_and_handle_input(char *buf, pid_t inferior)
@@ -144,6 +201,15 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             /* task_resume(inferior_task); */
             wait(&status);
             break;
+        case 'd':
+            if (sscanf(buf, "d %x", &addr) < 1)
+                do_disassembly(last_disassembly_point);
+            else
+                do_disassembly(addr);
+            break;
+        case 'n':
+            nm();
+            break;
         case 'q':
             ptrace(PT_KILL, inferior, 0, 0);
             wait(&status);
@@ -151,10 +217,18 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             break;
         default:
             fprintf(stderr, "Available weasel commands:\n");
-            fprintf(stderr, "    b set a breakpoint\n");
-            fprintf(stderr, "    c continue execution\n");
-            fprintf(stderr, "    d disassemble starting at address or last\n");
-            fprintf(stderr, "    q quit weasel and inferior\n");
+            fprintf(stderr,
+                "    b set a breakpoint\n");
+            fprintf(stderr,
+                "    c continue execution\n");
+            fprintf(stderr,
+                "    d disassemble starting at address\n");
+            fprintf(stderr,
+                "      (if no args given, continues disassembly)\n");
+            fprintf(stderr,
+                "    n print the symbol table\n");
+            fprintf(stderr,
+                "    q quit weasel and inferior\n");
     }
 }
 
@@ -165,11 +239,114 @@ void main_loop(char *inferior_name, pid_t inferior)
 
     while (1) {
         get_inferior_status(regs);
-        printf("[$%08x weasel] ", regs[15]);
-        fflush(stdout);
+        fprintf(stderr, "[$%08x weasel] ", regs[15]);
         fgets(buf, 255, stdin);
         parse_and_handle_input(buf, inferior);
     }
+}
+
+void symbol_table_reading_failed(FILE *f)
+{
+    if (f)
+        fclose(f);
+
+    fprintf(stderr, "Symbol table reading failed. No symbolic information will"
+        " be\n");
+    fprintf(stderr, "available for this run.\n");
+}
+
+int compare_symtab_indices(const void *va, const void *vb)
+{
+    struct weasel_symbol **a, **b;
+    a = (struct weasel_symbol **)va, b = (struct weasel_symbol **)vb;
+    return ((*a)->name.index - (*b)->name.index);
+}
+
+int compare_symtab_addrs(const void *va, const void *vb)
+{
+    struct weasel_symbol **a, **b;
+    a = (struct weasel_symbol **)va, b = (struct weasel_symbol **)vb;
+    return (((int)((*a)->addr)) - ((int)((*b)->addr)));
+}
+
+void read_symbol_table(char *path)
+{
+    char *strtab;
+    int i;
+    struct load_command lc;
+    struct mach_header mh;
+    struct nlist sym;
+    struct symtab_command sc;
+    FILE *f = NULL;
+
+    f = fopen(path, "r");
+    if (!f) {
+        fprintf(stderr, "Failed to open Mach-O binary '%s'.\n", path);
+        symbol_table_reading_failed(f);
+        return;
+    }
+
+    fread(&mh, sizeof(struct mach_header), 1, f);
+    if (mh.magic != MH_MAGIC) {
+        fprintf(stderr,
+            "Doesn't seem to be a Mach-O file I know how to deal with.\n"); 
+        symbol_table_reading_failed(f);
+        return;
+    }
+
+    for (i = 0; i < mh.ncmds; i++) {
+        fread(&lc, sizeof(struct load_command), 1, f);
+        if (lc.cmd != LC_SYMTAB) {
+            fseek(f, lc.cmdsize - sizeof(struct load_command), SEEK_CUR);
+            continue;
+        }
+
+        break;
+    }
+
+    if (lc.cmd != LC_SYMTAB) {
+        symbol_table_reading_failed(f);
+        return;
+    }
+
+    fseek(f, -sizeof(struct load_command), SEEK_CUR);
+    fread(&sc, sizeof(struct symtab_command), 1, f);
+
+    symbol_table_size = 0; 
+    symbol_table = (struct weasel_symbol **)malloc(sizeof(struct weasel_symbol
+        *) * sc.nsyms);
+
+    fseek(f, sc.symoff, SEEK_SET);
+    for (i = 0; i < sc.nsyms; i++) {
+        fread(&sym, sizeof(struct nlist), 1, f);
+        if (((sym.n_type) & N_TYPE) != N_SECT)
+            continue;
+
+        symbol_table[symbol_table_size] = (struct weasel_symbol *)malloc(
+            sizeof(struct weasel_symbol)); 
+        symbol_table[symbol_table_size]->addr = sym.n_value;
+        symbol_table[symbol_table_size]->name.index = sym.n_un.n_strx;
+
+        symbol_table_size++;
+    }
+
+    qsort(symbol_table, symbol_table_size, sizeof(struct weasel_symbol *),
+        compare_symtab_indices);
+    strtab = (char *)malloc(sc.strsize);
+    fseek(f, sc.stroff, SEEK_SET);
+    fread(strtab, 1, sc.strsize, f); 
+
+    for (i = 0; i < symbol_table_size; i++)
+        symbol_table[i]->name.str = strdup(strtab +
+            symbol_table[i]->name.index);
+
+    free(strtab);
+    fclose(f);
+
+    qsort(symbol_table, symbol_table_size, sizeof(struct weasel_symbol *),
+        compare_symtab_addrs);
+
+    fprintf(stderr, "Read %d symbols.\n", symbol_table_size);
 }
 
 int main(int argc, char **argv)
@@ -181,6 +358,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    read_symbol_table(argv[1]);
     inferior = start_inferior(argc - 1, argv + 1);
     attach_to_process(inferior);
     main_loop(argv[1], inferior);
