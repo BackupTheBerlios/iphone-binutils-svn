@@ -33,7 +33,6 @@ struct arg_spec {
     char *name;
     int for_what;
     int takes_arg;
-    int partial_match_ok;
 };
 
 struct arg {
@@ -66,34 +65,39 @@ struct temp_file {
     struct temp_file *next;
 };
 
-/* Keep this in asciibetical order, because it'll be bsearch()'d. */
-struct arg_spec arg_specs[] = {
-    { "D",                      FOR_COMPILER,   0,  1 },
-    { "E",                      FOR_DRIVER,     0,  0 },
-    { "I",                      FOR_COMPILER,   0,  1 },
-    { "L",                      FOR_LINKER,     0,  1 },
-    { "O",                      FOR_COMPILER,   0,  1 },
-    { "S",                      FOR_DRIVER,     0,  0 },
-    { "U",                      FOR_COMPILER,   0,  1 },
-    { "V",                      FOR_DRIVER,     0,  0 },
-    { "W",                      FOR_COMPILER,   0,  1 },
-    { "ansi",                   FOR_COMPILER,   0,  0 },
-    { "arch",                   FOR_IGNORE,     1,  0 },
-    { "c",                      FOR_DRIVER,     0,  0 },
-    { "dynamic",                FOR_DRIVER,     0,  0 },
-    { "dynamiclib",             FOR_DRIVER,     0,  0 },
-    { "f",                      FOR_COMPILER,   0,  1 },
-    { "framework",              FOR_DRIVER,     1,  0 },
-    { "g",                      FOR_COMPILER,   0,  0 },
-    { "keep_private_externs",   FOR_LINKER,     0,  0 },
-    { "l",                      FOR_LINKER,     0,  1 },
-    { "o",                      FOR_DRIVER,     1,  1 },
-    { "pedantic",               FOR_COMPILER,   0,  0 },
-    { "r",                      FOR_LINKER,     0,  0 },
-    { "relocation-model",       FOR_LLC,        0,  1 },
-    { "std",                    FOR_COMPILER,   0,  1 },
-    { "v",                      FOR_DRIVER,     0,  0 },
-    { "w",                      FOR_COMPILER,   0,  0 }
+/* Keep these in asciibetical order - they will be bsearch()'d. */
+struct arg_spec exact_arg_specs[] = {
+    { "E",                      FOR_DRIVER,     0 },
+    { "ObjC",                   FOR_COMPILER,   0 },
+    { "S",                      FOR_DRIVER,     0 },
+    { "V",                      FOR_DRIVER,     0 },
+    { "ansi",                   FOR_COMPILER,   0 },
+    { "arch",                   FOR_IGNORE,     1 },
+    { "c",                      FOR_DRIVER,     0 },
+    { "dumpversion",            FOR_DRIVER,     0 },
+    { "dynamic",                FOR_DRIVER,     0 },
+    { "dynamiclib",             FOR_DRIVER,     0 },
+    { "framework",              FOR_DRIVER,     1 },
+    { "g",                      FOR_COMPILER,   0 },
+    { "keep_private_externs",   FOR_LINKER,     0 },
+    { "pedantic",               FOR_COMPILER,   0 },
+    { "r",                      FOR_LINKER,     0 },
+    { "v",                      FOR_DRIVER,     0 },
+    { "w",                      FOR_COMPILER,   0 }
+};
+
+struct arg_spec partial_arg_specs[] = {
+    { "D",                      FOR_COMPILER,   0 },
+    { "I",                      FOR_COMPILER,   0 },
+    { "L",                      FOR_LINKER,     0 },
+    { "O",                      FOR_COMPILER,   0 },
+    { "U",                      FOR_COMPILER,   0 },
+    { "W",                      FOR_COMPILER,   0 },
+    { "f",                      FOR_COMPILER,   0 },
+    { "l",                      FOR_LINKER,     0 },
+    { "o",                      FOR_DRIVER,     1 },
+    { "relocation-model",       FOR_LLC,        0 },
+    { "std",                    FOR_COMPILER,   0 }
 };
 
 char *prog_name;
@@ -120,7 +124,7 @@ void create_arg(struct arg_list *arg_list, char *data)
     arg->next = NULL;
 }
 
-int compare_args(const void *i_key, const void *i_arg_spec)
+int compare_args_exactly(const void *i_key, const void *i_arg_spec)
 {
     char *key;
     size_t key_len, spec_len;
@@ -129,7 +133,19 @@ int compare_args(const void *i_key, const void *i_arg_spec)
     key = (char *)i_key; spec = (struct arg_spec *)i_arg_spec;
     key_len = strlen(key); spec_len = strlen(spec->name);
 
-    if (spec->partial_match_ok && key_len > spec_len)
+    return strcmp(key, spec->name);
+}
+
+int compare_args_partially(const void *i_key, const void *i_arg_spec)
+{
+    char *key;
+    size_t key_len, spec_len;
+    struct arg_spec *spec;
+
+    key = (char *)i_key; spec = (struct arg_spec *)i_arg_spec;
+    key_len = strlen(key); spec_len = strlen(spec->name);
+
+    if (key_len > spec_len)
         return strncmp(key, spec->name, spec_len);
     else 
         return strcmp(key, spec->name);
@@ -148,7 +164,7 @@ void die(char *fmt, ...)
     exit(1);
 }
 
-void add_input_file(char *path)
+void add_input_file(char *path, struct arg_list *compiler_args)
 {
     char *ext;
     unsigned int todo;
@@ -166,6 +182,11 @@ void add_input_file(char *path)
             case 'C':
                 todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
                     TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
+                break;
+            case 'm':
+                todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
+                    TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
+                create_arg(compiler_args, "-ObjC"); 
                 break;
             case 's':
             case 'S':
@@ -205,6 +226,7 @@ char *get_config_key(char *key, int die_on_error)
 void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
     compiler_args, struct arg_list *linker_args)
 {
+    char *val;
     int i;
     struct arg_list *this_arg_list;
     struct arg_spec *spec;
@@ -216,11 +238,17 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
 
     for (i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
-            spec = (struct arg_spec *)bsearch(argv[i] + 1, arg_specs,
-                sizeof(arg_specs) / sizeof(struct arg_spec), sizeof(struct
-                arg_spec), compare_args);
-            if (!spec)
-                die("unknown argument '%s'", argv[i] + 1);
+            spec = (struct arg_spec *)bsearch(argv[i] + 1, exact_arg_specs,
+                sizeof(exact_arg_specs) / sizeof(struct arg_spec), sizeof(
+                struct arg_spec), compare_args_exactly);
+            if (!spec) {
+                spec = (struct arg_spec *)bsearch(argv[i] + 1,
+                    partial_arg_specs, sizeof(partial_arg_specs) / sizeof(
+                    struct arg_spec), sizeof(struct arg_spec),
+                    compare_args_partially);
+                if (!spec)
+                    die("unknown argument '%s'", argv[i] + 1);
+            }
            
             if (spec->for_what == FOR_DRIVER) {
                 if (!strcmp(spec->name, "E"))
@@ -242,8 +270,11 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                 else if (!strcmp(spec->name, "framework")) {
                     create_arg(linker_args, get_config_key(
                         "LDFLAGS_FRAMEWORKSDIR", 1));
-                   
-                    die("frameworks unimplemented");
+                    create_arg(linker_args, "-framework");
+                    create_arg(linker_args, argv[++i]);
+                } else if (!strcmp(spec->name, "dumpversion")) {
+                    val = get_config_key("LLVM_GCC", 1);
+                    execlp(val, val, "-dumpversion", NULL);
                 }
             } else {
                 switch (spec->for_what) {
@@ -263,7 +294,7 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     create_arg(this_arg_list, argv[++i]);
             }
         } else 
-            add_input_file(argv[i]); 
+            add_input_file(argv[i], compiler_args); 
     } 
 
     /* by default, perform all stages of compilation */
