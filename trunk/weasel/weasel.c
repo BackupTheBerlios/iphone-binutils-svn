@@ -4,6 +4,7 @@
  *   terms specified in the COPYING file.
  * ------------------------------------------------------------------------- */
 
+#include <ctype.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,20 +34,36 @@ struct weasel_symbol {
     } name;
 };
 
+struct weasel_breakpoint {
+    int id;
+    unsigned int addr;
+    unsigned int orig_inst;
+
+    struct weasel_breakpoint *next;
+};
+
 /* TODO: make a sys header for this guy */
 kern_return_t task_threads(task_t target_task, thread_array_t *act_list,
     mach_msg_type_number_t *act_listCnt);
 
 int inferior_in_ptrace = 1;
+int next_breakpoint_id = 1;
 unsigned int inferior_thread_count = 0;
-unsigned int last_disassembly_point = 0;
+unsigned int last_disassembly_point = 0, last_peek_point = 0;
 unsigned int symbol_table_size = 0;
+struct weasel_breakpoint *breakpoints = NULL;
 struct weasel_symbol **symbol_table = NULL;
 mach_port_t exception_port; 
 exception_type_t exception_type;
 exception_data_t exception_data;
 task_t inferior_task;
 thread_array_t inferior_threads = NULL;
+
+void inferior_abort_handler(int pid)
+{
+    fprintf(stderr, "Inferior received signal SIGABRT. Executing BKPT.\n");
+    asm("bkpt 0");
+}
 
 void child_handler(int pid)
 {
@@ -87,6 +104,9 @@ pid_t start_inferior(int argc, char **argv)
     child_args[argc] = NULL;
 
     ptrace(PT_TRACE_ME, 0, 0, 0);
+    signal(SIGTRAP, SIG_IGN);
+    signal(SIGABRT, inferior_abort_handler);
+
     execvp(argv[0], child_args);
 
     fprintf(stderr, "Failed to start inferior.\n");
@@ -163,10 +183,8 @@ void show_registers(unsigned int *regs)
 void set_breakpoint(unsigned int addr)
 {
     kern_return_t err;
-    unsigned int inst;
-
-    /* We know this is in the right endianness because it's our own! */
-    inst = ((0xe12 << 20) | (0x7 << 4));
+    unsigned int inst, size;
+    struct weasel_breakpoint *bkpt;
 
     err = vm_protect(inferior_task, addr, 4, 0, VM_PROT_READ | VM_PROT_WRITE |
         VM_PROT_EXECUTE); 
@@ -175,13 +193,36 @@ void set_breakpoint(unsigned int addr)
         return;
     }
 
+    bkpt = (struct weasel_breakpoint *)malloc(sizeof(struct
+        weasel_breakpoint));
+    bkpt->id = next_breakpoint_id;
+    bkpt->addr = addr;
+
+    size = 4;
+    err = vm_read_overwrite(inferior_task, addr, 4, (pointer_t)&(
+        bkpt->orig_inst), &size);
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to read instruction!\n");
+        free(bkpt);
+        return;
+    }
+
+    bkpt->next = breakpoints;
+    breakpoints = bkpt;
+
+    /* We know this is in the right endianness because it's our own! */
+    inst = ((0xe12 << 20) | (0x7 << 4));
+
     err = vm_write(inferior_task, addr, (pointer_t)&inst,
         (mach_msg_type_number_t)4);
     if (err == KERN_SUCCESS)
-        fprintf(stderr, "Breakpoint set at $%08x.\n", addr);
+        fprintf(stderr, "Breakpoint %d set at $%08x.\n", next_breakpoint_id,
+            addr);
     else
         fprintf(stderr, "Failed to set breakpoint at $%08x: %d.\n", addr,
             (int)err);
+
+    next_breakpoint_id++;
 }
 
 void do_disassembly(unsigned int addr)
@@ -190,14 +231,14 @@ void do_disassembly(unsigned int addr)
     unsigned int i, inst, size;
     kern_return_t err;
 
-    err = vm_protect(inferior_task, addr, 4 * 23, 0, VM_PROT_READ |
+    err = vm_protect(inferior_task, addr, 4 * 22, 0, VM_PROT_READ |
         VM_PROT_WRITE | VM_PROT_EXECUTE); 
     if (err != KERN_SUCCESS) {
         fprintf(stderr, "Failed to unprotect memory: %d.\n", err);
         return;
     }
 
-    for (i = addr; i < addr + 4 * 23; i += 4) {
+    for (i = addr; i < addr + 4 * 22; i += 4) {
         size = 4;
         err = vm_read_overwrite(inferior_task, i, 4, (pointer_t)&inst,
             &size);
@@ -214,6 +255,47 @@ void do_disassembly(unsigned int addr)
     last_disassembly_point = i;
 }
 
+void do_peek(unsigned int addr)
+{
+    unsigned char data[16];
+    unsigned int i, j, size;
+    kern_return_t err;
+
+    err = vm_protect(inferior_task, addr, 16 * 21, 0, VM_PROT_READ |
+        VM_PROT_WRITE | VM_PROT_EXECUTE); 
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to unprotect memory: %d.\n", err);
+        return;
+    }
+   
+    fprintf(stderr, " address ");
+    for (i = addr; i < addr + 16; i++)
+        fprintf(stderr, "  %01x", i % 16);
+    fprintf(stderr, "  ");
+    for (i = addr; i < addr + 16; i++)
+        fprintf(stderr, "%01x", i % 16);
+    fprintf(stderr, "\n");
+    
+    for (i = addr; i < addr + 16 * 21; i += 16) {
+        size = 16;
+        err = vm_read_overwrite(inferior_task, i, 16, (pointer_t)data, &size);
+        if (err != KERN_SUCCESS) {
+            fprintf(stderr, "%08x  -- inaccessible --\n", i);
+            continue;
+        }
+
+        fprintf(stderr, "%08x  ", i);
+        for (j = 0; j < 16; j++)
+            fprintf(stderr, "%02x ", (unsigned int)(data[j]));
+        fprintf(stderr, " ");
+        for (j = 0; j < 16; j++)
+            fprintf(stderr, "%c", isprint(data[j]) ? data[j] : '.');
+        fprintf(stderr, "\n");
+    }
+
+    last_peek_point = i;
+}
+
 void nm()
 {
     int i;
@@ -224,12 +306,55 @@ void nm()
     }
 }
 
+void delete_breakpoint(int id)
+{
+    kern_return_t err;
+    struct weasel_breakpoint *bkpt, *prev;
+
+    bkpt = breakpoints; prev = NULL;
+    while (bkpt) {
+        if (bkpt->id == id) {
+            if (prev)
+                prev->next = bkpt->next;
+            else
+                breakpoints = bkpt->next;
+            bkpt->next = NULL;
+            break;
+        }
+    }
+
+    if (!bkpt) {
+        fprintf(stderr, "No such breakpoint %d.\n", id);
+        return;
+    }
+
+    err = vm_protect(inferior_task, bkpt->addr, 4, 0, VM_PROT_READ |
+        VM_PROT_WRITE | VM_PROT_EXECUTE); 
+    if (err != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to unprotect memory: %d.\n", err);
+        return;
+    }
+
+    vm_write(inferior_task, bkpt->addr, (pointer_t)&(bkpt->orig_inst),
+        (mach_msg_type_number_t)4);
+
+    fprintf(stderr, "Breakpoint %d deleted.\n", bkpt->id);
+
+    free(bkpt);
+}
+
+
 kern_return_t catch_exception_raise(mach_port_t exception_port, mach_port_t
     thread, mach_port_t task, exception_type_t exception, exception_data_t
     code, mach_msg_type_number_t code_count)
 {
+
     exception_type = exception;
     exception_data = code;
+
+    if (thread_suspend(inferior_threads[0]) != KERN_SUCCESS)
+        fprintf(stderr, "Failed to suspend!\n");
+    thread_abort(inferior_threads[0]);
 
     return KERN_SUCCESS;
 }
@@ -237,8 +362,10 @@ kern_return_t catch_exception_raise(mach_port_t exception_port, mach_port_t
 void wait_for_events()
 {
     char data[1024];
+    unsigned int gp_count, regs[17];
     kern_return_t err;
     mach_msg_header_t msg, out_msg;
+    struct weasel_breakpoint *bkpt;
 
     fprintf(stderr, "Listening for exceptions.\n");
 
@@ -249,17 +376,47 @@ void wait_for_events()
         return;
     }
 
-    fprintf(stderr, "Exceptional event recieved.\n");
+    fprintf(stderr, "Exceptional event received.\n");
 
     exc_server(&msg, &out_msg);
 
+    /* if (mach_msg(&out_msg, MACH_SEND_MSG, sizeof(out_msg), 0, MACH_PORT_NULL,
+        0, MACH_PORT_NULL) != KERN_SUCCESS) {
+        fprintf(stderr, "Failed to send exception reply!\n");
+        exit(1);
+    } */
+
     fprintf(stderr, "Inferior received exception %x, %x.\n", (unsigned int)
         exception_type, (unsigned int)exception_data);
+
+    gp_count = 17;
+    thread_get_state(inferior_threads[0], 1, (thread_state_t)regs, &gp_count);
+
+    bkpt = breakpoints;
+    while (bkpt) {
+        if (bkpt->addr == regs[15]) {
+            fprintf(stderr, "Breakpoint %d hit at $%08x.\n", bkpt->id,
+                bkpt->addr);
+            delete_breakpoint(bkpt->id);
+            break;
+        }
+
+        bkpt = bkpt->next;
+    }
+}
+
+void print_registers()
+{
+    unsigned int gp_count, regs[17];
+
+    gp_count = 17;
+    thread_get_state(inferior_threads[0], 1, (thread_state_t)regs, &gp_count);
+    show_registers(regs);
 }
 
 void parse_and_handle_input(char *buf, pid_t inferior)
 {
-    int status;
+    int n;
     unsigned int addr;
 
     switch (buf[0]) {
@@ -271,10 +428,11 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             set_breakpoint(addr); 
             break;
         case 'c':
-            if (inferior_in_ptrace)
+            if (inferior_in_ptrace) {
                 ptrace(PT_DETACH, inferior, 0, 0);
-            else
-                task_resume(inferior_task);
+                inferior_in_ptrace = 0;
+            } else
+                thread_resume(inferior_threads[0]);
             fprintf(stderr, "Continuing.\n");
             wait_for_events();
             break;
@@ -287,25 +445,49 @@ void parse_and_handle_input(char *buf, pid_t inferior)
         case 'n':
             nm();
             break;
+        case 'p':
+            if (sscanf(buf, "p %x", &addr) < 1)
+                do_peek(last_peek_point);
+            else
+                do_peek(addr);
+            break;
+        case 'r':
+            print_registers();
+            break; 
+        case 't':
+            /* print_call_frame_traceback();    TODO */
+            fprintf(stderr, "Sorry, call frame tracebacks unimplemented...\n");
+            break;
         case 'q':
-            ptrace(PT_KILL, inferior, 0, 0);
-            wait(&status);
+            task_terminate(inferior_task); 
             exit(0);
+            break;
+        case 'x':
+            if (sscanf(buf, "x %d", &n) < 1)
+                fprintf(stderr, "usage: x breakpoint-number\n");
+            else
+                delete_breakpoint(n);
             break;
         default:
             fprintf(stderr, "Available weasel commands:\n");
             fprintf(stderr,
-                "    b set a breakpoint\n");
+                "    b set a breakpoint at the given address\n");
             fprintf(stderr,
                 "    c continue execution\n");
             fprintf(stderr,
-                "    d disassemble starting at address\n");
+                "    d disassemble starting at the given address\n");
             fprintf(stderr,
-                "         (if no args given, continues disassembly)\n");
+                "         (if no address given, continues from last point)\n");
             fprintf(stderr,
-                "    n print the symbol table\n");
+                "    n print the symbol table of the main image\n");
+            fprintf(stderr,
+                "    p peek at memory starting at the given address\n");
             fprintf(stderr,
                 "    q quit weasel and inferior\n");
+            fprintf(stderr,
+                "    r print the current values of the CPU registers\n");
+            fprintf(stderr,
+                "    x delete the breakpoint with the given number\n");
     }
 }
 

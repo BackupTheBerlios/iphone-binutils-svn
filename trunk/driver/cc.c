@@ -60,6 +60,12 @@ struct config_option {
     struct config_option *next;
 };
 
+struct temp_file {
+    char *path;
+
+    struct temp_file *next;
+};
+
 /* Keep this in asciibetical order, because it'll be bsearch()'d. */
 struct arg_spec arg_specs[] = {
     { "D",                      FOR_COMPILER,   0,  1 },
@@ -96,6 +102,7 @@ struct input_file *input_files = NULL;
 char *output_path = NULL;
 struct config_option *config = NULL;
 struct arg_list *llc_args;
+struct temp_file *temp_files = NULL;
 
 void create_arg(struct arg_list *arg_list, char *data)
 {
@@ -325,7 +332,8 @@ void read_config_file(char * prog_name)
 
     path = find_config_file_path(prog_name);
     if (!path)
-        die("Failed to locate the arm-cc-specs config file; see installation instructions");
+        die("Failed to locate the arm-cc-specs config file; see installation "
+            "instructions");
 
     f = fopen(path, "r");
     if (!f)
@@ -401,9 +409,15 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     strh = arg_array + 1; 
 
     if (flags_line[0])
-        while ((*strh = strsep(&flags_line, " \t")) != NULL)
+        while ((*strh = strsep(&flags_line, " \t")) != NULL) {
             if (**strh)
                 strh++;
+
+            if (flags_line && flags_line[0] == '%') {
+                strsep(&flags_line, " \t");
+                break;
+            }
+        }
 
     if (arg_list) {
         argp = arg_list->first;
@@ -419,6 +433,12 @@ void execute_step(char *prog_name_opt, char *flags_opt, struct arg_list *
     va_end(ap);
 
     *strh = NULL;
+
+    if (flags_line && flags_line[0])
+        while ((*strh = strsep(&flags_line, " \t")) != NULL) {
+            if (**strh)
+                strh++;
+        }
 
     if (verbose_on) {
         for (i = 0; i < n_args; i++) {
@@ -475,10 +495,18 @@ void assign_default_output_path(unsigned int last_op, char *i_infile)
 void prepare_outpath(unsigned int last_op, unsigned int this_op, char *suffix,
     char **outpath, char *template)
 {
+    struct temp_file *tf;
+
     if (last_op == this_op)
         *outpath = strdup(output_path);
-    else
+    else {
         asprintf(outpath, "%s%s", template, suffix); 
+
+        tf = (struct temp_file *)malloc(sizeof(struct temp_file));
+        tf->path = strdup(*outpath);
+        tf->next = temp_files;
+        temp_files = tf; 
+    }
 }
 
 void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
@@ -583,6 +611,23 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
             linker_args, 2, "-o", output_path);
 }
 
+void clean_up_temporary_files()
+{
+    struct temp_file *tf;
+
+    tf = temp_files;
+    while (tf) {
+        if (verbose_on)
+            fprintf(stderr, "rm %s\n", tf->path);
+
+        unlink(tf->path); 
+
+        tf = tf->next;
+    }
+
+    /* no need to free since we're exiting anyway */
+}
+
 int main(int argc, char **argv)
 {
     struct arg_list compiler_args, linker_args;
@@ -599,6 +644,7 @@ int main(int argc, char **argv)
     read_config_file(prog_name);
     gather_args(argc, argv, &todo, &compiler_args, &linker_args);
     perform_operations(todo, &compiler_args, &linker_args);
+    clean_up_temporary_files();
 
     return 0;
 }
