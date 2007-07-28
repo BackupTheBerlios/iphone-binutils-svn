@@ -68,7 +68,7 @@ struct temp_file {
 /* Keep these in asciibetical order - they will be bsearch()'d. */
 struct arg_spec exact_arg_specs[] = {
     { "E",                      FOR_DRIVER,     0 },
-    { "ObjC",                   FOR_COMPILER,   0 },
+    { "ObjC",                   FOR_DRIVER,     0 },
     { "S",                      FOR_DRIVER,     0 },
     { "V",                      FOR_DRIVER,     0 },
     { "ansi",                   FOR_COMPILER,   0 },
@@ -275,6 +275,10 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                 } else if (!strcmp(spec->name, "dumpversion")) {
                     val = get_config_key("LLVM_GCC", 1);
                     execlp(val, val, "-dumpversion", NULL);
+                } else if (!strcmp(spec->name, "ObjC")) {
+                    create_arg(linker_args, "-ObjC");
+                    create_arg(linker_args, "-lobjc");
+                    create_arg(compiler_args, "-ObjC");
                 }
             } else {
                 switch (spec->for_what) {
