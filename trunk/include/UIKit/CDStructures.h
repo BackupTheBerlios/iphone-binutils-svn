@@ -6,19 +6,6 @@
 
 @class UIImage, UIView;
 
-struct Bucket<KB::String, KB::Word>;
-
-struct Bucket<unsigned int, KB::Vector<KB::Pair<KB::String, KB::DynamicDictionary::CustomType>>>;
-
-struct CGAffineTransform {
-    float a;
-    float b;
-    float c;
-    float d;
-    float tx;
-    float ty;
-};
-
 struct CGColor;
 
 struct CGContext;
@@ -27,72 +14,7 @@ struct CGImage;
 
 struct CGPath;
 
-struct CGPoint {
-    float x;
-    float y;
-};
-
-struct CGRect {
-    struct CGPoint origin;
-    struct CGSize size;
-};
-
 struct CGShading;
-
-struct CGSize {
-    float width;
-    float height;
-};
-
-struct DynamicDictionary {
-    void **_field1;
-    int _field2;
-    int _field3;
-    _Bool _field4;
-    _Bool _field5;
-    _Bool _field6;
-    _Bool _field7;
-    struct _opaque_pthread_mutex_t _field8;
-    struct _opaque_pthread_cond_t _field9;
-    struct String _field10;
-    struct Ring<KB::String, 640> _field11;
-    struct Hashmap<unsigned int, KB::Vector<KB::Pair<KB::String, KB::DynamicDictionary::CustomType>>> _field12;
-    struct Hashmap<KB::String, KB::Word> _field13;
-};
-
-struct HashTraits<KB::String>;
-
-struct HashTraits<unsigned int>;
-
-struct Hashmap<KB::String, KB::Word> {
-    unsigned int m_size;
-    unsigned int m_capacity;
-    unsigned int m_table_size;
-    unsigned int m_extra_size;
-    unsigned int m_extra_index;
-    _Bool m_rehashing;
-    struct HashTraits<KB::String> m_traits;
-    struct Bucket<KB::String, KB::Word> *m_table;
-    struct Bucket<KB::String, KB::Word> *m_extra;
-};
-
-struct Hashmap<unsigned int, KB::Vector<KB::Pair<KB::String, KB::DynamicDictionary::CustomType>>> {
-    unsigned int m_size;
-    unsigned int m_capacity;
-    unsigned int m_table_size;
-    unsigned int m_extra_size;
-    unsigned int m_extra_index;
-    _Bool m_rehashing;
-    struct HashTraits<unsigned int> m_traits;
-    struct Bucket<unsigned int, KB::Vector<KB::Pair<KB::String, KB::DynamicDictionary::CustomType>>> *m_table;
-    struct Bucket<unsigned int, KB::Vector<KB::Pair<KB::String, KB::DynamicDictionary::CustomType>>> *m_extra;
-};
-
-struct Ring<KB::String, 640> {
-    unsigned int m_index;
-    unsigned int m_size;
-    struct String m_elements[640];
-};
 
 struct String {
     unsigned short m_size;
@@ -105,6 +27,11 @@ struct String {
 
 struct WKView;
 
+struct _WKObject {
+    unsigned int referenceCount;
+    struct _WKClassInfo *classInfo;
+};
+
 struct WKWindow {
     struct _WKObject _field1;
     struct CGRect _field2;
@@ -116,26 +43,6 @@ struct WKWindow {
     unsigned int :1;
     unsigned int :1;
     unsigned int :1;
-};
-
-struct _NSPoint {
-    float _field1;
-    float _field2;
-};
-
-struct _NSRange {
-    unsigned int location;
-    unsigned int length;
-};
-
-struct _NSRect {
-    struct _NSPoint _field1;
-    struct _NSSize _field2;
-};
-
-struct _NSSize {
-    float _field1;
-    float _field2;
 };
 
 struct _NSZone;
@@ -155,11 +62,6 @@ struct _UIRenderInfo {
 };
 
 struct _WKClassInfo;
-
-struct _WKObject {
-    unsigned int referenceCount;
-    struct _WKClassInfo *classInfo;
-};
 
 struct __CFArray;
 
@@ -188,16 +90,6 @@ struct __GSHeartbeat;
 struct __GSWindow;
 
 struct __SCNetworkReachability;
-
-struct _opaque_pthread_cond_t {
-    long __sig;
-    char __opaque[24];
-};
-
-struct _opaque_pthread_mutex_t {
-    long __sig;
-    char __opaque[40];
-};
 
 typedef struct {
     double width;
