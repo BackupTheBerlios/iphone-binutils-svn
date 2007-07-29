@@ -4,12 +4,18 @@ PREPROCESS=@prefix@/bin/llvm-gcc
 CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__ -isystem @prefix@/include
 LLVM_GCC=@prefix@/bin/llvm-gcc
 CFLAGS=-emit-llvm
+CFLAGS_OBJC=-emit-llvm -ObjC
+LLVM_GCCC=llvm-g++
+CCFLAGS=-emit-llvm
 LLC=@prefix@/bin/llc
 LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic -f
 LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=generic -relocation-model=pic
+OPT=@prefix@/bin/opt
+OPTFLAGS=-std-compile-opts
 AS=@prefix@/bin/arm-apple-darwin-as
 ASFLAGS=-arch arm
 LD=@prefix@/bin/arm-apple-darwin-ld
 LDFLAGS=-syslibroot @prefix@/heavenly @prefix@/csu/crt1.o % -lSystem -lgcc_s_v6.1 -lm -larmfp 
 LDFLAGS_DYLIB=-syslibroot @prefix@/heavenly -lSystem -lgcc_s_v6.1 -L@prefix@/csu -ldylib1.o -single_module -dylib -dynamic
+LDFLAGS_FRAMEWORKSDIR=-F@prefix@/heavenly/System/Library/Frameworks
 
