@@ -4,12 +4,9 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/Foundation.h>
 
-#import "LKObjectProtocol.h"
-#import "LKTimingProtocol.h"
-
-@interface LKLayer : NSObject <LKTiming, LKObject>
+@interface LKLayer : NSObject // <LKTiming, LKObject>
 {
     unsigned int _superlayer;
     struct CGPoint _position;

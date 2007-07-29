@@ -29,6 +29,10 @@
 #define FOR_LLC                     3 
 #define FOR_IGNORE                  4
 
+#define LANG_C                      0
+#define LANG_CPP                    1
+#define LANG_OBJC                   2 
+
 struct arg_spec {
     char *name;
     int for_what;
@@ -48,6 +52,7 @@ struct arg_list {
 struct input_file {
     char *path;
     unsigned int todo;
+    int lang;
 
     struct input_file *next;
 };
@@ -167,6 +172,7 @@ void die(char *fmt, ...)
 void add_input_file(char *path, struct arg_list *compiler_args)
 {
     char *ext;
+    int lang = LANG_C;
     unsigned int todo;
     struct input_file *in;
     
@@ -180,13 +186,14 @@ void add_input_file(char *path, struct arg_list *compiler_args)
         switch (ext[1]) {
             case 'c':
             case 'C':
+                lang = (ext[2] == 'p' ? LANG_CPP : LANG_C);
                 todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
                     TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
                 break;
             case 'm':
                 todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
                     TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
-                create_arg(compiler_args, "-ObjC"); 
+                lang = LANG_OBJC;
                 break;
             case 's':
             case 'S':
@@ -200,6 +207,7 @@ void add_input_file(char *path, struct arg_list *compiler_args)
     in = (struct input_file *)malloc(sizeof(struct input_file));
     in->path = path;
     in->todo = todo;
+    in->lang = lang;
     
     in->next = input_files;
     input_files = in;
@@ -278,7 +286,6 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                 } else if (!strcmp(spec->name, "ObjC")) {
                     create_arg(linker_args, "-ObjC");
                     create_arg(linker_args, "-lobjc");
-                    create_arg(compiler_args, "-ObjC");
                 }
             } else {
                 switch (spec->for_what) {
@@ -589,9 +596,21 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_COMPILE_TO_BYTECODE) {
             prepare_outpath(last_op, TODO_COMPILE_TO_BYTECODE, ".bc", &outpath,
                 template);
-            execute_step("LLVM_GCC", "CFLAGS", compiler_args, 4, "-c", "-o",
-                outpath, inpath);
-            
+
+            switch (in->lang) {
+                case LANG_C:
+                    execute_step("LLVM_GCC", "CFLAGS", compiler_args, 4, "-c",
+                        "-o", outpath, inpath);
+                    break;
+                case LANG_CPP:
+                    execute_step("LLVM_GCCC", "CCFLAGS", compiler_args, 4,
+                        "-c", "-o", outpath, inpath);
+                    break;
+                case LANG_OBJC:
+                    execute_step("LLVM_GCC", "CFLAGS_OBJC", compiler_args, 4,
+                        "-c", "-o", outpath, inpath);
+            }
+                    
             free(inpath);
             inpath = outpath;
         }
