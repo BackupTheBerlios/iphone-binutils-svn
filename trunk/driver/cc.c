@@ -19,9 +19,10 @@
 
 #define TODO_PREPROCESS             1
 #define TODO_COMPILE_TO_BYTECODE    2
-#define TODO_TRANSLATE_BYTECODE     4
-#define TODO_ASSEMBLE               8
-#define TODO_LINK                   16
+#define TODO_OPTIMIZE_BYTECODE      4 
+#define TODO_TRANSLATE_BYTECODE     8
+#define TODO_ASSEMBLE               16
+#define TODO_LINK                   32
 
 #define FOR_DRIVER                  0
 #define FOR_COMPILER                1
@@ -73,6 +74,7 @@ struct temp_file {
 /* Keep these in asciibetical order - they will be bsearch()'d. */
 struct arg_spec exact_arg_specs[] = {
     { "E",                      FOR_DRIVER,     0 },
+    { "O0",                     FOR_COMPILER,   0 },
     { "ObjC",                   FOR_DRIVER,     0 },
     { "S",                      FOR_DRIVER,     0 },
     { "V",                      FOR_DRIVER,     0 },
@@ -95,7 +97,7 @@ struct arg_spec partial_arg_specs[] = {
     { "D",                      FOR_COMPILER,   0 },
     { "I",                      FOR_COMPILER,   0 },
     { "L",                      FOR_LINKER,     0 },
-    { "O",                      FOR_COMPILER,   0 },
+    { "O",                      FOR_DRIVER,     0 },
     { "U",                      FOR_COMPILER,   0 },
     { "W",                      FOR_COMPILER,   0 },
     { "f",                      FOR_COMPILER,   0 },
@@ -188,11 +190,13 @@ void add_input_file(char *path, struct arg_list *compiler_args)
             case 'C':
                 lang = (ext[2] == 'p' ? LANG_CPP : LANG_C);
                 todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
-                    TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
+                    TODO_OPTIMIZE_BYTECODE | TODO_TRANSLATE_BYTECODE |
+                    TODO_ASSEMBLE | TODO_LINK;
                 break;
             case 'm':
                 todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE |
-                    TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
+                    TODO_OPTIMIZE_BYTECODE | TODO_TRANSLATE_BYTECODE |
+                    TODO_ASSEMBLE | TODO_LINK;
                 lang = LANG_OBJC;
                 break;
             case 's':
@@ -236,6 +240,7 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
 {
     char *val;
     int i;
+    int want_optimization = 0;
     struct arg_list *this_arg_list;
     struct arg_spec *spec;
 
@@ -286,6 +291,9 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                 } else if (!strcmp(spec->name, "ObjC")) {
                     create_arg(linker_args, "-ObjC");
                     create_arg(linker_args, "-lobjc");
+                } else if (!strcmp(spec->name, "O")) {
+                    create_arg(compiler_args, "-O2");
+                    want_optimization = 1;
                 }
             } else {
                 switch (spec->for_what) {
@@ -308,10 +316,13 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
             add_input_file(argv[i], compiler_args); 
     } 
 
-    /* by default, perform all stages of compilation */
+    /* by default, perform all stages of compilation except optimization */
     if (!*todo)
         *todo = TODO_PREPROCESS | TODO_COMPILE_TO_BYTECODE
             | TODO_TRANSLATE_BYTECODE | TODO_ASSEMBLE | TODO_LINK;
+
+    if (want_optimization)
+        *todo |= TODO_OPTIMIZE_BYTECODE;
 }
 
 char * get_full_path(char *prog_name)
@@ -554,7 +565,7 @@ void prepare_outpath(unsigned int last_op, unsigned int this_op, char *suffix,
 void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
     struct arg_list *linker_args)
 {
-    char *inpath, *outpath, *template;
+    char *inpath, *outpath, *template, *tmp;
     int need_default_output_path;
     struct arg *arg;
     struct input_file *in;
@@ -611,6 +622,18 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
                         "-c", "-o", outpath, inpath);
             }
                     
+            free(inpath);
+            inpath = outpath;
+        }
+
+        if (todo & TODO_OPTIMIZE_BYTECODE) {
+            prepare_outpath(last_op, TODO_OPTIMIZE_BYTECODE, ".opt.bc",
+                &outpath, template);
+
+            asprintf(&tmp, "-o=%s", outpath);
+            execute_step("OPT", "OPTFLAGS", NULL, 2, tmp, inpath);
+            free(tmp);
+
             free(inpath);
             inpath = outpath;
         }

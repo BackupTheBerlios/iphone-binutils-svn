@@ -6,9 +6,7 @@
 
 #import <LayerKit/LKLayer.h>
 
-#import "LKObjectPrivateProtocol.h"
-
-@interface LKLayer (LKLayerPrivate) <LKObjectPrivate>
+@interface LKLayer (LKLayerPrivate) 
 + (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30aeef68
 + (void *)methodForSelector:(SEL)fp8;	// IMP=0x30aef410
 + (BOOL)shouldCopyValueForKey:(id)fp8;	// IMP=0x30aef468
