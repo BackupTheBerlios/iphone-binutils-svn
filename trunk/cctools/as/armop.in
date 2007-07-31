@@ -128,3 +128,103 @@ ie                                      e: 10 (18)
 id                                      e: 11 (18)
 .enddefine
 
+ldrex{<cond>}       t: OP_LDREX         e: 00011001 (20), 111110011111 (0)
+
+mcrr2               t: OP_MCRR2         e: 1111 (28), 11000100 (20)
+mrrc2               t: OP_MCRR2         e: 1111 (28), 11000101 (20)
+
+pkhbt{<cond>}       t: OP_PKHBT         e: 01101000 (20), 001 (4)
+pkhtb{<cond>}       t: OP_PKHBT         e: 01101000 (20), 101 (4)
+
+qadd16{<cond>}      t: OP_QADD16        e: 01100010 (20), 1111 (8), 0001 (4)
+qadd8{<cond>}       t: OP_QADD16        e: 01100010 (20), 1111 (8), 1001 (4)
+qaddsubx{<cond>}    t: OP_QADD16        e: 01100010 (20), 1111 (8), 0011 (4)
+qsub16{<cond>}      t: OP_QADD16        e: 01100010 (20), 1111 (8), 0111 (4)
+qsub8{<cond>}       t: OP_QADD16        e: 01100010 (20), 1111 (8), 1111 (4)
+qsubaddx{<cond>}    t: OP_QADD16        e: 01100010 (20), 1111 (8), 0101 (4)
+sadd16{<cond>}      t: OP_QADD16        e: 01100001 (20), 1111 (8), 0001 (4)
+sadd8{<cond>}       t: OP_QADD16        e: 01100001 (20), 1111 (8), 1001 (4)
+saddsubx{<cond>}    t: OP_QADD16        e: 01100001 (20), 1111 (8), 0011 (4)
+shadd16{<cond>}     t: OP_QADD16        e: 01100011 (20), 1111 (8), 0001 (4)
+shadd8{<cond>}      t: OP_QADD16        e: 01100011 (20), 1111 (8), 1001 (4)
+shaddsubx{<cond>}   t: OP_QADD16        e: 01100011 (20), 1111 (8), 0011 (4)
+shsub16{<cond>}     t: OP_QADD16        e: 01100011 (20), 1111 (8), 0111 (4)
+shsub8{<cond>}      t: OP_QADD16        e: 01100011 (20), 1111 (8), 1111 (4)
+shsubaddx{<cond>}   t: OP_QADD16        e: 01100011 (20), 1111 (8), 0101 (4)
+ssub16{<cond>}      t: OP_QADD16        e: 01100001 (20), 1111 (8), 0111 (4)
+ssub8{<cond>}       t: OP_QADD16        e: 01100001 (20), 1111 (8), 1111 (4)
+ssubaddx{<cond>}    t: OP_QADD16        e: 01100001 (20), 1111 (8), 0101 (4)
+uadd16{<cond>}      t: OP_QADD16        e: 01100101 (20), 1111 (8), 0001 (4)
+uadd8{<cond>}       t: OP_QADD16        e: 01100101 (20), 1111 (8), 1001 (4)
+uaddsubx{<cond>}    t: OP_QADD16        e: 01100101 (20), 1111 (8), 0011 (4)
+uhadd16{<cond>}     t: OP_QADD16        e: 01100111 (20), 1111 (8), 0001 (4)
+uhadd8{<cond>}      t: OP_QADD16        e: 01100111 (20), 1111 (8), 1001 (4)
+uhaddsubx{<cond>}   t: OP_QADD16        e: 01100111 (20), 1111 (8), 0011 (4)
+uqadd16{<cond>}     t: OP_QADD16        e: 01100110 (20), 1111 (8), 0001 (4)
+uqadd8{<cond>}      t: OP_QADD16        e: 01100110 (20), 1111 (8), 1001 (4)
+uqaddsubx{<cond>}   t: OP_QADD16        e: 01100110 (20), 1111 (8), 0011 (4)
+uqsub16{<cond>}     t: OP_QADD16        e: 01100110 (20), 1111 (8), 0111 (4)
+uqsub8{<cond>}      t: OP_QADD16        e: 01100110 (20), 1111 (8), 1111 (4)
+uqsubaddx{<cond>}   t: OP_QADD16        e: 01100110 (20), 1111 (8), 0101 (4)
+usub16{<cond>}      t: OP_QADD16        e: 01100101 (20), 1111 (8), 0111 (4)
+usubaddx{<cond>}    t: OP_QADD16        e: 01100101 (20), 1111 (8), 0101 (4)
+
+rev{<cond>}         t: OP_REV           e: 011010111111 (16), 11110011 (4)
+rev16{<cond>}       t: OP_REV           e: 011010111111 (16), 11111011 (4)
+revsh{<cond>}       t: OP_REV           e: 011011111111 (16), 11111011 (4)
+
+rfe{lm_am}          t: OP_RFE       e: 1111100 (25), 0 (22), 1 (20), 1010 (8)
+
+sxtah{<cond>}       t: OP_SXTAH         e: 01101011 (20), 00 (8), 0111 (4)
+sxtab16{<cond>}     t: OP_SXTAH         e: 01101000 (20), 00 (8), 0111 (4)
+sxtab{<cond>}       t: OP_SXTAH         e: 01101010 (20), 00 (8), 0111 (4)
+uxtah{<cond>}       t: OP_SXTAH         e: 01101111 (20), 00 (8), 0111 (4)
+uxtab16{<cond>}     t: OP_SXTAH         e: 01101100 (20), 00 (8), 0111 (4)
+uxtab{<cond>}       t: OP_SXTAH         e: 01101110 (20), 00 (8), 0111 (4)
+
+sel{<cond>}         t: OP_SEL           e: 01101000 (20), 1111 (8), 1011 (4)
+
+setend              t: OP_SETEND        e: 1111000100000001 (16), 0000 (4)
+
+smlad{x}{<cond>}    t: OP_SMLAD         e: 01110000 (20), 00 (6), 1 (4)
+smlsd{x}{<cond>}    t: OP_SMLAD         e: 01110000 (20), 01 (6), 1 (4)
+smmla{r}{<cond>}    t: OP_SMLAD         e: 01110101 (20), 00 (6), 1 (4)
+smmls{r}{<cond>}    t: OP_SMLAD         e: 01110101 (20), 11 (6), 1 (4)
+
+smlald{x}{<cond>}   t: OP_SMLALD        e: 01110100 (20), 00 (6), 1 (4)
+smlsld{x}{<cond>}   t: OP_SMLALD        e: 01110100 (20), 01 (6), 1 (4)
+umaal{<cond>}       t: OP_SMLALD        e: 00000100 (20), 1001 (4)
+
+smmul{r}{<cond>}    t: OP_SMMUL     e: 01110101 (20), 1111 (12), 00 (6), 1 (4)
+smuad{x}{<cond>}    t: OP_SMMUL     e: 01110000 (20), 1111 (12), 00 (6), 1 (4)
+smusd{x}{<cond>}    t: OP_SMMUL     e: 01110000 (20), 1111 (12), 01 (6), 1 (4)
+
+.define r
+r                                       e: 1 (5)
+*                                       e: 0 (5)
+.enddefine
+
+.define x
+x                                       e: 1 (5)
+*                                       e: 0 (5)
+.enddefine
+
+srs{sm_am}          t: OP_SRS   e: 1111100 (25), 1 (22), 01101 (16), 0101 (8)
+
+ssat{<cond>}        t: OP_SSAT          e: 0110101 (21), 01 (4)
+usat{<cond>}        t: OP_SSAT          e: 0110111 (21), 01 (4)
+ssat16{<cond>}      t: OP_SSAT16        e: 01101010 (20), 1111 (8), 0011 (4)
+usat16{<cond>}      t: OP_SSAT16        e: 01101110 (20), 1111 (8), 0011 (4)
+
+strex{<cond>}       t: OP_STREX     e: 0001100 (21), 0 (20), 1111 (8), 1001 (4)
+
+sxth{<cond>}        t: OP_SXTH      e: 01101011 (20), 1111 (16), 000111 (4)
+sxtb16{<cond>}      t: OP_SXTH      e: 01101000 (20), 1111 (16), 000111 (4)
+sxtb{<cond>}        t: OP_SXTH      e: 01101010 (20), 1111 (16), 000111 (4)
+uxth{<cond>}        t: OP_SXTH      e: 01101111 (20), 1111 (16), 000111 (4)
+uxtb16{<cond>}      t: OP_SXTH      e: 01101100 (20), 1111 (16), 000111 (4)
+uxtb{<cond>}        t: OP_SXTH      e: 01101110 (20), 1111 (16), 000111 (4)
+
+usad8{<cond>}       t: OP_USAD8     e: 01111000 (20), 1111 (12), 0001 (4)
+usada8{<cond>}      t: OP_USADA8    e: 01111000 (20), 0001 (4)
+

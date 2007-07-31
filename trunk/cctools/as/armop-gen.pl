@@ -56,6 +56,7 @@ while (my $line = <F>) {
         $str = '' if $str eq '*';
         $def->{$str} = { enc => parse_encoding($enc) };
     }
+    die "Definition '$def_name' already defined" if exists $defs->{$def_name};
     $defs->{$def_name} = $def;
 }
 

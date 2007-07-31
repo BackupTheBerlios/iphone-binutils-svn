@@ -40,11 +40,16 @@ unsigned int instruction;
 %type  <nval> load_am_indexed reg_lists reg_list_atom reg_list_contents
 %type  <nval> maybe_hat maybe_imm_rotation misc_ls_am imm_with_u_bit
 %type  <nval> misc_ls_am_index shifter_imm shifter_operand_lsl_clause
-%type  <nval> shifter_operand_lsl_arg lams
+%type  <nval> shifter_operand_lsl_arg load_am_sign fundamental_inst armv6_inst
 
 %%
 
 inst:
+      fundamental_inst  { instruction = $1; }
+    | armv6_inst        { instruction = $1; }
+;
+
+fundamental_inst:
       branch_inst       { instruction = $1; }
     | data_inst         { instruction = $1; }
     | load_inst         { instruction = $1; }
@@ -208,11 +213,11 @@ misc_ls_am_index:
             $$ = ((1 << 22) | ((($2 & 0xf0) >> 4) << 8) | ($2 & 0x0f) |
                 ($2 & (1 << 23)));
         }
-    | lams OPRD_REG
+    | load_am_sign OPRD_REG
         { $$ = ((1 << 7) | (1 << 4) | $1 | $2); }
     ;
 
-lams:
+load_am_sign:
       /* empty */   { $$ = (1 << 23); }
     | '+'           { $$ = (1 << 23); }
     | '-'           { $$ = (0 << 23); }
@@ -248,7 +253,7 @@ load_am:
 
 load_am_indexed:
       '#' OPRD_IMM { $$ = ($2 < 0 ? -$2 : ($2 | (1 << 23))); }
-    | lams OPRD_REG maybe_am_lsl_subclause
+    | load_am_sign OPRD_REG maybe_am_lsl_subclause
         {
             $$ = ($1 | $2 | $3 | (1 << 25));
         }
