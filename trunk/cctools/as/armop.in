@@ -30,6 +30,11 @@ mla{<cond>}{s}      t: OP_MLA           e: 0000001  (21),   1001    (4)
 smull{<cond>}{s}    t: OP_SMLAL         e: 0000110  (21),   1001    (4)
 smlal{<cond>}{s}    t: OP_SMLAL         e: 0000111  (21),   1001    (4)
 
+.define s
+s                                       e: 1 (20)
+*                                       e: 0 (20)
+.enddefine
+
 # Miscellaneous arithmetic instructions
 clz{<cond>}         t: OP_CLZ       e: 00010110 (20), 1111 (16), 11110001 (4)
 
@@ -49,9 +54,36 @@ sh                                      e: 11 (5)
 sb                                      e: 10 (5)
 .enddefine
 
+.define t
+t                                       e: 0 (24), 1 (21)
+*                                       e: 0 (0)
+.enddefine
+
 # Load and store multiple instructions
-ldm{<cond>}{lsm_am} t: OP_LDM           e: 100 (25), 1 (20)
-stm{<cond>}{lsm_am} t: OP_LDM           e: 100 (25), 0 (20)
+ldm{<cond>}{lm_am}  t: OP_LDM           e: 100 (25), 1 (20)
+stm{<cond>}{sm_am}  t: OP_LDM           e: 100 (25), 0 (20)
+
+.define lm_am
+da                                      e: 0 (24), 0 (23)
+ia                                      e: 0 (24), 1 (23)
+db                                      e: 1 (24), 0 (23)
+ib                                      e: 1 (24), 1 (23)
+fa                                      e: 0 (24), 0 (23)
+fd                                      e: 0 (24), 1 (23)
+ea                                      e: 1 (24), 0 (23)
+ed                                      e: 1 (24), 1 (23)
+.enddefine
+
+.define sm_am
+da                                      e: 0 (24), 0 (23)
+ia                                      e: 0 (24), 1 (23)
+db                                      e: 1 (24), 0 (23)
+ib                                      e: 1 (24), 1 (23)
+ed                                      e: 0 (24), 0 (23)
+ea                                      e: 0 (24), 1 (23)
+fd                                      e: 1 (24), 0 (23)
+fa                                      e: 1 (24), 1 (23)
+.enddefine
 
 # Exception-generating instructions
 swi{<cond>}         t: OP_SWI           e: 1111 (24)
