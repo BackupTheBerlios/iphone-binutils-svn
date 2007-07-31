@@ -3,8 +3,10 @@
 
 #include "arm.h"
 
+#include "army.h"
+
 int arm_op_count = 1350;
-struct arm_op_info[] = {
+struct arm_op_info arm_op_info[] = {
     { "adc", OP_DATA_PROC_3, 0xe0a00000 },
     { "adcal", OP_DATA_PROC_3, 0xe0a00000 },
     { "adcals", OP_DATA_PROC_3, 0xe0b00000 },

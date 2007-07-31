@@ -5,6 +5,7 @@
  *   General Public License v2.
  * ------------------------------------------------------------------------- */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,11 +13,59 @@
 #include <stuff/bytesex.h>
 
 #include "arm.h"
+#include "army.h"
 #include "frags.h"
 #include "fixes.h"
 #include "messages.h"
 #include "read.h"
 #include "write_object.h"
+
+int parsing_op = 0;
+
+/* Keep this in asciibetical order - it's going to be bsearch'd! */
+struct arm_reserved_word_info arm_reserved_word_info[] = {
+    { "a1",     OPRD_REG,       0       },
+    { "a2",     OPRD_REG,       1       },
+    { "a3",     OPRD_REG,       2       },
+    { "a4",     OPRD_REG,       3       },
+    { "asl",    OPRD_LSL_LIKE,  0       },
+    { "asr",    OPRD_LSL_LIKE,  1 << 6  },
+    { "fp",     OPRD_REG,       11      },
+    { "ip",     OPRD_REG,       12      },
+    { "lr",     OPRD_REG,       14      },
+    { "lsl",    OPRD_LSL_LIKE,  0       },
+    { "lsr",    OPRD_LSL_LIKE,  1 << 5  },
+    { "pc",     OPRD_REG,       15      },
+    { "r0",     OPRD_REG,       0       },
+    { "r1",     OPRD_REG,       1       },
+    { "r2",     OPRD_REG,       2       },
+    { "r3",     OPRD_REG,       3       },
+    { "r4",     OPRD_REG,       4       },
+    { "r5",     OPRD_REG,       5       },
+    { "r6",     OPRD_REG,       6       },
+    { "r7",     OPRD_REG,       7       },
+    { "r8",     OPRD_REG,       8       },
+    { "r9",     OPRD_REG,       9       },
+    { "r10",    OPRD_REG,       10      },
+    { "r11",    OPRD_REG,       11      },
+    { "r12",    OPRD_REG,       12      },
+    { "r13",    OPRD_REG,       13      },
+    { "r14",    OPRD_REG,       14      },
+    { "r15",    OPRD_REG,       15      },
+    { "ror",    OPRD_LSL_LIKE,  3 << 5  },
+    { "rrx",    OPRD_RRX,       3 << 5  },
+    { "sb",     OPRD_REG,       9       },
+    { "sl",     OPRD_REG,       10      },
+    { "sp",     OPRD_REG,       13      },
+    { "v1",     OPRD_REG,       4       },
+    { "v2",     OPRD_REG,       5       },
+    { "v3",     OPRD_REG,       6       },
+    { "v4",     OPRD_REG,       7       },
+    { "wr",     OPRD_REG,       7       }
+};
+
+int arm_reserved_word_count = sizeof(arm_reserved_word_info) /
+    sizeof(struct arm_reserved_word_info);
 
 /* ----------------------------------------------------------------------------
  *   Uninteresting machine-dependent boilerplate code 
@@ -95,6 +144,148 @@ unsigned int generate_shifted_immediate(unsigned int n)
 }
 
 /* ----------------------------------------------------------------------------
+ *   Lexical analysis 
+ * ------------------------------------------------------------------------- */
+
+int arm_op_info_compare(const void *strp, const void *infop)
+{
+    char *str;
+    struct arm_op_info *info;
+
+    str = *(char **)strp; info = (struct arm_op_info *)info;
+
+    return strcasecmp(str, info->name);
+}
+
+int arm_reserved_word_info_compare(const void *strp, const void *infop)
+{
+    char *str;
+    struct arm_reserved_word_info *info;
+
+    str = *(char **)strp; info = (struct arm_reserved_word_info *)info;
+
+    return strcasecmp(str, info->name);
+}
+
+int yylex()
+{
+    char *ptr, *tok, *tok2;
+    long long n;
+    size_t sz;
+    struct arm_op_info **info;
+    struct arm_reserved_word_info **rinfo, **rinfo2;
+
+    ptr = input_line_pointer;
+    if (!*ptr)
+        return 0;
+
+    if (parsing_op) {
+        while (isalnum(*ptr))
+            *ptr++;
+
+        sz = ptr - input_line_pointer;
+        tok = (char *)malloc(sz + 1);
+        strncpy(tok, input_line_pointer, sz);
+        tok[sz] = '\0';
+
+        if (!(info = bsearch(tok, arm_op_info, arm_op_count, sizeof(struct
+            arm_op_info), arm_op_info_compare))) {
+            as_bad("Unknown instruction '%s'", tok);
+            free(tok);
+            return 0;
+        }
+
+        free(tok);
+        parsing_op = 0;
+        input_line_pointer = (*ptr ? ptr + 1 : ptr);
+
+        yylval.nval = (*info)->encoding;
+        return (*info)->token;
+    }
+
+    /* Lex the operand. */
+
+    /* If it's a number, return OPRD_IMM. */
+    if (isdigit(*ptr) || *ptr == '+' || *ptr == '-') {
+        n = strtoll(input_line_pointer, &ptr, 0);
+
+        /* '+' and '-' are actually special cases. They have a separate meaning
+         * when by themselves (e.g. in '..., -r1'). If they are by themselves,
+         * strtoll(3) will fail and we will catch them below. */
+        if (ptr != input_line_pointer) {
+            if (n < 0)
+                yylval.ival = (int)n;
+            else
+                yylval.nval = (unsigned int)n;
+
+            input_line_pointer = ptr;
+            return OPRD_IMM;
+        }
+    }
+
+    /* If it's a special punctuation mark, return it. */ 
+    if (strchr("#[]{},!+-|^", *ptr))
+        return *(input_line_pointer++);
+
+    /* If it's an identifier, check whether it's a reserved word. */
+    if (isalpha(*ptr) || *ptr == '_') {
+        while (isalnum(*ptr) || *ptr == '_')
+            *ptr++;
+
+        sz = ptr - input_line_pointer;
+        tok = (char *)malloc(sz + 1);
+        strncpy(tok, input_line_pointer, sz);
+        tok[sz] = '\0';
+
+        if ((rinfo = bsearch(tok, arm_reserved_word_info,
+            arm_reserved_word_count, sizeof(struct arm_reserved_word_info),
+            arm_reserved_word_info_compare))) {
+            free(tok);
+            input_line_pointer = ptr;
+
+            yylval.nval = (*rinfo)->lval;
+            return (*rinfo)->token;
+        }
+
+        /* The "LSLK hack": constructions like "asl r0" are collapsed by
+         * the dumb GAS parser into "aslr0". We need to parse these as their
+         * constituent reserved words, not as one identifier. */
+        if (strlen(tok) == 5) {
+            tok2 = strdup(tok + 3);
+            tok[3] = '\0';
+        
+            if ((rinfo = bsearch(tok, arm_reserved_word_info,
+                arm_reserved_word_count, sizeof(struct arm_reserved_word_info),
+                arm_reserved_word_info_compare)) &&
+                (rinfo2 = bsearch(tok2, arm_reserved_word_info,
+                arm_reserved_word_count, sizeof(struct arm_reserved_word_info),
+                arm_reserved_word_info_compare)) &&
+                ((*rinfo)->token == OPRD_LSL_LIKE || (*rinfo)->token ==
+                    OPRD_RRX) &&
+                (*rinfo2)->token == OPRD_REG) {
+                free(tok);
+                free(tok2);
+
+                input_line_pointer += 3;    /* scan the register next */
+
+                yylval.nval = (*rinfo)->lval;
+                return OPRD_LSL_LIKE;
+            }
+
+            free(tok2);
+        }
+
+        free(tok);
+    }
+
+    /* We don't know what it is. Give it to the expression parser and let it
+     * sort it out. */
+    yylval.eval = calloc(sizeof(expressionS), 1);
+    expression(yylval.eval);
+    return OPRD_EXP;
+}
+
+/* ----------------------------------------------------------------------------
  *   Tokenizing and parsing 
  * ------------------------------------------------------------------------- */
 
@@ -133,9 +324,8 @@ void md_assemble(char *str)
     yydebug = 1;
 #endif
 
-    cur_ptr = str;
-    yyrestart(NULL);
-    lexpect(AE_INIT);
+    input_line_pointer = str;
+    parsing_op = 1;
     encoded = yyparse();
 
     this_frag = frag_more(4);

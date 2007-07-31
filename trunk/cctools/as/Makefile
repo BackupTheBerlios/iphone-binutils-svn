@@ -92,7 +92,7 @@ CFILES_i386 = i386.c
 CFILES_ppc = ppc.c
 CFILES_hppa = hppa.c hppa-aux.c
 CFILES_sparc = sparc.c
-CFILES_arm = arm.c army.c arml.c
+CFILES_arm = arm.c army.c armop.c 
 
 HFILES = app.h as.h atof-ieee.h bignum.h expr.h fixes.h flonum.h frags.h \
 	 hash.h hex_value.h i386-opcode.h i386.h i860-opcode.h input-file.h \
@@ -339,11 +339,13 @@ aarm_build:	$(OBJROOT)/aarm_dir
 		RC_CFLAGS="$(RC_CFLAGS)" DEP_DIR=aarm_dir;		\
 	fi
 
+arm.c:	army.h arm.h
+
 army.c:	army.y
 	bison -v -o ../army.c -d army.y
 
-arml.c:	arml.l army.c
-	flex -i -o../arml.c arml.l
+army.h:	army.y
+	bison -v -o ../army.c -d army.y
 
 driver:	driver.o apple_version.o
 	$(CC) $(COPTS) $(CFLAGS) $(RC_CFLAGS) -o $(SYMROOT)/driver \
