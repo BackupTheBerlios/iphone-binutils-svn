@@ -4,9 +4,14 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
+#import <Foundation/Foundation.h>
 #import <UIKit/UIView.h>
-
-@class NSMutableArray, UIButtonBar, UIKeyboard, UIPushButton, UITable, UITextLabel, UIWindow;
+#import <UIKit/UIButtonBar.h>
+#import <UIKit/UIKeyboard.h>
+#import <UIKit/UIPushButton.h>
+#import <UIKit/UITable.h>
+#import <UIKit/UITextLabel.h>
+#import <UIKit/UIWindow.h>
 
 @interface UIAlertSheet : UIView
 {

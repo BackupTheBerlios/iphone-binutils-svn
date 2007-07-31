@@ -6,9 +6,16 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/CDStructures.h>
+#import <UIKit/UIAlertSheet.h>
+#import <UIKit/UIApplication.h>
 #import <UIKit/UIHardware.h>
 #import <UIKit/UIImage.h>
+#import <UIKit/UIImageAndTextTableCell.h>
 #import <UIKit/UIImageView.h>
+#import <UIKit/UINavigationBar.h>
+#import <UIKit/UITable.h>
+#import <UIKit/UITableColumn.h>
+#import <UIKit/UITextLabel.h>
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Internal.h>

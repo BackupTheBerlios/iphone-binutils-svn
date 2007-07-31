@@ -1,0 +1,82 @@
+# Branch instructions
+b{l}{<cond>}        t: OP_BRANCH        e: 101  (25)
+
+.define l
+l                                   e: 1        (24)
+*                                   e: 0        (24)
+.enddefine
+
+# Data-processing instructions
+and{<cond>}{s}      t: OP_DATA_PROC_3   e: 0000     (21)
+eor{<cond>}{s}      t: OP_DATA_PROC_3   e: 0001     (21)
+sub{<cond>}{s}      t: OP_DATA_PROC_3   e: 0010     (21)
+rsb{<cond>}{s}      t: OP_DATA_PROC_3   e: 0011     (21)
+add{<cond>}{s}      t: OP_DATA_PROC_3   e: 0100     (21)
+adc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0101     (21)
+sbc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0110     (21)
+rsc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0111     (21)
+tst{<cond>}{s}      t: OP_DATA_PROC_2   e: 1000     (21)
+teq{<cond>}{s}      t: OP_DATA_PROC_2   e: 1001     (21)
+cmp{<cond>}{s}      t: OP_DATA_PROC_2   e: 1010     (21)
+cmn{<cond>}{s}      t: OP_DATA_PROC_2   e: 1011     (21)
+orr{<cond>}{s}      t: OP_DATA_PROC_3   e: 1100     (21)
+mov{<cond>}{s}      t: OP_DATA_PROC_1   e: 1101     (21)
+bic{<cond>}{s}      t: OP_DATA_PROC_3   e: 1110     (21)
+mvn{<cond>}{s}      t: OP_DATA_PROC_1   e: 1111     (21)
+
+# Multiply instructions
+mul{<cond>}{s}      t: OP_MUL           e: 0000000  (21),   1001    (4)
+mla{<cond>}{s}      t: OP_MLA           e: 0000001  (21),   1001    (4)
+smull{<cond>}{s}    t: OP_SMLAL         e: 0000110  (21),   1001    (4)
+smlal{<cond>}{s}    t: OP_SMLAL         e: 0000111  (21),   1001    (4)
+
+# Miscellaneous arithmetic instructions
+clz{<cond>}         t: OP_CLZ       e: 00010110 (20), 1111 (16), 11110001 (4)
+
+# Load and store instructions
+ldr{<cond>}{b}{t}   t: OP_LDR           e: 01 (26), 1 (20)
+str{<cond>}{b}{t}   t: OP_LDR           e: 01 (26), 0 (20)
+ldr{<cond>}{h|sh|sb} t: OP_LDRH         e: 000 (25), 1 (7), 1 (4)
+
+.define b
+b                                       e: 1 (22)
+*                                       e: 0 (22)
+.enddefine
+
+.define h|sh|sb
+h                                       e: 01 (5)
+sh                                      e: 11 (5)
+sb                                      e: 10 (5)
+.enddefine
+
+# Load and store multiple instructions
+ldm{<cond>}{lsm_am} t: OP_LDM           e: 100 (25), 1 (20)
+stm{<cond>}{lsm_am} t: OP_LDM           e: 100 (25), 0 (20)
+
+# Exception-generating instructions
+swi{<cond>}         t: OP_SWI           e: 1111 (24)
+bkpt                t: OP_BKPT          e: 1110 (28), 00010010 (20), 0111 (4)
+
+# Condition codes
+.define <cond>
+eq                                      e: 0000 (28)
+ne                                      e: 0001 (28)
+cs                                      e: 0010 (28)
+hs                                      e: 0010 (28)
+cc                                      e: 0011 (28)
+lo                                      e: 0011 (28)
+mi                                      e: 0100 (28)
+pl                                      e: 0101 (28)
+vs                                      e: 0110 (28)
+vc                                      e: 0111 (28)
+hi                                      e: 1000 (28)
+ls                                      e: 1001 (28)
+ge                                      e: 1010 (28)
+lt                                      e: 1011 (28)
+gt                                      e: 1100 (28)
+le                                      e: 1101 (28)
+al                                      e: 1110 (28)
+nv                                      e: 1111 (28)
+*                                       e: 1110 (28)
+.enddefine
+

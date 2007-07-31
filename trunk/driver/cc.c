@@ -292,7 +292,8 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     create_arg(linker_args, "-ObjC");
                     create_arg(linker_args, "-lobjc");
                 } else if (!strcmp(spec->name, "O")) {
-                    create_arg(compiler_args, "-O2");
+                    create_arg(compiler_args, get_config_key(
+                        "CFLAGS_COMPILEROPT", 1));
                     want_optimization = 1;
                 }
             } else {
