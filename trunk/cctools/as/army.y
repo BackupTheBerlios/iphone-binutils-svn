@@ -35,7 +35,7 @@ unsigned int instruction;
 %token <nval> OP_CPS_EFFECT OP_CPS OP_LDREX OP_MCRR2 OP_PKHBT OP_QADD16 OP_REV
 %token <nval> OP_RFE OP_SXTAH OP_SEL OP_SETEND OP_SMLAD OP_SMLALD OP_SMMUL
 %token <nval> OP_SRS OP_SSAT OP_SSAT16 OP_STREX OP_SXTH OP_USAD8 OP_USADA8
-%token <nval> OP_BX
+%token <nval> OP_BX OP_PKHTB OP_USAT OP_USAT16
 %token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR
 %token <nval> OPRD_ENDIANNESS
 %token <eval> OPRD_EXP
@@ -339,14 +339,18 @@ ldrex_class_inst:
 
 mcrr2_class_inst:
       OP_MCRR2 OPRD_COPROC ',' OPRD_IMM ',' dest_reg ',' src_reg ',' OPRD_CR
-        { $$ = ($1 | ($2 << 8) | $4 | $6 | $8 | $10); }
+        { $$ = ($1 | ($2 << 8) | ($4 << 4) | $6 | $8 | $10); }
     ;
 
 pkhbt_class_inst:
       OP_PKHBT dest_reg ',' src_reg ',' OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
         { $$ = ($1 | $2 | $4 | $6 | ($10 << 7)); }
+    | OP_PKHTB dest_reg ',' OPRD_REG ',' OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
+        { $$ = ($1 | $2 | ($4 << 16) | $6 | ($10 << 7)); }
     | OP_PKHBT dest_reg ',' src_reg ',' OPRD_REG
         { $$ = ($1 | $2 | $4 | $6); }
+    | OP_PKHTB dest_reg ',' OPRD_REG ',' OPRD_REG
+        { $$ = (($1 & ~(1 << 6)) | $2 | $4 | ($6 << 16)); }
     ;
 
 qadd16_class_inst:
@@ -401,11 +405,18 @@ srs_class_inst:
 ssat_class_inst:
       OP_SSAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG ',' OPRD_LSL_LIKE '#'
         OPRD_IMM
-        { $$ = ($1 | $2 | ($5 << 16) | $7 | $9 | ($11 << 7)); }
+        { $$ = ($1 | $2 | (($5 - 1) << 16) | $7 | $9 | ($11 << 7)); }
     | OP_SSAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
-        { $$ = ($1 | $2 | ($5 << 16) | $7); }
+        { $$ = ($1 | $2 | (($5 - 1) << 16) | $7); }
     | OP_SSAT16 dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
-        { $$ = ($1 | $2 | ($5 << 16) | $7); }
+        { $$ = ($1 | $2 | (($5 - 1) << 16) | $7); }
+    | OP_USAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG ',' OPRD_LSL_LIKE '#'
+        OPRD_IMM
+        { $$ = ($1 | $2 | (($5 - 0) << 16) | $7 | $9 | ($11 << 7)); }
+    | OP_USAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
+        { $$ = ($1 | $2 | (($5 - 0) << 16) | $7); }
+    | OP_USAT16 dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
+        { $$ = ($1 | $2 | (($5 - 0) << 16) | $7); }
     ;
 
 strex_class_inst:

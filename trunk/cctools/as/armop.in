@@ -148,7 +148,7 @@ mcrr2               t: OP_MCRR2         e: 1111 (28), 11000100 (20)
 mrrc2               t: OP_MCRR2         e: 1111 (28), 11000101 (20)
 
 pkhbt{<cond>}       t: OP_PKHBT         e: 01101000 (20), 001 (4)
-pkhtb{<cond>}       t: OP_PKHBT         e: 01101000 (20), 101 (4)
+pkhtb{<cond>}       t: OP_PKHTB         e: 01101000 (20), 101 (4)
 
 qadd16{<cond>}      t: OP_QADD16        e: 01100010 (20), 1111 (8), 0001 (4)
 qadd8{<cond>}       t: OP_QADD16        e: 01100010 (20), 1111 (8), 1001 (4)
@@ -191,7 +191,18 @@ rev{<cond>}         t: OP_REV           e: 011010111111 (16), 11110011 (4)
 rev16{<cond>}       t: OP_REV           e: 011010111111 (16), 11111011 (4)
 revsh{<cond>}       t: OP_REV           e: 011011111111 (16), 11111011 (4)
 
-rfe{lm_am}          t: OP_RFE       e: 1111100 (25), 0 (22), 1 (20), 1010 (8)
+rfe{rfe_am}         t: OP_RFE       e: 1111100 (25), 0 (22), 1 (20), 1010 (8)
+
+.define rfe_am
+da                                      e: 0 (24), 0 (23)
+ia                                      e: 0 (24), 1 (23)
+db                                      e: 1 (24), 0 (23)
+ib                                      e: 1 (24), 1 (23)
+ea                                      e: 0 (24), 0 (23)
+fd                                      e: 0 (24), 1 (23)
+ed                                      e: 1 (24), 0 (23)
+fa                                      e: 1 (24), 1 (23)
+.enddefine
 
 sxtah{<cond>}       t: OP_SXTAH         e: 01101011 (20), 00 (8), 0111 (4)
 sxtab16{<cond>}     t: OP_SXTAH         e: 01101000 (20), 00 (8), 0111 (4)
@@ -227,12 +238,12 @@ x                                       e: 1 (5)
 *                                       e: 0 (5)
 .enddefine
 
-srs{sm_am}          t: OP_SRS   e: 1111100 (25), 1 (22), 01101 (16), 0101 (8)
+srs{rfe_am}         t: OP_SRS   e: 1111100 (25), 1 (22), 01101 (16), 0101 (8)
 
 ssat{<cond>}        t: OP_SSAT          e: 0110101 (21), 01 (4)
-usat{<cond>}        t: OP_SSAT          e: 0110111 (21), 01 (4)
+usat{<cond>}        t: OP_USAT          e: 0110111 (21), 01 (4)
 ssat16{<cond>}      t: OP_SSAT16        e: 01101010 (20), 1111 (8), 0011 (4)
-usat16{<cond>}      t: OP_SSAT16        e: 01101110 (20), 1111 (8), 0011 (4)
+usat16{<cond>}      t: OP_USAT16        e: 01101110 (20), 1111 (8), 0011 (4)
 
 strex{<cond>}       t: OP_STREX     e: 0001100 (21), 0 (20), 1111 (8), 1001 (4)
 
