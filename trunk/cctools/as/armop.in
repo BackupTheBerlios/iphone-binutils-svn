@@ -91,6 +91,9 @@ fa                                      e: 1 (24), 1 (23)
 swi{<cond>}         t: OP_SWI           e: 1111 (24)
 bkpt                t: OP_BKPT          e: 1110 (28), 00010010 (20), 0111 (4)
 
+# Mnemonic instructions
+nop{<cond>}         t: OP_NOP           e: 00011010 (20), 0000 (12) 
+
 # Condition codes
 .define <cond>
 eq                                      e: 0000 (28)
@@ -129,6 +132,35 @@ h                                       e: 1011 (4)
 sh                                      e: 1111 (4)
 sb                                      e: 1101 (4)
 .enddefine
+
+# -----------------------------------------------------------------------------
+#   ARMv5 instructions 
+# -----------------------------------------------------------------------------
+
+blx{<cond>}             t: OP_BLX       e: 0 (0)
+
+smla{<x>}{<y>}{<cond>}  t: OP_SMLA_XY   e: 00010000 (20), 1 (7), 0 (4)
+smlaw{<y>}{<cond>}      t: OP_SMLA_XY   e: 00010010 (20), 1 (7), 0 (5), 0 (4)
+
+smlal{<x>}{<y>}{<cond>} t: OP_SMLAL_XY  e: 00010100 (20), 1 (7), 0 (4)
+
+smul{<x>}{<y>}{<cond>}  t: OP_SMUL_XY   e: 00010110 (20), 1 (7), 0 (4)
+smulw{<y>}{<cond>}      t: OP_SMUL_XY   e: 00010010 (20), 1 (7), 1 (5), 0 (4)
+
+.define <x>
+b                                       e: 0 (5)
+t                                       e: 1 (5)
+.enddefine
+
+.define <y>
+b                                       e: 0 (6)
+t                                       e: 1 (6)
+.enddefine
+
+qadd{<cond>}            t: OP_QADD      e: 00010000 (20), 0101 (4)
+qdadd{<cond>}           t: OP_QADD      e: 00010100 (20), 0101 (4)
+qsub{<cond>}            t: OP_QADD      e: 00010010 (20), 0101 (4)
+qdsub{<cond>}           t: OP_QADD      e: 00010110 (20), 0101 (4)
 
 # -----------------------------------------------------------------------------
 #   ARMv6 instructions 

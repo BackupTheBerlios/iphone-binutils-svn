@@ -1,3 +1,6 @@
+blx wibble
+wibble:    blxne r1
+
 sub sp, sp, #1, 22
 
 strh r1, [sp, #+118]

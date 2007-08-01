@@ -35,7 +35,8 @@ unsigned int instruction;
 %token <nval> OP_CPS_EFFECT OP_CPS OP_LDREX OP_MCRR2 OP_PKHBT OP_QADD16 OP_REV
 %token <nval> OP_RFE OP_SXTAH OP_SEL OP_SETEND OP_SMLAD OP_SMLALD OP_SMMUL
 %token <nval> OP_SRS OP_SSAT OP_SSAT16 OP_STREX OP_SXTH OP_USAD8 OP_USADA8
-%token <nval> OP_BX OP_PKHTB OP_USAT OP_USAT16
+%token <nval> OP_BX OP_PKHTB OP_USAT OP_USAT16 OP_BLX OP_SMLA_XY OP_SMLAL_XY 
+%token <nval> OP_SMUL_XY OP_QADD OP_NOP
 %token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR
 %token <nval> OPRD_ENDIANNESS
 %token <eval> OPRD_EXP
@@ -52,13 +53,16 @@ unsigned int instruction;
 %type  <nval> sel_class_inst setend_class_inst smlad_class_inst
 %type  <nval> smlald_class_inst smmul_class_inst srs_class_inst ssat_class_inst
 %type  <nval> strex_class_inst sxth_class_inst usad8_class_inst armv4t_inst
-%type  <nval> bx_class_inst
+%type  <nval> bx_class_inst armv5_inst blx_class_inst smla_xy_class_inst
+%type  <nval> smlal_xy_class_inst smul_xy_class_inst qadd_class_inst
+%type  <nval> mnemonic_inst
 
 %%
 
 inst:
       fundamental_inst  { instruction = $1; }
     | armv4t_inst       { instruction = $1; }
+    | armv5_inst        { instruction = $1; }
     | armv6_inst        { instruction = $1; }
     ;
 
@@ -69,6 +73,7 @@ fundamental_inst:
     | load_mult_inst    { $$ = $1; }
     | exception_inst    { $$ = $1; }
     | multiply_inst     { $$ = $1; }
+    | mnemonic_inst     { $$ = $1; }
     ;
 
 branch_inst:
@@ -116,6 +121,10 @@ multiply_inst:
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
     | OP_SMLAL OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
         { $$ = ($1 | ($2 << 12) | ($4 << 16) | $6 | ($8 << 8)); }
+    ;
+
+mnemonic_inst:
+      OP_NOP    { $$ = $1; }
     ; 
 
 maybe_hat:
@@ -303,6 +312,39 @@ armv4t_inst:
 
 bx_class_inst:
       OP_BX OPRD_REG    { $$ = ($1 | $2); }
+    ;
+
+armv5_inst:
+      blx_class_inst        { $$ = $1; }
+    | smla_xy_class_inst    { $$ = $1; }
+    | smlal_xy_class_inst   { $$ = $1; }
+    | smul_xy_class_inst    { $$ = $1; }
+    | qadd_class_inst       { $$ = $1; }
+    ;
+
+blx_class_inst:
+      OP_BLX branch_am  { $$ = ((0x7d << 25) | $2); }
+    | OP_BLX OPRD_REG   { $$ = ($1 | (0x12 << 20) | (0xfff3 << 4) | $2); }
+    ;
+
+smla_xy_class_inst:
+      OP_SMLA_XY OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
+    ;
+
+smlal_xy_class_inst:
+      OP_SMLAL_XY OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 12) | ($4 << 16) | $6 | ($8 << 8)); }
+    ;
+
+smul_xy_class_inst:
+      OP_SMUL_XY OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
+    ;
+
+qadd_class_inst:
+      OP_QADD dest_reg ',' OPRD_REG ',' src_reg
+        { $$ = ($1 | $2 | $4 | $6); }
     ;
 
 armv6_inst:
