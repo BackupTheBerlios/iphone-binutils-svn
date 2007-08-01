@@ -303,6 +303,7 @@ int yylex()
                 }
 
             if (!bail && flags[0] <= 1 && flags[1] <= 1 && flags[2] <= 1) {
+                input_line_pointer += sz;
                 yylval.nval = ((flags[0] << 8) | (flags[1] << 7) | (flags[2] <<
                     6));
                 return OPRD_IFLAGS;

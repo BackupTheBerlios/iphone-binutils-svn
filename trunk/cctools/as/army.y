@@ -422,6 +422,8 @@ sxth_class_inst:
 usad8_class_inst:
       OP_USAD8 OPRD_REG ',' OPRD_REG ',' OPRD_REG
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
+    | OP_USADA8 OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
     ;
 
 %%
