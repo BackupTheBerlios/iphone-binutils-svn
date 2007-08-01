@@ -29,10 +29,12 @@ bic{<cond>}{s}      t: OP_DATA_PROC_3   e: 1110     (21)
 mvn{<cond>}{s}      t: OP_DATA_PROC_1   e: 1111     (21)
 
 # Multiply instructions
-mul{<cond>}{s}      t: OP_MUL           e: 0000000  (21),   1001    (4)
-mla{<cond>}{s}      t: OP_MLA           e: 0000001  (21),   1001    (4)
-smull{<cond>}{s}    t: OP_SMLAL         e: 0000110  (21),   1001    (4)
-smlal{<cond>}{s}    t: OP_SMLAL         e: 0000111  (21),   1001    (4)
+mul{<cond>}{s}      t: OP_MUL           e: 0000000 (21), 1001 (4)
+mla{<cond>}{s}      t: OP_MLA           e: 0000001 (21), 1001 (4)
+smlal{<cond>}{s}    t: OP_SMLAL         e: 0000111 (21), 1001 (4)
+smull{<cond>}{s}    t: OP_SMLAL         e: 0000110 (21), 1001 (4)
+umlal{<cond>}{s}    t: OP_SMLAL         e: 0000101 (21), 1001 (4)
+umull{<cond>}{s}    t: OP_SMLAL         e: 0000100 (21), 1001 (4) 
 
 .define s
 s                                       e: 1 (20)
