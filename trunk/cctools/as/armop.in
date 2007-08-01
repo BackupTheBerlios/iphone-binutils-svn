@@ -19,10 +19,10 @@ add{<cond>}{s}      t: OP_DATA_PROC_3   e: 0100     (21)
 adc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0101     (21)
 sbc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0110     (21)
 rsc{<cond>}{s}      t: OP_DATA_PROC_3   e: 0111     (21)
-tst{<cond>}{s}      t: OP_DATA_PROC_2   e: 1000     (21)
-teq{<cond>}{s}      t: OP_DATA_PROC_2   e: 1001     (21)
-cmp{<cond>}{s}      t: OP_DATA_PROC_2   e: 1010     (21)
-cmn{<cond>}{s}      t: OP_DATA_PROC_2   e: 1011     (21)
+tst{<cond>}{p}{s}   t: OP_DATA_PROC_2   e: 1000     (21)
+teq{<cond>}{p}{s}   t: OP_DATA_PROC_2   e: 1001     (21)
+cmp{<cond>}{p}{s}   t: OP_DATA_PROC_2   e: 1010     (21)
+cmn{<cond>}{p}{s}   t: OP_DATA_PROC_2   e: 1011     (21)
 orr{<cond>}{s}      t: OP_DATA_PROC_3   e: 1100     (21)
 mov{<cond>}{s}      t: OP_DATA_PROC_1   e: 1101     (21)
 bic{<cond>}{s}      t: OP_DATA_PROC_3   e: 1110     (21)
@@ -39,23 +39,21 @@ s                                       e: 1 (20)
 *                                       e: 0 (20)
 .enddefine
 
+.define p
+p                                       e: 1111 (12)
+*                                       e: 0000 (12)
+.enddefine
+
 # Miscellaneous arithmetic instructions
 clz{<cond>}         t: OP_CLZ       e: 00010110 (20), 1111 (16), 11110001 (4)
 
 # Load and store instructions
 ldr{<cond>}{b}{t}   t: OP_LDR           e: 01 (26), 1 (20)
 str{<cond>}{b}{t}   t: OP_LDR           e: 01 (26), 0 (20)
-ldr{<cond>}{h|sh|sb} t: OP_LDRH         e: 000 (25), 1 (7), 1 (4)
 
 .define b
 b                                       e: 1 (22)
 *                                       e: 0 (22)
-.enddefine
-
-.define h|sh|sb
-h                                       e: 01 (5)
-sh                                      e: 11 (5)
-sb                                      e: 10 (5)
 .enddefine
 
 .define t
@@ -101,6 +99,7 @@ cs                                      e: 0010 (28)
 hs                                      e: 0010 (28)
 cc                                      e: 0011 (28)
 lo                                      e: 0011 (28)
+ul                                      e: 0011 (28)
 mi                                      e: 0100 (28)
 pl                                      e: 0101 (28)
 vs                                      e: 0110 (28)
@@ -117,13 +116,28 @@ nv                                      e: 1111 (28)
 .enddefine
 
 # -----------------------------------------------------------------------------
+#   ARMv4t instructions 
+# -----------------------------------------------------------------------------
+
+bx{<cond>}          t: OP_BX    e: 00010010 (20), 111111111111 (8), 0001 (4)
+
+ldr{<cond>}{h|sh|sb}    t: OP_LDRH      e: 000 (25), 1 (20)
+str{<cond>}{h|sh|sb}    t: OP_LDRH      e: 000 (25), 0 (20)
+
+.define h|sh|sb
+h                                       e: 1011 (4)
+sh                                      e: 1111 (4)
+sb                                      e: 1101 (4)
+.enddefine
+
+# -----------------------------------------------------------------------------
 #   ARMv6 instructions 
 # -----------------------------------------------------------------------------
 
 cps{<effect>}       t: OP_CPS_EFFECT    e: 1111 (28), 00010000 (20)
 cps                 t: OP_CPS           e: 1111 (28), 00010000 (20)
 
-.define effect
+.define <effect>
 ie                                      e: 10 (18)
 id                                      e: 11 (18)
 .enddefine

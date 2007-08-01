@@ -24,44 +24,82 @@ int parsing_op = 0;
 
 /* Keep this in asciibetical order - it's going to be bsearch'd! */
 struct arm_reserved_word_info arm_reserved_word_info[] = {
-    { "a1",     OPRD_REG,       0       },
-    { "a2",     OPRD_REG,       1       },
-    { "a3",     OPRD_REG,       2       },
-    { "a4",     OPRD_REG,       3       },
-    { "asl",    OPRD_LSL_LIKE,  0       },
-    { "asr",    OPRD_LSL_LIKE,  1 << 6  },
-    { "fp",     OPRD_REG,       11      },
-    { "ip",     OPRD_REG,       12      },
-    { "lr",     OPRD_REG,       14      },
-    { "lsl",    OPRD_LSL_LIKE,  0       },
-    { "lsr",    OPRD_LSL_LIKE,  1 << 5  },
-    { "pc",     OPRD_REG,       15      },
-    { "r0",     OPRD_REG,       0       },
-    { "r1",     OPRD_REG,       1       },
-    { "r10",    OPRD_REG,       10      },
-    { "r11",    OPRD_REG,       11      },
-    { "r12",    OPRD_REG,       12      },
-    { "r13",    OPRD_REG,       13      },
-    { "r14",    OPRD_REG,       14      },
-    { "r15",    OPRD_REG,       15      },
-    { "r2",     OPRD_REG,       2       },
-    { "r3",     OPRD_REG,       3       },
-    { "r4",     OPRD_REG,       4       },
-    { "r5",     OPRD_REG,       5       },
-    { "r6",     OPRD_REG,       6       },
-    { "r7",     OPRD_REG,       7       },
-    { "r8",     OPRD_REG,       8       },
-    { "r9",     OPRD_REG,       9       },
-    { "ror",    OPRD_LSL_LIKE,  3 << 5  },
-    { "rrx",    OPRD_RRX,       3 << 5  },
-    { "sb",     OPRD_REG,       9       },
-    { "sl",     OPRD_REG,       10      },
-    { "sp",     OPRD_REG,       13      },
-    { "v1",     OPRD_REG,       4       },
-    { "v2",     OPRD_REG,       5       },
-    { "v3",     OPRD_REG,       6       },
-    { "v4",     OPRD_REG,       7       },
-    { "wr",     OPRD_REG,       7       }
+    { "a1",     OPRD_REG,           0       },
+    { "a2",     OPRD_REG,           1       },
+    { "a3",     OPRD_REG,           2       },
+    { "a4",     OPRD_REG,           3       },
+    { "asl",    OPRD_LSL_LIKE,      0       },
+    { "asr",    OPRD_LSL_LIKE,      1 << 6  },
+    { "be",     OPRD_ENDIANNESS,    1 << 9  },
+    { "c0",     OPRD_CR,            0       },
+    { "c1",     OPRD_CR,            1       },
+    { "c10",    OPRD_CR,            10      },
+    { "c11",    OPRD_CR,            11      },
+    { "c12",    OPRD_CR,            12      },
+    { "c13",    OPRD_CR,            13      },
+    { "c14",    OPRD_CR,            14      },
+    { "c15",    OPRD_CR,            15      },
+    { "c2",     OPRD_CR,            2       },
+    { "c3",     OPRD_CR,            3       },
+    { "c4",     OPRD_CR,            4       },
+    { "c5",     OPRD_CR,            5       },
+    { "c6",     OPRD_CR,            6       },
+    { "c7",     OPRD_CR,            7       },
+    { "c8",     OPRD_CR,            8       },
+    { "c9",     OPRD_CR,            9       },
+    { "fp",     OPRD_REG,           11      },
+    { "ip",     OPRD_REG,           12      },
+    { "le",     OPRD_ENDIANNESS,    0 << 9  },
+    { "lr",     OPRD_REG,           14      },
+    { "lsl",    OPRD_LSL_LIKE,      0       },
+    { "lsr",    OPRD_LSL_LIKE,      1 << 5  },
+    { "p0",     OPRD_COPROC,        0       },
+    { "p1",     OPRD_COPROC,        1       },
+    { "p10",    OPRD_COPROC,        10      },
+    { "p11",    OPRD_COPROC,        11      },
+    { "p12",    OPRD_COPROC,        12      },
+    { "p13",    OPRD_COPROC,        13      },
+    { "p14",    OPRD_COPROC,        14      },
+    { "p15",    OPRD_COPROC,        15      },
+    { "p2",     OPRD_COPROC,        2       },
+    { "p3",     OPRD_COPROC,        3       },
+    { "p4",     OPRD_COPROC,        4       },
+    { "p5",     OPRD_COPROC,        5       },
+    { "p6",     OPRD_COPROC,        6       },
+    { "p7",     OPRD_COPROC,        7       },
+    { "p8",     OPRD_COPROC,        8       },
+    { "p9",     OPRD_COPROC,        9       },
+    { "pc",     OPRD_REG,           15      },
+    { "r0",     OPRD_REG,           0       },
+    { "r1",     OPRD_REG,           1       },
+    { "r10",    OPRD_REG,           10      },
+    { "r11",    OPRD_REG,           11      },
+    { "r12",    OPRD_REG,           12      },
+    { "r13",    OPRD_REG,           13      },
+    { "r14",    OPRD_REG,           14      },
+    { "r15",    OPRD_REG,           15      },
+    { "r2",     OPRD_REG,           2       },
+    { "r3",     OPRD_REG,           3       },
+    { "r4",     OPRD_REG,           4       },
+    { "r5",     OPRD_REG,           5       },
+    { "r6",     OPRD_REG,           6       },
+    { "r7",     OPRD_REG,           7       },
+    { "r8",     OPRD_REG,           8       },
+    { "r9",     OPRD_REG,           9       },
+    { "ror",    OPRD_LSL_LIKE,      3 << 5  },
+    { "rrx",    OPRD_RRX,           3 << 5  },
+    { "sb",     OPRD_REG,           9       },
+    { "sl",     OPRD_REG,           10      },
+    { "sp",     OPRD_REG,           13      },
+    { "v1",     OPRD_REG,           4       },
+    { "v2",     OPRD_REG,           5       },
+    { "v3",     OPRD_REG,           6       },
+    { "v4",     OPRD_REG,           7       },
+    { "v5",     OPRD_REG,           8       },
+    { "v6",     OPRD_REG,           9       },
+    { "v7",     OPRD_REG,           10      },
+    { "v8",     OPRD_REG,           11      },
+    { "wr",     OPRD_REG,           7       }
 };
 
 int arm_reserved_word_count = sizeof(arm_reserved_word_info) /
@@ -121,6 +159,7 @@ void md_number_to_chars(char *buf, signed_expr_t val, int n)
 {
     number_to_chars_littleendian(buf, val, n);
 }
+
 /* ----------------------------------------------------------------------------
  *   Utility routines
  * ------------------------------------------------------------------------- */
@@ -152,7 +191,7 @@ int arm_op_info_compare(const void *strp, const void *infop)
     char *str;
     struct arm_op_info *info;
 
-    str = *(char **)strp; info = (struct arm_op_info *)info;
+    str = (char *)strp; info = (struct arm_op_info *)infop;
 
     return strcasecmp(str, info->name);
 }
@@ -162,7 +201,7 @@ int arm_reserved_word_info_compare(const void *strp, const void *infop)
     char *str;
     struct arm_reserved_word_info *info;
 
-    str = *(char **)strp; info = (struct arm_reserved_word_info *)info;
+    str = (char *)strp; info = (struct arm_reserved_word_info *)infop;
 
     return strcasecmp(str, info->name);
 }
@@ -170,10 +209,11 @@ int arm_reserved_word_info_compare(const void *strp, const void *infop)
 int yylex()
 {
     char *ptr, *tok, *tok2;
+    int bail, flags[3], i;
     long long n;
     size_t sz;
-    struct arm_op_info **info;
-    struct arm_reserved_word_info **rinfo, **rinfo2;
+    struct arm_op_info *info;
+    struct arm_reserved_word_info *rinfo, *rinfo2;
 
     ptr = input_line_pointer;
     if (!*ptr)
@@ -199,8 +239,8 @@ int yylex()
         parsing_op = 0;
         input_line_pointer = (*ptr ? ptr + 1 : ptr);
 
-        yylval.nval = (*info)->encoding;
-        return (*info)->token;
+        yylval.nval = info->encoding;
+        return info->token;
     }
 
     /* Lex the operand. */
@@ -243,14 +283,36 @@ int yylex()
             free(tok);
             input_line_pointer = ptr;
 
-            yylval.nval = (*rinfo)->lval;
-            return (*rinfo)->token;
+            yylval.nval = rinfo->lval;
+            return rinfo->token;
+        }
+
+        /* Identifiers that consist of just the characters "aif" in any order
+         * and with at most one of each are reserved words (specifically, ARMv6
+         * coprocessor iflags). */
+        if (sz <= 3) {
+            bail = 0;
+            memset(flags, '\0', sizeof(flags));
+
+            for (i = 0; i < sz; i++)
+                switch (tok[i]) {
+                    case 'a': case 'A': flags[0]++; break;
+                    case 'f': case 'F': flags[1]++; break;
+                    case 'i': case 'I': flags[2]++; break;
+                    default:            bail = 1;   break;
+                }
+
+            if (!bail && flags[0] <= 1 && flags[1] <= 1 && flags[2] <= 1) {
+                yylval.nval = ((flags[0] << 8) | (flags[1] << 7) | (flags[2] <<
+                    6));
+                return OPRD_IFLAGS;
+            }
         }
 
         /* The "LSLK hack": constructions like "asl r0" are collapsed by
          * the dumb GAS parser into "aslr0". We need to parse these as their
          * constituent reserved words, not as one identifier. */
-        if (strlen(tok) == 5) {
+        if (sz == 5 || sz == 6) {
             tok2 = strdup(tok + 3);
             tok[3] = '\0';
         
@@ -260,15 +322,15 @@ int yylex()
                 (rinfo2 = bsearch(tok2, arm_reserved_word_info,
                 arm_reserved_word_count, sizeof(struct arm_reserved_word_info),
                 arm_reserved_word_info_compare)) &&
-                ((*rinfo)->token == OPRD_LSL_LIKE || (*rinfo)->token ==
+                (rinfo->token == OPRD_LSL_LIKE || rinfo->token ==
                     OPRD_RRX) &&
-                (*rinfo2)->token == OPRD_REG) {
+                rinfo2->token == OPRD_REG) {
                 free(tok);
                 free(tok2);
 
                 input_line_pointer += 3;    /* scan the register next */
 
-                yylval.nval = (*rinfo)->lval;
+                yylval.nval = rinfo->lval;
                 return OPRD_LSL_LIKE;
             }
 
@@ -319,7 +381,7 @@ void md_assemble(char *str)
 
     memset(&this_fix, '\0', sizeof(struct fix_info));
 
-#if 0 
+#if 0
     fprintf(stderr, "assembling: %s\n", str); 
     yydebug = 1;
 #endif

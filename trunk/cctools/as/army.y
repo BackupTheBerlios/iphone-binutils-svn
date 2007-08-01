@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <mach-o/arm/reloc.h>
 
 #include "arm.h"
@@ -31,7 +32,12 @@ unsigned int instruction;
 %token <ival> OPRD_IMM
 %token <nval> OP_BRANCH OP_DATA_PROC_1 OP_DATA_PROC_2 OP_DATA_PROC_3 OP_MUL
 %token <nval> OP_MLA OP_SMLAL OP_CLZ OP_LDR OP_LDRH OP_LDM OP_SWI OP_BKPT
-%token <nval> OPRD_LSL_LIKE OPRD_RRX
+%token <nval> OP_CPS_EFFECT OP_CPS OP_LDREX OP_MCRR2 OP_PKHBT OP_QADD16 OP_REV
+%token <nval> OP_RFE OP_SXTAH OP_SEL OP_SETEND OP_SMLAD OP_SMLALD OP_SMMUL
+%token <nval> OP_SRS OP_SSAT OP_SSAT16 OP_STREX OP_SXTH OP_USAD8 OP_USADA8
+%token <nval> OP_BX
+%token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR
+%token <nval> OPRD_ENDIANNESS
 %token <eval> OPRD_EXP
 %type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
@@ -41,21 +47,28 @@ unsigned int instruction;
 %type  <nval> maybe_hat maybe_imm_rotation misc_ls_am imm_with_u_bit
 %type  <nval> misc_ls_am_index shifter_imm shifter_operand_lsl_clause
 %type  <nval> shifter_operand_lsl_arg load_am_sign fundamental_inst armv6_inst
+%type  <nval> cps_class_inst ldrex_class_inst mcrr2_class_inst pkhbt_class_inst
+%type  <nval> qadd16_class_inst rev_class_inst rfe_class_inst sxtah_class_inst
+%type  <nval> sel_class_inst setend_class_inst smlad_class_inst
+%type  <nval> smlald_class_inst smmul_class_inst srs_class_inst ssat_class_inst
+%type  <nval> strex_class_inst sxth_class_inst usad8_class_inst armv4t_inst
+%type  <nval> bx_class_inst
 
 %%
 
 inst:
       fundamental_inst  { instruction = $1; }
+    | armv4t_inst       { instruction = $1; }
     | armv6_inst        { instruction = $1; }
-;
+    ;
 
 fundamental_inst:
-      branch_inst       { instruction = $1; }
-    | data_inst         { instruction = $1; }
-    | load_inst         { instruction = $1; }
-    | load_mult_inst    { instruction = $1; }
-    | exception_inst    { instruction = $1; }
-    | multiply_inst     { instruction = $1; }
+      branch_inst       { $$ = $1; }
+    | data_inst         { $$ = $1; }
+    | load_inst         { $$ = $1; }
+    | load_mult_inst    { $$ = $1; }
+    | exception_inst    { $$ = $1; }
+    | multiply_inst     { $$ = $1; }
     ;
 
 branch_inst:
@@ -74,7 +87,7 @@ load_inst:
       OP_LDR dest_reg ',' load_am
         {
             unsigned int n;
-            n = ((1 << 26) | $2 | $4);
+            n = ($1 | (1 << 26) | $2 | $4);
             if ($1 && ((n >> 24) & 0xf) == 0x5 && (n & 0x0fff) == 0) {
                 /* if T is set and immediate operand is 0, then convert into
                  * a post-indexed instruction */
@@ -282,6 +295,133 @@ branch_am:
 
 expr:
       OPRD_EXP  { register_expression($1); $$ = $1->X_add_number;  }
+    ;
+
+armv4t_inst:
+      bx_class_inst     { $$ = $1; }
+    ;
+
+bx_class_inst:
+      OP_BX OPRD_REG    { $$ = ($1 | $2); }
+    ;
+
+armv6_inst:
+      cps_class_inst    { $$ = $1; }
+    | ldrex_class_inst  { $$ = $1; }
+    | mcrr2_class_inst  { $$ = $1; }
+    | pkhbt_class_inst  { $$ = $1; }
+    | qadd16_class_inst { $$ = $1; }
+    | rev_class_inst    { $$ = $1; }
+    | rfe_class_inst    { $$ = $1; }
+    | sxtah_class_inst  { $$ = $1; }
+    | sel_class_inst    { $$ = $1; }
+    | setend_class_inst { $$ = $1; }
+    | smlad_class_inst  { $$ = $1; }
+    | smlald_class_inst { $$ = $1; }
+    | smmul_class_inst  { $$ = $1; }
+    | srs_class_inst    { $$ = $1; }
+    | ssat_class_inst   { $$ = $1; }
+    | strex_class_inst  { $$ = $1; }
+    | sxth_class_inst   { $$ = $1; }
+    | usad8_class_inst  { $$ = $1; }
+    ; 
+
+cps_class_inst:
+      OP_CPS_EFFECT OPRD_IFLAGS ',' '#' OPRD_IMM
+        { $$ = ($1 | $2 | (1 << 17) | $5); }
+    | OP_CPS_EFFECT OPRD_IFLAGS     { $$ = ($1 | $2); }
+    | OP_CPS '#' OPRD_IMM   { $$ = ($1 | (1 << 17) | $3); }
+    ;
+
+ldrex_class_inst:
+      OP_LDREX dest_reg ',' '[' src_reg ']' { $$ = ($1 | $2 | $5); }
+    ;
+
+mcrr2_class_inst:
+      OP_MCRR2 OPRD_COPROC ',' OPRD_IMM ',' dest_reg ',' src_reg ',' OPRD_CR
+        { $$ = ($1 | ($2 << 8) | $4 | $6 | $8 | $10); }
+    ;
+
+pkhbt_class_inst:
+      OP_PKHBT dest_reg ',' src_reg ',' OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
+        { $$ = ($1 | $2 | $4 | $6 | ($10 << 7)); }
+    | OP_PKHBT dest_reg ',' src_reg ',' OPRD_REG
+        { $$ = ($1 | $2 | $4 | $6); }
+    ;
+
+qadd16_class_inst:
+      OP_QADD16 dest_reg ',' src_reg ',' OPRD_REG
+        { $$ = ($1 | $2 | $4 | $6); }
+    ;
+
+rev_class_inst:
+      OP_REV dest_reg ',' OPRD_REG  { $$ = ($1 | $2 | $4); }
+    ;
+
+rfe_class_inst:
+      OP_RFE src_reg '!'    { $$ = ($1 | $2 | (1 << 21)); }
+    | OP_RFE src_reg        { $$ = ($1 | $2 | (0 << 21)); }
+    ;
+
+sxtah_class_inst:
+      OP_SXTAH dest_reg ',' src_reg ',' OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM
+        { $$ = ($1 | $2 | $4 | $6 | (($10 / 8) << 10)); }
+    | OP_SXTAH dest_reg ',' src_reg ',' OPRD_REG
+        { $$ = ($1 | $2 | $4 | $6); }
+    ;
+
+sel_class_inst:
+      OP_SEL dest_reg ',' src_reg ',' OPRD_REG  { $$ = ($1 | $2 | $4 | $6); }
+    ;
+
+setend_class_inst:
+      OP_SETEND OPRD_ENDIANNESS { $$ = ($1 | $2); }
+    ;
+
+smlad_class_inst:
+      OP_SMLAD OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
+    ;
+
+smlald_class_inst:
+      OP_SMLALD OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 12) | ($4 << 16) | $6 | ($8 << 8)); }
+    ;
+
+smmul_class_inst:
+      OP_SMMUL OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
+    ;
+
+srs_class_inst:
+      OP_SRS '#' OPRD_IMM '!'   { $$ = ($1 | $3 | (1 << 21)); }
+    | OP_SRS '#' OPRD_IMM   { $$ = ($1 | $3); }
+    ;
+
+ssat_class_inst:
+      OP_SSAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG ',' OPRD_LSL_LIKE '#'
+        OPRD_IMM
+        { $$ = ($1 | $2 | ($5 << 16) | $7 | $9 | ($11 << 7)); }
+    | OP_SSAT dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
+        { $$ = ($1 | $2 | ($5 << 16) | $7); }
+    | OP_SSAT16 dest_reg ',' '#' OPRD_IMM ',' OPRD_REG
+        { $$ = ($1 | $2 | ($5 << 16) | $7); }
+    ;
+
+strex_class_inst:
+      OP_STREX dest_reg ',' OPRD_REG ',' '[' src_reg ']'
+        { $$ = ($1 | $2 | $4 | $7); }
+    ;
+
+sxth_class_inst:
+      OP_SXTH dest_reg ',' OPRD_REG ',' OPRD_LSL_LIKE '#' OPRD_IMM 
+        { $$ = ($1 | $2 | $4 | (($8 / 8) << 10)); }
+    | OP_SXTH dest_reg ',' OPRD_REG { $$ = ($1 | $2 | $4); }
+    ;
+
+usad8_class_inst:
+      OP_USAD8 OPRD_REG ',' OPRD_REG ',' OPRD_REG
+        { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
     ;
 
 %%
