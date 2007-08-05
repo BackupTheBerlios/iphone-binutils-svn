@@ -442,6 +442,9 @@ void parse_and_handle_input(char *buf, pid_t inferior)
             else
                 do_disassembly(addr);
             break;
+        case 'm':
+            profile_process();
+            break;
         case 'n':
             nm();
             break;
@@ -478,6 +481,8 @@ void parse_and_handle_input(char *buf, pid_t inferior)
                 "    d disassemble starting at the given address\n");
             fprintf(stderr,
                 "         (if no address given, continues from last point)\n");
+            fprintf(stderr,
+                "    m continue execution and profile the process\n");
             fprintf(stderr,
                 "    n print the symbol table of the main image\n");
             fprintf(stderr,

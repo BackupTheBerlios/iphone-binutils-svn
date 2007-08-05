@@ -8,8 +8,8 @@ CFLAGS_OBJC=-emit-llvm -ObjC
 LLVM_GCCC=llvm-g++
 CCFLAGS=-emit-llvm
 LLC=@prefix@/bin/llc
-LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic -f
-LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=generic -relocation-model=pic
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=arm1176jz-s -f
+LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=arm1176jz-f -relocation-model=pic
 OPT=@prefix@/bin/opt
 OPTFLAGS=-std-compile-opts
 AS=@prefix@/bin/arm-apple-darwin-as

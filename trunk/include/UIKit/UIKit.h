@@ -22,6 +22,8 @@
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
 
+extern UIApplication *UIApp;
+
 int UIApplicationMain(int argc, char **argv, id Class);
 CGContextRef UICurrentContext();
 
