@@ -1,0 +1,15 @@
+AS = arm-apple-darwin-cc ;
+ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header -v -D__PIC__ ;
+CC = arm-apple-darwin-cc ;
+OPTIM = -O0 ;
+LINK = ../../cctools/ld/ld_dir/ld.NEW  ;
+# LINK = /Users/pcwalton/Projects/private-apple/cctools/ld/ld_dir/ld.NEW ;
+LINKFLAGS = -r -keep_private_externs ;
+
+SEARCH_SOURCE = .. ;
+CCFLAGS = -v -Wall -DDYNAMIC_NO_PIC -relocation-model=pic
+    -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header ;
+
+Objects arm-dyld-glue.s ;
+MainFromObjects dylib1.o : arm-dyld-glue.o ;
+

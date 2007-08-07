@@ -1,0 +1,17 @@
+# Customize to match your system. Then, place this file in ~/.arm-cc-specs
+# (where ~ represents your home dir).
+PREPROCESS=llvm-gcc
+CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__ -isystem /usr/share/iphone/include
+LLVM_GCC=llvm-gcc
+CFLAGS=-emit-llvm
+LLC=llc
+LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=generic -f
+LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=generic -relocation-model=pic
+AS=/usr/local/share/iphone/bin/as
+ASFLAGS=-arch arm
+LD=/usr/local/share/iphone/bin/ld.NEW
+LDFLAGS=-syslibroot /usr/local/share/iphone/Heavenly1A543a.UserBundle -lSystem -lgcc_s_v6.1 /usr/local/share/iphone/csu/dynamic-no-pic/crt1.o
+LDFLAGS_DYLIB=-syslibroot /usr/local/share/iphone/Heavenly1A543a.UserBundle -lSystem -lgcc_s_v6.1 -L/usr/local/share/iphone/csu/pic -ldylib1.o -single_module -dylib -dynamic
+
+
+

@@ -1,0 +1,49 @@
+#!/bin/bash
+
+DSTROOT=@prefix@
+WGET="@wget@"
+
+HOSTTYPE=`uname -p`
+OS=`uname -s`
+
+LLVMGCCDIR=llvm-gcc
+
+LLVMGCCURL=http://llvm.org/releases/2.0
+LLVMGCCMacx86=llvm-gcc4-2.0-x86-darwin8.tar.gz
+LLVMGCCMacPPC=llvm-gcc4-2.0-ppc-darwin8.9.0.tar.gz
+LLVMGCCLinux=llvm-gcc4-2.0-x86-linux-RHEL4.tar.gz
+LLVMGCCMingw=llvm-gcc4-2.0-x86-mingw32.tar.bz2
+
+if [ $HOSTTYPE = "Linux" ]; then
+  LLVMGCCFILE=$LLVMGCCLinux;
+elif [ $HOSTTYPE = "powerpc" ] && [ $OS = "Darwin" ]; then
+  LLVMGCCFILE=$LLVMGCCMacPPC;
+elif [ $HOSTTYPE = "i386" ] && [ $OS = "Darwin" ]; then
+  LLVMGCCFILE=$LLVMGCCMacx86;
+else
+  echo "Unkown OS/Arch" && exit 1
+fi
+
+if ! [ -d $LLVMGCCDIR ] || ! [ -f $LLVMGCCDIR/.dled ]; then
+  mkdir $LLVMGCCDIR 2>/dev/null;
+  echo "Retrieving $LLVMGCCURL/$LLVMGCCFILE...";
+  cd $LLVMGCCDIR && $WGET $LLVMGCCURL/$LLVMGCCFILE;
+  if [ $? -ne 0 ]; then
+    echo "Error while retrieving the llvm-gcc package." && exit 1
+  fi;
+  touch .dled && cd ..;
+fi;
+if ! [ -f $LLVMGCCDIR/.unpacked ]; then
+  cd $LLVMGCCDIR;
+  echo "Unpacking $LLVMGCCFILE";
+  tar xzf $LLVMGCCFILE;
+  if [ $? -ne 0 ]; then
+    echo "Error while unpacking the llvm-gcc package." && exit 1
+  fi;
+  touch .unpacked && cd ..;
+fi
+
+echo "Installing llvm-gcc..."
+LLVMGCCPKG=${LLVMGCCFILE/.tar.gz/}
+cp -Rpn $LLVMGCCDIR/$LLVMGCCPKG/* $DSTROOT;
+
