@@ -96,6 +96,7 @@ struct arg_spec exact_arg_specs[] = {
 
 struct arg_spec partial_arg_specs[] = {
     { "D",                      FOR_COMPILER,   0 },
+    { "F",                      FOR_LINKER,     0 },
     { "I",                      FOR_COMPILER,   0 },
     { "L",                      FOR_LINKER,     0 },
     { "O",                      FOR_DRIVER,     0 },

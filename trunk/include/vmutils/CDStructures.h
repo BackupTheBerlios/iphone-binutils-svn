@@ -4,6 +4,12 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
+struct DISK_TABLE_INFO {
+    unsigned long dti_first_page;
+    unsigned long dti_page_count;
+    unsigned long dti_object_count;
+};
+
 struct DISK_SYMBOL_HEADER_BLOCK {
     char dshb_id[32];
     short dshb_page_size;
@@ -25,12 +31,6 @@ struct DISK_SYMBOL_HEADER_BLOCK {
     struct DISK_TABLE_INFO dshb_const;
     unsigned int dshb_file_creator;
     unsigned int dshb_file_type;
-};
-
-struct DISK_TABLE_INFO {
-    unsigned long dti_first_page;
-    unsigned long dti_page_count;
-    unsigned long dti_object_count;
 };
 
 struct DISK_TABLE_INFO_v32 {
@@ -93,42 +93,9 @@ struct TracebackTbl {
     unsigned char _field8;
 };
 
-struct _NSRange {
-    unsigned int location;
-    unsigned int length;
-};
-
 struct _NSZone;
 
-struct __sFILE {
-    char *_field1;
-    int _field2;
-    int _field3;
-    short _field4;
-    short _field5;
-    struct __sbuf _field6;
-    int _field7;
-    void *_field8;
-    void *_field9;
-    void *_field10;
-    void *_field11;
-    void *_field12;
-    struct __sbuf _field13;
-    struct __sFILEX *_field14;
-    int _field15;
-    unsigned char _field16[3];
-    unsigned char _field17[1];
-    struct __sbuf _field18;
-    int _field19;
-    long long _field20;
-};
-
 struct __sFILEX;
-
-struct __sbuf {
-    char *_base;
-    int _size;
-};
 
 struct ar_hdr {
     char _field1[16];
@@ -188,6 +155,105 @@ struct mach_header_64 {
     unsigned int _field6;
     unsigned int _field7;
     unsigned int _field8;
+};
+
+union CONTAINED_LABELS_TABLE_ENTRY {
+    struct {
+        unsigned int _field1;
+        struct FILE_REFERENCE _field2;
+    } clte_file_;
+    struct {
+        unsigned int mte_index;
+        unsigned int mte_offset;
+        unsigned int nte_index;
+        short file_delta;
+        short scope;
+    } clte_;
+    unsigned int clte_end_of_list;
+};
+
+union CONTAINED_MODULES_TABLE_ENTRY {
+    struct {
+        unsigned int _field1;
+        unsigned int _field2;
+    } cmte_;
+    unsigned int cmte_end_of_list;
+};
+
+union CONTAINED_STATEMENTS_TABLE_ENTRY {
+    struct {
+        unsigned int _field1;
+        struct FILE_REFERENCE _field2;
+    } csnte_file_;
+    struct {
+        unsigned int mte_index;
+        short file_delta;
+        unsigned int mte_offset;
+    } csnte_;
+    unsigned int csnte_end_of_list;
+};
+
+union CONTAINED_TYPES_TABLE_ENTRY {
+    struct {
+        unsigned int _field1;
+        struct FILE_REFERENCE _field2;
+    } ctte_file_;
+    struct {
+        unsigned int tte_index;
+        unsigned int nte_index;
+        short file_delta;
+    } ctte_;
+    unsigned int ctte_end_of_list;
+};
+
+typedef struct {
+    unsigned int change;
+    struct FILE_REFERENCE fref;
+} CDAnonymousStruct4;
+
+union CONTAINED_VARIABLES_TABLE_ENTRY {
+    CDAnonymousStruct4 cvte_file_;
+    struct {
+        unsigned int tte_index;
+        unsigned int nte_index;
+        short file_delta;
+        char scope;
+        char la_size;
+        union {
+            struct STORAGE_CLASS_ADDRESS location;
+            struct {
+                char la[13];
+                char la_kind;
+                char la_xxxx;
+            } lastruct;
+            struct {
+                long big_la;
+                char big_la_kind;
+            } biglastruct;
+        } address;
+    } cvte_;
+    unsigned int cvte_end_of_list;
+};
+
+union FILE_REFERENCE_TABLE_ENTRY {
+    struct {
+        unsigned int name_entry;
+        unsigned int nte_index;
+        long mod_date;
+    } frte_file_;
+    struct {
+        unsigned int mte_index;
+        long file_offset;
+    } frte_;
+    unsigned int frte_end_of_list;
+};
+
+union FRTE_INDEX_TABLE_ENTRY {
+    struct {
+        unsigned int _field1;
+        unsigned int _field2;
+    } fite_;
+    unsigned int fite_end_of_list;
 };
 
 struct pagebuff {
@@ -295,16 +361,6 @@ struct stat {
     long long st_qspare[2];
 };
 
-struct timespec {
-    int tv_sec;
-    long tv_nsec;
-};
-
-struct timeval {
-    int tv_sec;
-    int tv_usec;
-};
-
 typedef struct {
     unsigned int _field1;
     unsigned int _field2;
@@ -333,102 +389,4 @@ typedef struct {
     } _field8[0];
 } CDAnonymousStruct2;
 
-typedef struct {
-    unsigned int change;
-    struct FILE_REFERENCE fref;
-} CDAnonymousStruct4;
-
-union CONTAINED_LABELS_TABLE_ENTRY {
-    struct {
-        unsigned int _field1;
-        struct FILE_REFERENCE _field2;
-    } clte_file_;
-    struct {
-        unsigned int mte_index;
-        unsigned int mte_offset;
-        unsigned int nte_index;
-        short file_delta;
-        short scope;
-    } clte_;
-    unsigned int clte_end_of_list;
-};
-
-union CONTAINED_MODULES_TABLE_ENTRY {
-    struct {
-        unsigned int _field1;
-        unsigned int _field2;
-    } cmte_;
-    unsigned int cmte_end_of_list;
-};
-
-union CONTAINED_STATEMENTS_TABLE_ENTRY {
-    struct {
-        unsigned int _field1;
-        struct FILE_REFERENCE _field2;
-    } csnte_file_;
-    struct {
-        unsigned int mte_index;
-        short file_delta;
-        unsigned int mte_offset;
-    } csnte_;
-    unsigned int csnte_end_of_list;
-};
-
-union CONTAINED_TYPES_TABLE_ENTRY {
-    struct {
-        unsigned int _field1;
-        struct FILE_REFERENCE _field2;
-    } ctte_file_;
-    struct {
-        unsigned int tte_index;
-        unsigned int nte_index;
-        short file_delta;
-    } ctte_;
-    unsigned int ctte_end_of_list;
-};
-
-union CONTAINED_VARIABLES_TABLE_ENTRY {
-    CDAnonymousStruct4 cvte_file_;
-    struct {
-        unsigned int tte_index;
-        unsigned int nte_index;
-        short file_delta;
-        char scope;
-        char la_size;
-        union {
-            struct STORAGE_CLASS_ADDRESS location;
-            struct {
-                char la[13];
-                char la_kind;
-                char la_xxxx;
-            } lastruct;
-            struct {
-                long big_la;
-                char big_la_kind;
-            } biglastruct;
-        } address;
-    } cvte_;
-    unsigned int cvte_end_of_list;
-};
-
-union FILE_REFERENCE_TABLE_ENTRY {
-    struct {
-        unsigned int name_entry;
-        unsigned int nte_index;
-        long mod_date;
-    } frte_file_;
-    struct {
-        unsigned int mte_index;
-        long file_offset;
-    } frte_;
-    unsigned int frte_end_of_list;
-};
-
-union FRTE_INDEX_TABLE_ENTRY {
-    struct {
-        unsigned int _field1;
-        unsigned int _field2;
-    } fite_;
-    unsigned int fite_end_of_list;
-};
 

@@ -4,15 +4,17 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/Foundation.h>
 
+#if 0
 #import "LibrarySourceProtocol.h"
 #import "StabsSourceProtocol.h"
 #import "SymbolSourceProtocol.h"
+#endif
 
 @class MemoryCache, NSMutableArray, NSMutableDictionary, NSNonOverlappingRangeValueTable;
 
-@interface NSMachOImage : NSObject <SymbolSource, StabsSource, LibrarySource>
+@interface NSMachOImage : NSObject // <SymbolSource, StabsSource, LibrarySource>
 {
     NSMutableArray *_machHeaders;	// 4 = 0x4
     NSMutableArray *_pefHeaders;	// 8 = 0x8

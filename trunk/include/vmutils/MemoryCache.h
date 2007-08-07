@@ -4,15 +4,14 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/Foundation.h>
 
 @interface MemoryCache : NSObject
 {
     struct {
         unsigned long;
         unsigned long;
-        struct {
-        } *;
+        unsigned char unknown[0];
     } *_memoryRegions;	// 4 = 0x4
 }
 

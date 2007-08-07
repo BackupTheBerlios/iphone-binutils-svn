@@ -4,9 +4,10 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
-
-@class ImageSymbols, NSDictionary, NSMutableArray, TaskMemoryCache;
+#import <Foundation/Foundation.h>
+#import <vmutils/ImageSymbols.h>
+#import <vmutils/TaskMemoryCache.h>
+#import <vmutils/CDStructures.h>
 
 @interface NSSampler : NSObject
 {
