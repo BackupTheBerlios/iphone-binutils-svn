@@ -46,7 +46,7 @@ BUNDLE_OBJS = $(BUNDLE_ASSRCS:%.s=%_bundle.s.o) $(BUNDLE_CSRCS:%.c=%_bundle.c.o)
 all: crt dylib bundle
 
 clean:
-	rm -f $(NOPIC_OBJS) $(PIC_OBJS) $(BUNDLW_OBJS) crt1.o dylib1.o bundle.o *~
+	rm -f $(NOPIC_OBJS) $(PIC_OBJS) $(BUNDLW_OBJS) crt1.o dylib1.o bundle1.o *~
 
 install: all
 	install -d $(IPHONEROOT)/csu
