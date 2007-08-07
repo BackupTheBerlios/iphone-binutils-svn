@@ -1,12 +1,13 @@
 # Dependencies for File: libsyminfo.o:
-libsyminfo.o: ../include/architecture/m88k/fp_regs.h
+libsyminfo.o: ../include/ar.h ../include/architecture/m88k/fp_regs.h
 libsyminfo.o: ../include/architecture/m88k/reg_help.h
 libsyminfo.o: ../include/architecture/nrw/reg_help.h
 libsyminfo.o: ../include/architecture/sparc/reg.h ../include/cbt/libsyminfo.h
 libsyminfo.o: ../include/mach-o/arch.h ../include/mach-o/fat.h
 libsyminfo.o: ../include/mach-o/loader.h ../include/mach-o/nlist.h
 libsyminfo.o: ../include/mach-o/ranlib.h ../include/mach-o/reloc.h
-libsyminfo.o: ../include/mach-o/stab.h ../include/mach/hppa/thread_status.h
+libsyminfo.o: ../include/mach-o/stab.h ../include/mach/arm/thread_status.h
+libsyminfo.o: ../include/mach/hppa/thread_status.h
 libsyminfo.o: ../include/mach/i860/thread_status.h
 libsyminfo.o: ../include/mach/m68k/thread_status.h
 libsyminfo.o: ../include/mach/m88k/thread_status.h ../include/mach/machine.h
@@ -15,11 +16,11 @@ libsyminfo.o: ../include/stuff/arch.h ../include/stuff/bool.h
 libsyminfo.o: ../include/stuff/bytesex.h ../include/stuff/errors.h
 libsyminfo.o: ../include/stuff/guess_short_name.h ../include/stuff/ofile.h
 libsyminfo.o: ../include/stuff/target_arch.h /usr/include/_types.h
-libsyminfo.o: /usr/include/alloca.h /usr/include/ar.h
-libsyminfo.o: /usr/include/architecture/byte_order.h /usr/include/ctype.h
-libsyminfo.o: /usr/include/i386/_types.h /usr/include/i386/eflags.h
-libsyminfo.o: /usr/include/i386/endian.h /usr/include/i386/signal.h
-libsyminfo.o: /usr/include/i386/types.h /usr/include/libkern/OSByteOrder.h
+libsyminfo.o: /usr/include/alloca.h /usr/include/architecture/byte_order.h
+libsyminfo.o: /usr/include/ctype.h /usr/include/i386/_types.h
+libsyminfo.o: /usr/include/i386/eflags.h /usr/include/i386/endian.h
+libsyminfo.o: /usr/include/i386/signal.h /usr/include/i386/types.h
+libsyminfo.o: /usr/include/libkern/OSByteOrder.h
 libsyminfo.o: /usr/include/libkern/i386/OSByteOrder.h
 libsyminfo.o: /usr/include/mach/boolean.h /usr/include/mach/clock_priv.h
 libsyminfo.o: /usr/include/mach/clock_types.h /usr/include/mach/error.h
@@ -44,15 +45,6 @@ libsyminfo.o: /usr/include/mach/mach_error.h /usr/include/mach/mach_host.h
 libsyminfo.o: /usr/include/mach/mach_init.h /usr/include/mach/mach_interface.h
 libsyminfo.o: /usr/include/mach/mach_port.h /usr/include/mach/mach_traps.h
 libsyminfo.o: /usr/include/mach/mach_types.h
-libsyminfo.o: /usr/include/mach/machine/boolean.h
-libsyminfo.o: /usr/include/mach/machine/exception.h
-libsyminfo.o: /usr/include/mach/machine/kern_return.h
-libsyminfo.o: /usr/include/mach/machine/processor_info.h
-libsyminfo.o: /usr/include/mach/machine/rpc.h
-libsyminfo.o: /usr/include/mach/machine/thread_state.h
-libsyminfo.o: /usr/include/mach/machine/thread_status.h
-libsyminfo.o: /usr/include/mach/machine/vm_param.h
-libsyminfo.o: /usr/include/mach/machine/vm_types.h
 libsyminfo.o: /usr/include/mach/memory_object_types.h
 libsyminfo.o: /usr/include/mach/message.h /usr/include/mach/mig.h
 libsyminfo.o: /usr/include/mach/mig_errors.h /usr/include/mach/ndr.h
@@ -62,11 +54,10 @@ libsyminfo.o: /usr/include/mach/ppc/thread_status.h
 libsyminfo.o: /usr/include/mach/processor.h /usr/include/mach/processor_info.h
 libsyminfo.o: /usr/include/mach/processor_set.h /usr/include/mach/rpc.h
 libsyminfo.o: /usr/include/mach/semaphore.h /usr/include/mach/std_types.h
-libsyminfo.o: /usr/include/mach/sync_policy.h /usr/include/mach/task.h
-libsyminfo.o: /usr/include/mach/task_info.h /usr/include/mach/task_policy.h
+libsyminfo.o: /usr/include/mach/sync_policy.h /usr/include/mach/task_info.h
+libsyminfo.o: /usr/include/mach/task_policy.h
 libsyminfo.o: /usr/include/mach/task_special_ports.h
-libsyminfo.o: /usr/include/mach/thread_act.h /usr/include/mach/thread_info.h
-libsyminfo.o: /usr/include/mach/thread_policy.h
+libsyminfo.o: /usr/include/mach/thread_info.h /usr/include/mach/thread_policy.h
 libsyminfo.o: /usr/include/mach/thread_special_ports.h
 libsyminfo.o: /usr/include/mach/thread_status.h
 libsyminfo.o: /usr/include/mach/thread_switch.h /usr/include/mach/time_value.h
@@ -81,14 +72,26 @@ libsyminfo.o: /usr/include/mach_debug/lockgroup_info.h
 libsyminfo.o: /usr/include/mach_debug/mach_debug_types.h
 libsyminfo.o: /usr/include/mach_debug/page_info.h
 libsyminfo.o: /usr/include/mach_debug/vm_info.h
-libsyminfo.o: /usr/include/mach_debug/zone_info.h /usr/include/machine/_types.h
-libsyminfo.o: /usr/include/machine/endian.h /usr/include/machine/signal.h
-libsyminfo.o: /usr/include/machine/types.h /usr/include/runetype.h
-libsyminfo.o: /usr/include/stdio.h /usr/include/stdlib.h /usr/include/string.h
+libsyminfo.o: /usr/include/mach_debug/zone_info.h /usr/include/machine/signal.h
+libsyminfo.o: /usr/include/runetype.h /usr/include/stdio.h
+libsyminfo.o: /usr/include/stdlib.h /usr/include/string.h
 libsyminfo.o: /usr/include/sys/_endian.h /usr/include/sys/_types.h
 libsyminfo.o: /usr/include/sys/appleapiopts.h /usr/include/sys/cdefs.h
 libsyminfo.o: /usr/include/sys/resource.h /usr/include/sys/signal.h
 libsyminfo.o: /usr/include/sys/types.h /usr/include/sys/wait.h
 libsyminfo.o: /usr/lib/gcc/i686-apple-darwin8/4.0.1/include/stdarg.h
 libsyminfo.o: /usr/lib/gcc/i686-apple-darwin8/4.0.1/include/stdint.h
-libsyminfo.o: libsyminfo.c
+libsyminfo.o: /usr/local/include/mach/machine/boolean.h
+libsyminfo.o: /usr/local/include/mach/machine/exception.h
+libsyminfo.o: /usr/local/include/mach/machine/kern_return.h
+libsyminfo.o: /usr/local/include/mach/machine/processor_info.h
+libsyminfo.o: /usr/local/include/mach/machine/rpc.h
+libsyminfo.o: /usr/local/include/mach/machine/thread_state.h
+libsyminfo.o: /usr/local/include/mach/machine/thread_status.h
+libsyminfo.o: /usr/local/include/mach/machine/vm_param.h
+libsyminfo.o: /usr/local/include/mach/machine/vm_types.h
+libsyminfo.o: /usr/local/include/mach/task.h
+libsyminfo.o: /usr/local/include/mach/thread_act.h
+libsyminfo.o: /usr/local/include/machine/_types.h
+libsyminfo.o: /usr/local/include/machine/endian.h
+libsyminfo.o: /usr/local/include/machine/types.h libsyminfo.c
