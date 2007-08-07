@@ -305,6 +305,8 @@ f{<vfp_dpxS>}s{<cond>} t: OP_VFP_DPX_S  e: 11101 (23), 1010 (8), 11 (20), 1 (6)
 f{<vfp_dpxS>}d{<cond>} t: OP_VFP_DPX_DS e: 11101 (23), 1011 (8), 11 (20), 1 (6)
 f{<vfp_dpxs>}s{<cond>} t: OP_VFP_DPX_S  e: 11101 (23), 1010 (8), 11 (20), 1 (6)
 f{<vfp_dpxs>}d{<cond>} t: OP_VFP_DPX_SD e: 11101 (23), 1011 (8), 11 (20), 1 (6)
+f{<vfp_dpxx>}s{<cond>} t: OP_VFP_DPX_DS e: 11101 (23), 1010 (8), 11 (20), 1 (6)
+f{<vfp_dpxx>}d{<cond>} t: OP_VFP_DPX_SD e: 11101 (23), 1011 (8), 11 (20), 1 (6)
 
 .define <vfp_dp>
 mac                                 e: 0 (23), 0 (21), 0 (20), 0 (6)
@@ -346,6 +348,11 @@ toui                                e: 1100 (16), 0 (7)
 touiz                               e: 1100 (16), 1 (7)
 tosi                                e: 1101 (16), 0 (7)
 tosiz                               e: 1101 (16), 1 (7)
+.enddefine
+
+# x for eXchange instructions: they take an argument of the opposite precision
+# as the FIRST argument.
+.define <vfp_dpxx>
 cvtd                                e: 0111 (16), 1 (7)
 cvts                                e: 0111 (16), 1 (7)
 .enddefine

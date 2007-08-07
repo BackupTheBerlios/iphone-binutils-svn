@@ -65,6 +65,7 @@ unsigned int instruction;
 %type  <nval> vfp_store_multiple_inst vfp_register_transfer_inst
 %type  <nval> vfp_maybe_imm_offset generic_reg vfp_data_proc_inst
 %type  <nval> vfp_store_inst vfp_misc_inst vfp2_inst vfp_imm_offset_with_u_bit
+%type  <nval> vfp_store_am
 
 %%
 
@@ -549,10 +550,22 @@ vfp_store_multiple_inst:
     ;
 
 vfp_store_inst:
-      OP_VFP_ST_S vfp_Sd ',' '[' src_reg vfp_maybe_imm_offset ']'
-        { $$ = ($1 | $2 | $5 | $6); }
-    | OP_VFP_ST_D vfp_Dd ',' '[' src_reg vfp_maybe_imm_offset ']' 
-        { $$ = ($1 | $2 | $5 | $6); }
+      OP_VFP_ST_S vfp_Sd ',' vfp_store_am 
+        { $$ = ($1 | $2 | $4); }
+    | OP_VFP_ST_D vfp_Dd ',' vfp_store_am 
+        { $$ = ($1 | $2 | $4); }
+    ;
+
+vfp_store_am:
+      expr
+        {
+            /* assumes PC-relative addressing */
+            int n;
+            n = ($1 - 8) / 4;
+            register_reloc_type(ARM_RELOC_PCREL_VFP_IMM8_TIMES_4, 4, 1);
+            $$ = ((15 << 16) | (n < 0 ? -n : (n | (1 << 23))));
+        }
+    | '[' src_reg vfp_maybe_imm_offset ']'  { $$ = ($2 | $3); }
     ;
 
 vfp_maybe_imm_offset:
