@@ -7,6 +7,9 @@
 #include "struc-symbol.h"
 #include "mach-o/arm/reloc.h"
 
+#define VFP_SINGLE  1
+#define VFP_DOUBLE  2
+
 #define ROTL(n, k)  (((n) << (k)) | ((n) >> (32 - (k))))
 
 struct fix_info {
@@ -37,6 +40,8 @@ extern int yydebug;
 
 extern int arm_op_count;
 extern struct arm_op_info arm_op_info[]; 
+
+unsigned int vfp_encode_reg_list(unsigned int list, int precision);
 
 void register_reloc_type(int type, int size, int pcrel);
 void register_expression(expressionS *expr);

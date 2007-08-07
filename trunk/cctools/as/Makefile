@@ -339,12 +339,12 @@ aarm_build:	$(OBJROOT)/aarm_dir
 		RC_CFLAGS="$(RC_CFLAGS)" DEP_DIR=aarm_dir;		\
 	fi
 
-arm.c:	army.h arm.h
+arm.o:	arm.c army.h arm.h armop.c
 
-army.c:	army.y
+army.c:	army.y armop.c
 	bison -v -o ../army.c -d army.y
 
-army.h:	army.y
+army.h:	army.y armop.c
 	bison -v -o ../army.c -d army.y
 
 driver:	driver.o apple_version.o

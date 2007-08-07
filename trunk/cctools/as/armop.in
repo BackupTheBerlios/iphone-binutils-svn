@@ -291,3 +291,108 @@ uxtb{<cond>}        t: OP_SXTH      e: 01101110 (20), 1111 (16), 000111 (4)
 usad8{<cond>}       t: OP_USAD8     e: 01111000 (20), 1111 (12), 0001 (4)
 usada8{<cond>}      t: OP_USADA8    e: 01111000 (20), 0001 (4)
 
+# -----------------------------------------------------------------------------
+#   VFP instructions 
+# -----------------------------------------------------------------------------
+
+f{<vfp_dp>}s{<cond>}        t: OP_VFP_DP_S e: 1110 (24), 1010 (8), 0 (4)
+f{<vfp_dp>}d{<cond>}        t: OP_VFP_DP_D e: 1110 (24), 1011 (8), 0 (4)
+f{<vfp_dpx>}s{<cond>}   t: OP_VFP_DPX_S e: 11101 (23), 1010 (8), 11 (20), 1 (6)
+f{<vfp_dpx>}d{<cond>}   t: OP_VFP_DPX_D e: 11101 (23), 1011 (8), 11 (20), 1 (6)
+f{<vfp_dpx1>}s{<cond>} t: OP_VFP_DPX1_S e: 11101 (23), 1010 (8), 11 (20), 1 (6)
+f{<vfp_dpx1>}d{<cond>} t: OP_VFP_DPX1_D e: 11101 (23), 1011 (8), 11 (20), 1 (6)
+f{<vfp_dpxS>}s{<cond>} t: OP_VFP_DPX_S  e: 11101 (23), 1010 (8), 11 (20), 1 (6)
+f{<vfp_dpxS>}d{<cond>} t: OP_VFP_DPX_DS e: 11101 (23), 1011 (8), 11 (20), 1 (6)
+f{<vfp_dpxs>}s{<cond>} t: OP_VFP_DPX_S  e: 11101 (23), 1010 (8), 11 (20), 1 (6)
+f{<vfp_dpxs>}d{<cond>} t: OP_VFP_DPX_SD e: 11101 (23), 1011 (8), 11 (20), 1 (6)
+
+.define <vfp_dp>
+mac                                 e: 0 (23), 0 (21), 0 (20), 0 (6)
+nmac                                e: 0 (23), 0 (21), 0 (20), 1 (6)
+msc                                 e: 0 (23), 0 (21), 1 (20), 0 (6)
+nmsc                                e: 0 (23), 0 (21), 1 (20), 1 (6)
+mul                                 e: 0 (23), 1 (21), 0 (20), 0 (6)
+nmul                                e: 0 (23), 1 (21), 0 (20), 1 (6)
+add                                 e: 0 (23), 1 (21), 1 (20), 0 (6)
+sub                                 e: 0 (23), 1 (21), 1 (20), 1 (6)
+div                                 e: 1 (23), 0 (21), 0 (20), 0 (6)
+.enddefine
+
+.define <vfp_dpx>
+cpy                                 e: 0000 (16), 0 (7)
+abs                                 e: 0000 (16), 1 (7)
+neg                                 e: 0001 (16), 0 (7)
+sqrt                                e: 0001 (16), 1 (7)
+cmp                                 e: 0100 (16), 0 (7)
+cmpe                                e: 0100 (16), 1 (7)
+.enddefine
+
+.define <vfp_dpx1>
+cmpz                                e: 0101 (16), 0 (7), 0000 (0)
+cmpez                               e: 0101 (16), 1 (7), 0000 (0)
+.enddefine
+
+# S for single instructions - they have funny syntax and take an argument of
+# single precision as the SECOND argument.
+.define <vfp_dpxS>
+uito                                e: 1000 (16), 0 (7)
+sito                                e: 1000 (16), 1 (7)
+.enddefine
+
+# Like <vfp_dpxS>, but the other way: they take an argument of single precision
+# as the FIRST argument. So much for orthogonality!
+.define <vfp_dpxs>
+toui                                e: 1100 (16), 0 (7)
+touiz                               e: 1100 (16), 1 (7)
+tosi                                e: 1101 (16), 0 (7)
+tosiz                               e: 1101 (16), 1 (7)
+cvtd                                e: 0111 (16), 1 (7)
+cvts                                e: 0111 (16), 1 (7)
+.enddefine
+
+fstm{<vfp_stam>}s{<cond>}   t: OP_VFP_STM_S e: 110 (25), 0 (20), 1010 (8)
+fldm{<vfp_ldam>}s{<cond>}   t: OP_VFP_STM_S e: 110 (25), 1 (20), 1010 (8)
+fstm{<vfp_stam>}d{<cond>}   t: OP_VFP_STM_D e: 110 (25), 0 (20), 1011 (8)
+fldm{<vfp_ldam>}d{<cond>}   t: OP_VFP_STM_D e: 110 (25), 1 (20), 1011 (8)
+fstm{<vfp_stam>}x{<cond>}   t: OP_VFP_STM_X e: 110 (25), 0 (20), 1011 (8)
+fldm{<vfp_ldam>}x{<cond>}   t: OP_VFP_STM_X e: 110 (25), 1 (20), 1011 (8)
+
+.define <vfp_stam>
+ia                                          e: 0 (24), 1 (23)
+db                                          e: 1 (24), 0 (23)
+ea                                          e: 0 (24), 1 (23)
+fd                                          e: 1 (24), 0 (23)
+.enddefine
+
+.define <vfp_ldam>
+ia                                          e: 0 (24), 1 (23)
+db                                          e: 1 (24), 0 (23)
+fd                                          e: 0 (24), 1 (23)
+ea                                          e: 1 (24), 0 (23)
+.enddefine
+
+fsts{<cond>}                t: OP_VFP_ST_S  e: 1101 (24), 00 (20), 1010 (8)
+flds{<cond>}                t: OP_VFP_ST_S  e: 1101 (24), 01 (20), 1010 (8) 
+fstd{<cond>}                t: OP_VFP_ST_D  e: 1101 (24), 00 (20), 1011 (8)
+fldd{<cond>}                t: OP_VFP_ST_D  e: 1101 (24), 01 (20), 1011 (8) 
+
+fmsr{<cond>}                t: OP_VFP_MSR   e: 11100000 (20), 1010 (8), 1 (4)
+fmrs{<cond>}                t: OP_VFP_MRS   e: 11100001 (20), 1010 (8), 1 (4)
+fmdlr{<cond>}       t: OP_VFP_MDXR  e: 11100000 (20), 1011 (8), 0 (7), 1 (4)
+fmrdl{<cond>}       t: OP_VFP_MRDX  e: 11100001 (20), 1011 (8), 0 (7), 1 (4)
+fmdhr{<cond>}       t: OP_VFP_MDXR  e: 11100010 (20), 1011 (8), 0 (7), 1 (4)
+fmrdh{<cond>}       t: OP_VFP_MRDX  e: 11100011 (20), 1011 (8), 0 (7), 1 (4)
+fmxr{<cond>}        t: OP_VFP_MXR   e: 11101110 (20), 1010 (8), 0 (7), 1 (4)
+fmrx{<cond>}        t: OP_VFP_MRX   e: 11101111 (20), 1010 (8), 0 (7), 1 (4)
+
+fmstat{<cond>}      t: OP_VFP_FMSTAT    e: 11101111000111111010 (8), 1 (4)
+
+# -----------------------------------------------------------------------------
+#   VFP2 instructions 
+# -----------------------------------------------------------------------------
+
+fmdrr{<cond>}   t: OP_VFP_FMDRR e: 11000100 (20), 1011 (8), 0001 (4)
+fmrrd{<cond>}   t: OP_VFP_FMRRD e: 11000101 (20), 1011 (8), 0001 (4)
+fmsrr{<cond>}   t: OP_VFP_FMSRR e: 11000100 (20), 1010 (8), 00 (6), 1 (4)
+fmrrs{<cond>}   t: OP_VFP_FMRRS e: 11000101 (20), 1010 (8), 00 (6), 1 (4)
+

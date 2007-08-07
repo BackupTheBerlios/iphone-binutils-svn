@@ -36,8 +36,14 @@ unsigned int instruction;
 %token <nval> OP_RFE OP_SXTAH OP_SEL OP_SETEND OP_SMLAD OP_SMLALD OP_SMMUL
 %token <nval> OP_SRS OP_SSAT OP_SSAT16 OP_STREX OP_SXTH OP_USAD8 OP_USADA8
 %token <nval> OP_BX OP_PKHTB OP_USAT OP_USAT16 OP_BLX OP_SMLA_XY OP_SMLAL_XY 
-%token <nval> OP_SMUL_XY OP_QADD OP_NOP
-%token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR
+%token <nval> OP_SMUL_XY OP_QADD OP_NOP OP_VFP_DP_S OP_VFP_DP_D OP_VFP_DPX_S
+%token <nval> OP_VFP_DPX_D OP_VFP_STM_S OP_VFP_STM_D OP_VFP_STM_X OP_VFP_ST_S
+%token <nval> OP_VFP_ST_D OP_VFP_MSR OP_VFP_MRS OP_VFP_MDXR OP_VFP_MRDX
+%token <nval> OP_VFP_MXR OP_VFP_MRX OP_VFP_FMSTAT OP_VFP_DPX1_S OP_VFP_DPX1_D
+%token <nval> OP_VFP_FMDRR OP_VFP_FMRRD OP_VFP_FMSRR OP_VFP_FMRRS OP_VFP_DPX_SD
+%token <nval> OP_VFP_DPX_DS
+%token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR OPRD_REG_S
+%token <nval> OPRD_REG_D OPRD_REG_VFP_SYS
 %token <nval> OPRD_ENDIANNESS
 %token <eval> OPRD_EXP
 %type  <ival> expr
@@ -55,7 +61,10 @@ unsigned int instruction;
 %type  <nval> strex_class_inst sxth_class_inst usad8_class_inst armv4t_inst
 %type  <nval> bx_class_inst armv5_inst blx_class_inst smla_xy_class_inst
 %type  <nval> smlal_xy_class_inst smul_xy_class_inst qadd_class_inst
-%type  <nval> mnemonic_inst
+%type  <nval> mnemonic_inst vfp_inst vfp_Sd vfp_Sn vfp_Sm vfp_Dd vfp_Dn vfp_Dm
+%type  <nval> vfp_store_multiple_inst vfp_register_transfer_inst
+%type  <nval> vfp_maybe_imm_offset generic_reg vfp_data_proc_inst
+%type  <nval> vfp_store_inst vfp_misc_inst vfp2_inst vfp_imm_offset_with_u_bit
 
 %%
 
@@ -64,6 +73,8 @@ inst:
     | armv4t_inst       { instruction = $1; }
     | armv5_inst        { instruction = $1; }
     | armv6_inst        { instruction = $1; }
+    | vfp_inst          { instruction = $1; }
+    | vfp2_inst         { instruction = $1; }
     ;
 
 fundamental_inst:
@@ -158,14 +169,20 @@ reg_list_contents:
     ;
 
 reg_list_atom:
-      OPRD_REG                      { $$ = (1 << $1);   }
-    | OPRD_REG '-' OPRD_REG         {
+      generic_reg                   { $$ = (1 << $1);   }
+    | generic_reg '-' generic_reg   {
                                         int i;
                                         unsigned int n = 0;
                                         for (i = $1; i <= $3; i++)
                                             n |= (1 << i);
                                         $$ = n;
                                     }
+    ;
+
+generic_reg:
+      OPRD_REG      { $$ = $1; }
+    | OPRD_REG_S    { $$ = $1; }
+    | OPRD_REG_D    { $$ = $1; }
     ;
 
 src_reg:
@@ -477,6 +494,98 @@ usad8_class_inst:
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
     | OP_USADA8 OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
+    ;
+
+vfp_inst:
+      vfp_data_proc_inst            { $$ = $1; }
+    | vfp_store_multiple_inst       { $$ = $1; }
+    | vfp_store_inst                { $$ = $1; }
+    | vfp_register_transfer_inst    { $$ = $1; }
+    | vfp_misc_inst                 { $$ = $1; }
+    ;
+
+vfp_data_proc_inst:
+      OP_VFP_DP_S vfp_Sd ',' vfp_Sn ',' vfp_Sm  { $$ = ($1 | $2 | $4 | $6); }
+    | OP_VFP_DP_D vfp_Dd ',' vfp_Dn ',' vfp_Dm  { $$ = ($1 | $2 | $4 | $6); }
+    | OP_VFP_DPX_S vfp_Sd ',' vfp_Sm            { $$ = ($1 | $2 | $4);      }
+    | OP_VFP_DPX_D vfp_Dd ',' vfp_Dm            { $$ = ($1 | $2 | $4);      }
+    | OP_VFP_DPX_SD vfp_Sd ',' vfp_Dm           { $$ = ($1 | $2 | $4);      }
+    | OP_VFP_DPX_DS vfp_Dd ',' vfp_Sm           { $$ = ($1 | $2 | $4);      }
+    | OP_VFP_DPX1_S vfp_Sd                      { $$ = ($1 | $2);           }
+    | OP_VFP_DPX1_D vfp_Dd                      { $$ = ($1 | $2);           }
+    ;
+
+vfp_Sd:
+      OPRD_REG_S    { $$ = (((($1 & ~1) >> 1) << 12) | (($1 & 1) << 22)); }
+    ;
+
+vfp_Sn:
+      OPRD_REG_S    { $$ = (((($1 & ~1) >> 1) << 16) | (($1 & 1) << 7)); }
+    ;
+
+vfp_Sm:
+      OPRD_REG_S    { $$ = ((($1 & ~1) >> 1) | (($1 & 1) << 5)); }
+    ;
+
+vfp_Dd:
+      OPRD_REG_D    { $$ = ($1 << 12); }
+    ;
+
+vfp_Dn:
+      OPRD_REG_D    { $$ = ($1 << 16); }
+    ;
+
+vfp_Dm:
+      OPRD_REG_D    { $$ = $1; }
+    ;
+
+vfp_store_multiple_inst:
+      OP_VFP_STM_S src_reg maybe_bang ',' reg_list
+        { $$ = ($1 | $2 | $3 | vfp_encode_reg_list($5, VFP_SINGLE)); }
+    | OP_VFP_STM_D src_reg maybe_bang ',' reg_list
+        { $$ = ($1 | $2 | $3 | vfp_encode_reg_list($5, VFP_DOUBLE)); }
+    | OP_VFP_STM_X src_reg maybe_bang ',' reg_list
+        { $$ = ($1 | $2 | $3 | (vfp_encode_reg_list($5, VFP_DOUBLE) + 1)); }
+    ;
+
+vfp_store_inst:
+      OP_VFP_ST_S vfp_Sd ',' '[' src_reg vfp_maybe_imm_offset ']'
+        { $$ = ($1 | $2 | $5 | $6); }
+    | OP_VFP_ST_D vfp_Dd ',' '[' src_reg vfp_maybe_imm_offset ']' 
+        { $$ = ($1 | $2 | $5 | $6); }
+    ;
+
+vfp_maybe_imm_offset:
+      /* empty */                       { $$ = 0; }
+    | ',' '#' vfp_imm_offset_with_u_bit { $$ = $3; }
+    ;
+
+vfp_imm_offset_with_u_bit:
+      OPRD_IMM      { $$ = ($1 < 0 ? -($1 / 4) : ((1 << 23) | ($1 / 4))); }
+    ;
+
+vfp_register_transfer_inst:
+      OP_VFP_MSR vfp_Sn ',' dest_reg    { $$ = ($1 | $2 | $4); }
+    | OP_VFP_MRS dest_reg ',' vfp_Sn    { $$ = ($1 | $2 | $4); }
+    | OP_VFP_MDXR vfp_Dn ',' dest_reg   { $$ = ($1 | $2 | $4); }
+    | OP_VFP_MRDX dest_reg ',' vfp_Dn   { $$ = ($1 | $2 | $4); }
+    | OP_VFP_MXR OPRD_REG_VFP_SYS ',' dest_reg { $$ = ($1 | ($2 << 16) | $4); }
+    | OP_VFP_MRX dest_reg ',' OPRD_REG_VFP_SYS { $$ = ($1 | $2 | ($4 << 16)); }
+    ;
+
+vfp_misc_inst:
+      OP_VFP_FMSTAT { $$ = $1; }
+    ;
+
+vfp2_inst:
+      OP_VFP_FMDRR vfp_Dm ',' dest_reg ',' src_reg
+        { $$ = ($1 | $2 | $4 | $6); }
+    | OP_VFP_FMRRD dest_reg ',' src_reg ',' vfp_Dm
+        { $$ = ($1 | $2 | $4 | $6); }
+    | OP_VFP_FMSRR '{' vfp_Sm ',' vfp_Sm '}' ',' dest_reg ',' src_reg
+        { $$ = ($1 | $3 | $8 | $10); /* TODO: verify that Sm1 = Sm+1 */ }
+    | OP_VFP_FMRRS dest_reg ',' src_reg ',' '{' vfp_Sm ',' vfp_Sm '}'
+        { $$ = ($1 | $2 | $4 | $7);  /* TODO: ditto */                  }
     ;
 
 %%

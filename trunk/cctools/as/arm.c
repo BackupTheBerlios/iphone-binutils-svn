@@ -47,7 +47,26 @@ struct arm_reserved_word_info arm_reserved_word_info[] = {
     { "c7",     OPRD_CR,            7       },
     { "c8",     OPRD_CR,            8       },
     { "c9",     OPRD_CR,            9       },
+    { "d0",     OPRD_REG_D,         0       },
+    { "d1",     OPRD_REG_D,         1       },
+    { "d10",    OPRD_REG_D,         10      },
+    { "d11",    OPRD_REG_D,         11      },
+    { "d12",    OPRD_REG_D,         12      },
+    { "d13",    OPRD_REG_D,         13      },
+    { "d14",    OPRD_REG_D,         14      },
+    { "d15",    OPRD_REG_D,         15      },
+    { "d2",     OPRD_REG_D,         2       },
+    { "d3",     OPRD_REG_D,         3       },
+    { "d4",     OPRD_REG_D,         4       },
+    { "d5",     OPRD_REG_D,         5       },
+    { "d6",     OPRD_REG_D,         6       },
+    { "d7",     OPRD_REG_D,         7       },
+    { "d8",     OPRD_REG_D,         8       },
+    { "d9",     OPRD_REG_D,         9       },
     { "fp",     OPRD_REG,           11      },
+    { "fpexc",  OPRD_REG_VFP_SYS,   0x8     },
+    { "fpscr",  OPRD_REG_VFP_SYS,   0x1     },
+    { "fpsid",  OPRD_REG_VFP_SYS,   0x0     },
     { "ip",     OPRD_REG,           12      },
     { "le",     OPRD_ENDIANNESS,    0 << 9  },
     { "lr",     OPRD_REG,           14      },
@@ -88,6 +107,39 @@ struct arm_reserved_word_info arm_reserved_word_info[] = {
     { "r9",     OPRD_REG,           9       },
     { "ror",    OPRD_LSL_LIKE,      3 << 5  },
     { "rrx",    OPRD_RRX,           3 << 5  },
+    { "s0",     OPRD_REG_S,         0       },
+    { "s1",     OPRD_REG_S,         1       },
+    { "s10",    OPRD_REG_S,         10      },
+    { "s11",    OPRD_REG_S,         11      },
+    { "s12",    OPRD_REG_S,         12      },
+    { "s13",    OPRD_REG_S,         13      },
+    { "s14",    OPRD_REG_S,         14      },
+    { "s15",    OPRD_REG_S,         15      },
+    { "s16",    OPRD_REG_S,         16      },
+    { "s17",    OPRD_REG_S,         17      },
+    { "s18",    OPRD_REG_S,         18      },
+    { "s19",    OPRD_REG_S,         19      },
+    { "s2",     OPRD_REG_S,         2       },
+    { "s20",    OPRD_REG_S,         20      },
+    { "s21",    OPRD_REG_S,         21      },
+    { "s22",    OPRD_REG_S,         22      },
+    { "s23",    OPRD_REG_S,         23      },
+    { "s24",    OPRD_REG_S,         24      },
+    { "s25",    OPRD_REG_S,         25      },
+    { "s26",    OPRD_REG_S,         26      },
+    { "s27",    OPRD_REG_S,         27      },
+    { "s28",    OPRD_REG_S,         28      },
+    { "s29",    OPRD_REG_S,         29      },
+    { "s3",     OPRD_REG_S,         3       },
+    { "s30",    OPRD_REG_S,         30      },
+    { "s31",    OPRD_REG_S,         31      },
+    { "s3",     OPRD_REG_S,         3       },
+    { "s4",     OPRD_REG_S,         4       },
+    { "s5",     OPRD_REG_S,         5       },
+    { "s6",     OPRD_REG_S,         6       },
+    { "s7",     OPRD_REG_S,         7       },
+    { "s8",     OPRD_REG_S,         8       },
+    { "s9",     OPRD_REG_S,         9       },
     { "sb",     OPRD_REG,           9       },
     { "sl",     OPRD_REG,           10      },
     { "sp",     OPRD_REG,           13      },
@@ -145,13 +197,13 @@ char *md_atof(int type, char *litP, int *sizeP)
 
 int md_estimate_size_before_relax(fragS *fragP, int segment_type)
 {
-    as_fatal("relaxation shouldn't occur on the ARM");
+    as_fatal("relaxation shouldn't occur right now on the ARM");
     return 0;
 }
 
 void md_convert_frag(fragS *fragP)
 {
-    as_fatal("relaxation shouldn't occur on the ARM");
+    as_fatal("relaxation shouldn't occur right now on the ARM");
 }
 
 /* Simply writes out a number in little endian form. */
@@ -180,6 +232,47 @@ unsigned int generate_shifted_immediate(unsigned int n)
 
     as_bad("immediate value (%d) too large", n);
     return 0;
+}
+
+unsigned int vfp_encode_reg_list(unsigned int list, int precision)
+{
+    unsigned int enc = 0, reg_count = 0, first_reg = 0;
+
+    if (!list) {
+        as_bad("Register list must specify at least one register");
+        return 0;
+    }
+
+    /* Shift the list until we find the first reg. */
+    while ((list & 1) == 0) {
+        list >>= 1;
+        first_reg++;
+    }
+
+    /* Shift until we get to a zero. */
+    while (list & 1) {
+        list >>= 1;
+        reg_count++;
+    }
+
+    /* Make sure the rest are zero. */
+    if (list) {
+        as_bad("Register list must describe a consecutive sequence");
+        return 0;
+    }
+
+    switch (precision) {
+        case VFP_SINGLE:
+            enc |= ((first_reg >> 1) << 12);
+            enc |= ((first_reg & 1) << 22);
+            enc |= reg_count;
+            break;
+        case VFP_DOUBLE:
+            enc |= (first_reg << 12);
+            enc |= (reg_count * 2);
+    }
+
+    return enc;
 }
 
 /* ----------------------------------------------------------------------------
