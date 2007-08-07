@@ -10,6 +10,7 @@ CCFLAGS=-emit-llvm
 LLC=@prefix@/bin/llc
 LLCFLAGS=-mtriple=arm-apple-darwin -relocation-model=dynamic-no-pic -mcpu=arm1176jzf-s -f
 LLCFLAGS_DYLIB=-mtriple=arm-apple-darwin -f -mcpu=arm1176jzf-s -relocation-model=pic
+LLCFLAGS_BUNDLE=-mtriple=arm-apple-darwin -f -mcpu=arm1176jzf-s -relocation-model=pic
 OPT=@prefix@/bin/opt
 OPTFLAGS=-std-compile-opts
 AS=@prefix@/bin/arm-apple-darwin-as
@@ -17,5 +18,6 @@ ASFLAGS=-arch arm
 LD=@prefix@/bin/arm-apple-darwin-ld
 LDFLAGS=-syslibroot @prefix@/heavenly @prefix@/csu/crt1.o % -lSystem -lgcc_s_v6.1 -lm -larmfp 
 LDFLAGS_DYLIB=-syslibroot @prefix@/heavenly -lSystem -lgcc_s_v6.1 -L@prefix@/csu -ldylib1.o -single_module -dylib -dynamic
+LDFLAGS_BUNDLE=-syslibroot @prefix@/heavenly -bundle -lSystem -lgcc_s_v6.1 -L@prefix@/csu @prefix@/csu/bundle1.o -dynamic
 LDFLAGS_FRAMEWORKSDIR=-F@prefix@/heavenly/System/Library/Frameworks
 

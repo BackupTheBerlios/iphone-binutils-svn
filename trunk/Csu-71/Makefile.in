@@ -22,6 +22,8 @@ NOPIC_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__
 NOPIC_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__
 PIC_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header -v -D__PIC__
 PIC_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -relocation-model=pic -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header
+BUNDLE_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_bundle_header -v -D__PIC__
+BUNDLE_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -relocation-model=pic -DMACH_HEADER_SYMBOL_NAME=__mh_bundle_header
 
 OPTIM = -O0
 LINKFLAGS = -r -keep_private_externs
@@ -36,15 +38,21 @@ PIC_ASSRCS = arm-dyld-glue.s
 PIC_CSRCS =
 PIC_OBJS = $(PIC_ASSRCS:%.s=%_pic.s.o) $(PIC_CSRCS:%.c=%_pic.c.o)
 
-all: crt dylib
+BUNDLE_RESULT = bundle1.o
+BUNDLE_ASSRCS = arm-dyld-glue.s
+BUNDLE_CSRCS =
+BUNDLE_OBJS = $(BUNDLE_ASSRCS:%.s=%_bundle.s.o) $(BUNDLE_CSRCS:%.c=%_bundle.c.o)
+
+all: crt dylib bundle
 
 clean:
-	rm -f $(NOPIC_OBJS) $(PIC_OBJS) crt1.o dylib1.o *~
+	rm -f $(NOPIC_OBJS) $(PIC_OBJS) $(BUNDLW_OBJS) crt1.o dylib1.o bundle.o *~
 
 install: all
 	install -d $(IPHONEROOT)/csu
 	install $(NOPIC_RESULT) $(IPHONEROOT)/csu
 	install $(PIC_RESULT) $(IPHONEROOT)/csu
+	install $(BUNDLE_RESULT) $(IPHONEROOT)/csu
 
 crt: $(NOPIC_OBJS)
 	$(LINK) -o $(NOPIC_RESULT) $(LINKFLAGS) $(NOPIC_OBJS) $(DYLD)
@@ -52,11 +60,20 @@ crt: $(NOPIC_OBJS)
 dylib: $(PIC_OBJS)
 	$(LINK) -o $(PIC_RESULT) $(LINKFLAGS) $(PIC_OBJS)
 
+bundle: $(BUNDLE_OBJS)
+	 $(LINK) -o $(BUNDLE_RESULT) $(LINKFLAGS) $(BUNDLE_OBJS)
 %_nopic.s.o: %.s
 	$(AS) $(NOPIC_ASFLAGS) -o $@ $<
 
 %_nopic.c.o: %.c
 	$(CC) $(OPTIM) $(NOPIC_CCFLAGS) -o $@ $<
+
+%_bundle.s.o: %.s
+	$(AS) $(BUNDLE_ASFLAGS) -o $@ $<
+
+%_bundle.c.o: %.c
+	$(CC) $(OPTIM) $(BUNDLE_CCFLAGS) -o $@ $<
+
 
 %_pic.s.o: %.s
 	$(AS) $(PIC_ASFLAGS) -o $@ $<
