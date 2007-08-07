@@ -17,6 +17,11 @@ To install:
 % make
 
 Notes:
+- LLVM and LLVM-GCC are no longer automatically provided, to economize on our
+host's bandwidth and to simplify development. You can get LLVM and LLVM-GCC
+from <http://llvm.org/>. In both cases, version 2.0 must be compiled and
+installed before you can build the toolchain.
+
 - Because of the inter-dependencies between the sub-tools in the toolchain
 "make" is compiling and installing files as well. We'll remove this hack
 later.

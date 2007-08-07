@@ -15,7 +15,7 @@
 PREFIX = @prefix@
 HEAVENLY = @heavenly@
 
-all: heavenly includes llvm cctools driver csu libarmfp
+all: heavenly includes cctools driver csu libarmfp
 	
 heavenly:
 	install -d $(PREFIX)/heavenly && cp -Rn $(HEAVENLY)/* $(PREFIX)/heavenly
@@ -23,11 +23,6 @@ heavenly:
 includes:
 	install -d $(PREFIX)/include
 	cp -Rvn include/* $(PREFIX)/include
-
-llvm:
-	cd llvm-2.0 && ./configure --enable-optimized --prefix=$(PREFIX)
-	cd llvm-2.0 && $(MAKE) 
-	cd llvm-2.0 && $(MAKE) install
 
 cctools:
 	install /usr/include/ar.h cctools/include
@@ -49,5 +44,5 @@ libarmfp:
 	cd libarmfp && $(MAKE)
 	cd libarmfp && $(MAKE) install
 
-.PHONY : heavenly includes llvm cctools driver csu libarmfp
+.PHONY : heavenly includes cctools driver csu libarmfp
 
