@@ -5,6 +5,7 @@ CPPFLAGS=-E -U__i386__ -U__ppc__ -D__arm__ -isystem @prefix@/include
 LLVM_GCC=@prefix@/bin/llvm-gcc
 CFLAGS=-emit-llvm
 CFLAGS_OBJC=-emit-llvm -ObjC
+CCFLAGS_COMPILEROPT=-O7
 LLVM_GCCC=llvm-g++
 CCFLAGS=-emit-llvm
 LLC=@prefix@/bin/llc
