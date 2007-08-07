@@ -1,0 +1,66 @@
+##
+ # Copyright (C) 2007 iZsh 
+ # 
+ # This software is free software; you can redistribute it and/or
+ # modify it under the terms of the GNU General Public
+ # License version 2, as published by the Free Software Foundation.
+ #
+ # This software is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ #
+ # See the GNU General Public License version 2 for more details
+ ##
+IPHONEROOT = @prefix@
+
+DYLD = $(IPHONEROOT)/heavenly/usr/lib/dyld
+AS = $(IPHONEROOT)/bin/arm-apple-darwin-cc
+CC = $(IPHONEROOT)/bin/arm-apple-darwin-cc
+LINK = $(IPHONEROOT)/bin/arm-apple-darwin-ld
+
+NOPIC_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__
+NOPIC_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__
+PIC_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header -v -D__PIC__
+PIC_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -relocation-model=pic -DMACH_HEADER_SYMBOL_NAME=__mh_dylib_header
+
+OPTIM = -O0
+LINKFLAGS = -r -keep_private_externs
+
+NOPIC_RESULT = crt1.o
+NOPIC_ASSRCS = arm-start.s arm-dyld-glue.s
+NOPIC_CSRCS = crt.c
+NOPIC_OBJS = $(NOPIC_ASSRCS:%.s=%_nopic.s.o) $(NOPIC_CSRCS:%.c=%_nopic.c.o)
+
+PIC_RESULT = dylib1.o
+PIC_ASSRCS = arm-dyld-glue.s
+PIC_CSRCS =
+PIC_OBJS = $(PIC_ASSRCS:%.s=%_pic.s.o) $(PIC_CSRCS:%.c=%_pic.c.o)
+
+all: crt dylib
+
+clean:
+	rm -f $(NOPIC_OBJS) $(PIC_OBJS) crt1.o dylib1.o *~
+
+install: all
+	install -d $(IPHONEROOT)/csu
+	install $(NOPIC_RESULT) $(IPHONEROOT)/csu
+	install $(PIC_RESULT) $(IPHONEROOT)/csu
+
+crt: $(NOPIC_OBJS)
+	$(LINK) -o $(NOPIC_RESULT) $(LINKFLAGS) $(NOPIC_OBJS) $(DYLD)
+
+dylib: $(PIC_OBJS)
+	$(LINK) -o $(PIC_RESULT) $(LINKFLAGS) $(PIC_OBJS)
+
+%_nopic.s.o: %.s
+	$(AS) $(NOPIC_ASFLAGS) -o $@ $<
+
+%_nopic.c.o: %.c
+	$(CC) $(OPTIM) $(NOPIC_CCFLAGS) -o $@ $<
+
+%_pic.s.o: %.s
+	$(AS) $(PIC_ASFLAGS) -o $@ $<
+
+%_pic.c.o: %.c
+	$(CC) $(OPTIM) $(PIC_CCFLAGS) -o $@ $<
+
