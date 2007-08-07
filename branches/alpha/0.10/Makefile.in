@@ -15,22 +15,18 @@
 PREFIX = @prefix@
 HEAVENLY = @heavenly@
 
-all: heavenly includes llvmgcc llvm cctools driver csu libarmfp
+all: heavenly includes llvm cctools driver csu libarmfp
 	
 heavenly:
 	install -d $(PREFIX)/heavenly && cp -Rn $(HEAVENLY)/* $(PREFIX)/heavenly
 
 includes:
 	install -d $(PREFIX)/include
-	cp -Rn include/* $(PREFIX)/include
-
-llvmgcc:
-	./install-llvmgcc.sh
+	cp -Rvn include/* $(PREFIX)/include
 
 llvm:
-	cd llvm-2.0 && ./configure --prefix=$(PREFIX)
-	cd llvm-2.0 && $(MAKE)
-	cd llvm-2.0 && $(MAKE) ENABLE_OPTIMIZED=1
+	cd llvm-2.0 && ./configure --enable-optimized --prefix=$(PREFIX)
+	cd llvm-2.0 && $(MAKE) 
 	cd llvm-2.0 && $(MAKE) install
 
 cctools:
@@ -53,5 +49,5 @@ libarmfp:
 	cd libarmfp && $(MAKE)
 	cd libarmfp && $(MAKE) install
 
-.PHONY : heavenly includes llvmgcc llvm cctools driver csu libarmfp
+.PHONY : heavenly includes llvm cctools driver csu libarmfp
 

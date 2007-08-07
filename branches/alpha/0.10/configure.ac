@@ -90,7 +90,6 @@ AC_CHECK_FILE(/usr/include/ar.h,,AC_MSG_ERROR([ar.h is missing!]))
 
 AC_SUBST(wget, $wget)
 AC_SUBST(heavenly, $with_heavenly)
-AC_CONFIG_FILES([install-llvmgcc.sh], [chmod +x install-llvmgcc.sh])
 AC_CONFIG_FILES([Makefile
                  driver/Makefile
                  driver/arm-cc-specs

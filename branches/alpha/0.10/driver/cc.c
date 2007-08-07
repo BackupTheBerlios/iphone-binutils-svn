@@ -80,6 +80,7 @@ struct arg_spec exact_arg_specs[] = {
     { "V",                      FOR_DRIVER,     0 },
     { "ansi",                   FOR_COMPILER,   0 },
     { "arch",                   FOR_IGNORE,     1 },
+    { "bundle",                 FOR_DRIVER,     0 },
     { "c",                      FOR_DRIVER,     0 },
     { "dumpversion",            FOR_DRIVER,     0 },
     { "dynamic",                FOR_DRIVER,     0 },
@@ -108,7 +109,7 @@ struct arg_spec partial_arg_specs[] = {
 };
 
 char *prog_name;
-int verbose_on = 0, make_dylib = 0;
+int verbose_on = 0, make_dylib = 0, make_bundle = 0;
 struct input_file *input_files = NULL;
 char *output_path = NULL;
 struct config_option *config = NULL;
@@ -280,6 +281,8 @@ void gather_args(int argc, char **argv, unsigned int *todo, struct arg_list *
                     make_dylib = 1;
                 else if (!strcmp(spec->name, "dynamic"))
                     make_dylib = 1;
+                else if (!strcmp(spec->name, "bundle"))
+                    make_bundle = 1;
                 else if (!strcmp(spec->name, "framework")) {
                     create_arg(linker_args, get_config_key(
                         "LDFLAGS_FRAMEWORKSDIR", 1));
@@ -642,7 +645,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
         if (todo & TODO_TRANSLATE_BYTECODE) {
             prepare_outpath(last_op, TODO_TRANSLATE_BYTECODE, ".s", &outpath,
                 template);
-            execute_step("LLC", make_dylib ? "LLCFLAGS_DYLIB" : "LLCFLAGS",
+            execute_step("LLC", make_dylib ? "LLCFLAGS_DYLIB" : make_bundle ? "LLCFLAGS_BUNDLE" : "LLCFLAGS",
                 llc_args, 3, "-o", outpath, inpath);
             
             free(inpath);
@@ -685,7 +688,7 @@ void perform_operations(unsigned int req_todo, struct arg_list *compiler_args,
 
     /* Run the linking step. */
     if (req_todo & TODO_LINK)
-        execute_step("LD", make_dylib ? "LDFLAGS_DYLIB" : "LDFLAGS",
+        execute_step("LD", make_dylib ? "LDFLAGS_DYLIB" : make_bundle ? "LDFLAGS_BUNDLE" : "LDFLAGS",
             linker_args, 2, "-o", output_path);
 }
 

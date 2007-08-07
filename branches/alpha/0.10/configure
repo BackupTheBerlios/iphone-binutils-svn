@@ -4286,8 +4286,6 @@ wget=$wget
 
 heavenly=$with_heavenly
 
-          ac_config_files="$ac_config_files install-llvmgcc.sh"
-
                                                   ac_config_files="$ac_config_files Makefile driver/Makefile driver/arm-cc-specs Csu-71/Makefile libarmfp/Makefile"
 
 cat >confcache <<\_ACEOF
@@ -4840,7 +4838,6 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
-  "install-llvmgcc.sh" ) CONFIG_FILES="$CONFIG_FILES install-llvmgcc.sh" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "driver/Makefile" ) CONFIG_FILES="$CONFIG_FILES driver/Makefile" ;;
   "driver/arm-cc-specs" ) CONFIG_FILES="$CONFIG_FILES driver/arm-cc-specs" ;;
@@ -5185,10 +5182,6 @@ s,@abs_top_builddir@,$ac_abs_top_builddir,;t t
     rm -f $tmp/out
   fi
 
-  # Run the commands associated with the file.
-  case $ac_file in
-    install-llvmgcc.sh ) chmod +x install-llvmgcc.sh ;;
-  esac
 done
 _ACEOF
 
