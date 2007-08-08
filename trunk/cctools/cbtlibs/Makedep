@@ -81,17 +81,3 @@ libsyminfo.o: /usr/include/sys/resource.h /usr/include/sys/signal.h
 libsyminfo.o: /usr/include/sys/types.h /usr/include/sys/wait.h
 libsyminfo.o: /usr/lib/gcc/i686-apple-darwin8/4.0.1/include/stdarg.h
 libsyminfo.o: /usr/lib/gcc/i686-apple-darwin8/4.0.1/include/stdint.h
-libsyminfo.o: /usr/local/include/mach/machine/boolean.h
-libsyminfo.o: /usr/local/include/mach/machine/exception.h
-libsyminfo.o: /usr/local/include/mach/machine/kern_return.h
-libsyminfo.o: /usr/local/include/mach/machine/processor_info.h
-libsyminfo.o: /usr/local/include/mach/machine/rpc.h
-libsyminfo.o: /usr/local/include/mach/machine/thread_state.h
-libsyminfo.o: /usr/local/include/mach/machine/thread_status.h
-libsyminfo.o: /usr/local/include/mach/machine/vm_param.h
-libsyminfo.o: /usr/local/include/mach/machine/vm_types.h
-libsyminfo.o: /usr/local/include/mach/task.h
-libsyminfo.o: /usr/local/include/mach/thread_act.h
-libsyminfo.o: /usr/local/include/machine/_types.h
-libsyminfo.o: /usr/local/include/machine/endian.h
-libsyminfo.o: /usr/local/include/machine/types.h libsyminfo.c
