@@ -221,10 +221,10 @@ shifter_operand_lsl_arg:
 shifter_imm:
       OPRD_IMM maybe_imm_rotation
         {
-            /* TODO: try to rotate to fit the imm in automatically */
             if ($1 > 0xff || $1 < 0)
-                as_bad("immediate constant too large");
-            $$ = ((0x1 << 25) | $1 | $2);
+                $$ = ((0x1 << 25) | generate_shifted_immediate($1));
+            else
+                $$ = ((0x1 << 25) | $1 | $2);
         }
     | expr
         {

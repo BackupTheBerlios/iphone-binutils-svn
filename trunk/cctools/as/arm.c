@@ -223,8 +223,10 @@ unsigned int generate_shifted_immediate(unsigned int n)
     for (k = 0; k < 32; k += 2) {
         m = ROTL(n, k);
 
+#if 0
         if (k != 0)
             fprintf(stderr, "rotating %d by %d to make %d\n", n, k, m);
+#endif
 
         if (m <= 0xff)
             return (((k / 2) << 8) | m);
