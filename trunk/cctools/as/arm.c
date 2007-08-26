@@ -47,6 +47,7 @@ struct arm_reserved_word_info arm_reserved_word_info[] = {
     { "c7",     OPRD_CR,            7       },
     { "c8",     OPRD_CR,            8       },
     { "c9",     OPRD_CR,            9       },
+    { "cpsr",   OPRD_PSR,           0 << 22 },
     { "d0",     OPRD_REG_D,         0       },
     { "d1",     OPRD_REG_D,         1       },
     { "d10",    OPRD_REG_D,         10      },
@@ -143,6 +144,7 @@ struct arm_reserved_word_info arm_reserved_word_info[] = {
     { "sb",     OPRD_REG,           9       },
     { "sl",     OPRD_REG,           10      },
     { "sp",     OPRD_REG,           13      },
+    { "spsr",   OPRD_PSR,           1 << 22 },
     { "v1",     OPRD_REG,           4       },
     { "v2",     OPRD_REG,           5       },
     { "v3",     OPRD_REG,           6       },
@@ -403,6 +405,35 @@ int yylex()
                     6));
                 return OPRD_IFLAGS;
             }
+        }
+
+        /* Identifiers that consist of "[cs]psr_[cxsf]+" are reserved words,
+         * used in ARMv3 MSR instructions. */
+        if (!strncasecmp(tok, "cpsr_", 5) || !strncasecmp(tok, "spsr_", 5)) {
+            n = 0;
+
+            tok2 = tok + 5;
+            if (!strcasecmp(tok2, "all"))
+                n = ((1 << 16) | (1 << 17) | (1 << 18) | (1 << 19));
+            else
+                while (*tok2) {
+                    switch (*tok2) {
+                        case 'c': case 'C': n |= (1 << 16); break;
+                        case 'x': case 'X': n |= (1 << 17); break;
+                        case 's': case 'S': n |= (1 << 18); break;
+                        case 'f': case 'F': n |= (1 << 19);
+                    }
+                    tok2++;
+                }
+
+            if (tok[0] == 's' || tok[0] == 'S')
+                n |= (1 << 22);
+
+            free(tok);
+
+            input_line_pointer = ptr;
+            yylval.nval = n;
+            return OPRD_PSR;
         }
 
         /* The "LSLK hack": constructions like "asl r0" are collapsed by

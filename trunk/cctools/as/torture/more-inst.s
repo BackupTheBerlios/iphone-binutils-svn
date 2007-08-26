@@ -1,3 +1,9 @@
+msr cpsr_cxsf,#10
+msr cpsr_c,r10
+msr spsr_xfs,#10
+mrs r10,cpsr
+mrs r10,spsr
+
 blx wibble
 wibble:    blxne r1
 

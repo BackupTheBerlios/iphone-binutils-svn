@@ -41,10 +41,9 @@ unsigned int instruction;
 %token <nval> OP_VFP_ST_D OP_VFP_MSR OP_VFP_MRS OP_VFP_MDXR OP_VFP_MRDX
 %token <nval> OP_VFP_MXR OP_VFP_MRX OP_VFP_FMSTAT OP_VFP_DPX1_S OP_VFP_DPX1_D
 %token <nval> OP_VFP_FMDRR OP_VFP_FMRRD OP_VFP_FMSRR OP_VFP_FMRRS OP_VFP_DPX_SD
-%token <nval> OP_VFP_DPX_DS
+%token <nval> OP_VFP_DPX_DS OP_MSR OP_MRS
 %token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR OPRD_REG_S
-%token <nval> OPRD_REG_D OPRD_REG_VFP_SYS
-%token <nval> OPRD_ENDIANNESS
+%token <nval> OPRD_REG_D OPRD_REG_VFP_SYS OPRD_ENDIANNESS OPRD_PSR
 %token <eval> OPRD_EXP
 %type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
@@ -65,12 +64,13 @@ unsigned int instruction;
 %type  <nval> vfp_store_multiple_inst vfp_register_transfer_inst
 %type  <nval> vfp_maybe_imm_offset generic_reg vfp_data_proc_inst
 %type  <nval> vfp_store_inst vfp_misc_inst vfp2_inst vfp_imm_offset_with_u_bit
-%type  <nval> vfp_store_am
+%type  <nval> vfp_store_am armv3_inst
 
 %%
 
 inst:
       fundamental_inst  { instruction = $1; }
+    | armv3_inst        { instruction = $1; }
     | armv4t_inst       { instruction = $1; }
     | armv5_inst        { instruction = $1; }
     | armv6_inst        { instruction = $1; }
@@ -322,6 +322,12 @@ branch_am:
 
 expr:
       OPRD_EXP  { register_expression($1); $$ = $1->X_add_number;  }
+    ;
+
+armv3_inst:
+      OP_MSR OPRD_PSR ',' '#' shifter_imm  { $$ = ($1 | $2 | $5 | (1 << 25)); }
+    | OP_MSR OPRD_PSR ',' OPRD_REG  { $$ = ($1 | $2 | $4); }
+    | OP_MRS dest_reg ',' OPRD_PSR  { $$ = ($1 | $2 | $4); }
     ;
 
 armv4t_inst:
