@@ -121,22 +121,23 @@ Boston, MA 02111-1307, USA.  */
 
 /* Don't pass dirn, it's there just to get token pasting right.  */
 
-.macro	RETLDM	regs=, cond=, dirn=ia
+/* .macro	RETLDM	regs=, cond=, dirn=ia */
+.macro RETLDM
 #if defined (__INTERWORKING__)
-	.ifc "\regs",""
-	ldr\cond	lr, [sp], #4
+	.ifc "$0",""
+	ldr$1	lr, [sp], #4
 	.else
-	ldm\cond\dirn	sp!, {\regs, lr}
+	ldm$1ia	sp!, {$0, lr}
 	.endif
-	bx\cond	lr
+	bx$1	lr
 #else
-	.ifc "\regs",""
-	ldr\cond	pc, [sp], #4
+	.ifc "$0",""
+	ldr$1	pc, [sp], #4
 	.else
-	ldm\cond\dirn	sp!, {\regs, pc}
+	ldm$1ia	sp!, {$0, pc}
 	.endif
 #endif
-.endm
+.endmacro
 
 
 .macro ARM_LDIV0
@@ -145,7 +146,7 @@ LSYM(Ldiv0):
 	bl	SYM (__div0) __PLT__
 	mov	r0, #0			@ About as wrong as it could be.
 	RETLDM
-.endm
+.endmacro
 
 
 .macro THUMB_LDIV0
@@ -159,28 +160,31 @@ LSYM(Ldiv0):
 #else
 	pop	{ pc }
 #endif
-.endm
+.endmacro
 
-.macro FUNC_END name
-	SIZE (__\name)
-.endm
+/* .macro FUNC_END name */
+.macro FUNC_END
+	SIZE (__$0)
+.endmacro
 
-.macro DIV_FUNC_END name
+/* .macro DIV_FUNC_END name */
+.macro DIV_FUNC_END
 LSYM(Ldiv0):
 #ifdef __thumb__
 	THUMB_LDIV0
 #else
 	ARM_LDIV0
 #endif
-	FUNC_END \name
-.endm
+	FUNC_END $0 
+.endmacro
 
-.macro THUMB_FUNC_START name
-	.globl	SYM (\name)
-	TYPE	(\name)
+/* .macro THUMB_FUNC_START name */
+.macro THUMB_FUNC_START
+	.globl	SYM ($0)
+	TYPE	($0)
 	.thumb_func
-SYM (\name):
-.endm
+SYM ($0):
+.endmacro
 
 /* Function start macros.  Variants for ARM and Thumb.  */
 
@@ -192,66 +196,70 @@ SYM (\name):
 #define THUMB_CODE
 #endif
 	
-.macro FUNC_START name
+/* .macro FUNC_START name */
+.macro FUNC_START
 	.text
-	.globl SYM (__\name)
-	TYPE (__\name)
+	.globl SYM (__$0)
+	TYPE (__$0)
 	.align 0
 	THUMB_CODE
 	THUMB_FUNC
-SYM (__\name):
-.endm
+SYM (__$0):
+.endmacro
 
 /* Special function that will always be coded in ARM assembly, even if
    in Thumb-only compilation.  */
 
 #if defined(__INTERWORKING_STUBS__)
-.macro	ARM_FUNC_START name
-	FUNC_START \name
+/* .macro	ARM_FUNC_START name */
+.macro ARM_FUNC_START
+	FUNC_START $0
 	bx	pc
 	nop
 	.arm
 /* A hook to tell gdb that we've switched to ARM mode.  Also used to call
    directly from other local arm routines.  */
-_L__\name:		
-.endm
+_L__$0:		
+.endmacro
 #define EQUIV .thumb_set
 /* Branch directly to a function declared with ARM_FUNC_START.
    Must be called in arm mode.  */
-.macro  ARM_CALL name
-	bl	_L__\name
-.endm
+.macro  ARM_CALL
+	bl	_L__$0
+.endmacro
 #else
-.macro	ARM_FUNC_START name
+.macro	ARM_FUNC_START
 	.text
-	.globl SYM (__\name)
-	TYPE (__\name)
+	.globl SYM (__$0)
+	TYPE (__$0)
 	.align 0
 	.arm
-SYM (__\name):
-.endm
+SYM (__$0):
+.endmacro
 #define EQUIV .set
-.macro  ARM_CALL name
-	bl	__\name
-.endm
+.macro  ARM_CALL
+	bl	__$0
+.endmacro
 #endif
 
-.macro	FUNC_ALIAS new old
-	.globl	SYM (__\new)
+/* .macro	FUNC_ALIAS new old */
+.macro FUNC_ALIAS
+	.globl	SYM (__$0)
 #if defined (__thumb__)
-	.thumb_set	SYM (__\new), SYM (__\old)
+	.thumb_set	SYM (__$0), SYM (__$1)
 #else
-	.set	SYM (__\new), SYM (__\old)
+	.set	SYM (__$0), SYM (__$1)
 #endif
-.endm
+.endmacro
 
-.macro	ARM_FUNC_ALIAS new old
-	.globl	SYM (__\new)
-	EQUIV	SYM (__\new), SYM (__\old)
+/* .macro	ARM_FUNC_ALIAS new old */
+.macro ARM_FUNC_ALIAS
+	.globl	SYM (__$0)
+	EQUIV	SYM (__$0), SYM (__$1)
 #if defined(__INTERWORKING_STUBS__)
-	.set	SYM (_L__\new), SYM (_L__\old)
+	.set	SYM (_L__$0), SYM (_L__$1)
 #endif
-.endm
+.endmacro
 
 #ifdef __thumb__
 /* Register aliases.  */
@@ -273,36 +281,37 @@ pc		.req	r15
 /* ------------------------------------------------------------------------ */
 /*		Bodies of the division and modulo routines.		    */
 /* ------------------------------------------------------------------------ */	
-.macro ARM_DIV_BODY dividend, divisor, result, curbit
+/* .macro ARM_DIV_BODY dividend, divisor, result, curbit */
+.macro ARM_DIV_BODY
 
 #if __ARM_ARCH__ >= 5 && ! defined (__OPTIMIZE_SIZE__)
 
-	clz	\curbit, \dividend
-	clz	\result, \divisor
-	sub	\curbit, \result, \curbit
-	rsbs	\curbit, \curbit, #31
-	addne	\curbit, \curbit, \curbit, lsl #1
-	mov	\result, #0
-	addne	pc, pc, \curbit, lsl #2
+	clz	$3, $0
+	clz	$2, $1
+	sub	$3, $2, $3
+	rsbs	$3, $3, #31
+	addne	$3, $3, $3, lsl #1
+	mov	$2, #0
+	addne	pc, pc, $3, lsl #2
 	nop
 	.set	shift, 32
 	.rept	32
 	.set	shift, shift - 1
-	cmp	\dividend, \divisor, lsl #shift
-	adc	\result, \result, \result
-	subcs	\dividend, \dividend, \divisor, lsl #shift
+	cmp	$0, $1, lsl #shift
+	adc	$2, $2, $2
+	subcs	$0, $0, $1, lsl #shift
 	.endr
 
 #else /* __ARM_ARCH__ < 5 || defined (__OPTIMIZE_SIZE__) */
 #if __ARM_ARCH__ >= 5
 
-	clz	\curbit, \divisor
-	clz	\result, \dividend
-	sub	\result, \curbit, \result
-	mov	\curbit, #1
-	mov	\divisor, \divisor, lsl \result
-	mov	\curbit, \curbit, lsl \result
-	mov	\result, #0
+	clz	$3, $1
+	clz	$2, $0
+	sub	$2, $3, $2
+	mov	$3, #1
+	mov $1, $1, lsl $2
+	mov	$3, $3, lsl $2
+	mov	$2, #0
 	
 #else /* __ARM_ARCH__ < 5 */
 
@@ -478,7 +487,9 @@ pc		.req	r15
 
 .endm
 /* ------------------------------------------------------------------------ */
-.macro THUMB_DIV_MOD_BODY modulo
+/* .macro THUMB_DIV_MOD_BODY modulo */
+.macro THUMB_DIV_MOD_BODY
+
 	@ Load the constant 0x10000000 into our work register.
 	mov	work, #1
 	lsl	work, #28
@@ -633,7 +644,7 @@ LSYM(Lover7):
 	add	dividend, work
   .endif
 LSYM(Lgot_result):
-.endm	
+.endmacro
 /* ------------------------------------------------------------------------ */
 /*		Start of the Real Functions				    */
 /* ------------------------------------------------------------------------ */
