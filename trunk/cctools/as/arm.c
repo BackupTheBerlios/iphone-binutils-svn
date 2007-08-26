@@ -163,7 +163,7 @@ int arm_reserved_word_count = sizeof(arm_reserved_word_info) /
  *   Uninteresting machine-dependent boilerplate code 
  * ------------------------------------------------------------------------- */
 
-const cpu_type_t md_cputype = 12;
+const cpu_type_t md_cputype = CPU_TYPE_ARM;
 const cpu_type_t md_cpusubtype = 6;
 const enum byte_sex md_target_byte_sex = LITTLE_ENDIAN_BYTE_SEX;
 

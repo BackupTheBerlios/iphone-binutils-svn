@@ -426,6 +426,9 @@ macos_install: common_install xcommon_install
 	$(MKDIRS) $(DSTROOT)$(LIBDIR)/x86_64
 	install -c -s -m 555 $(SYMROOT)/ax86_64_dir/as \
 		$(DSTROOT)$(LIBDIR)/x86_64/as
+	$(MKDIRS) $(DSTROOT)$(LIBDIR)/arm
+	install -c -s -m 555 $(SYMROOT)/aarm_dir/as \
+		$(DSTROOT)$(LIBDIR)/arm/as
 
 teflon_install: common_install xcommon_install
 	$(MKDIRS) $(DSTROOT)$(LIBDIR)/i386

@@ -16,7 +16,7 @@ IPHONEROOT = @prefix@
 DYLD = $(IPHONEROOT)/heavenly/usr/lib/dyld
 AS = $(IPHONEROOT)/bin/arm-apple-darwin-cc
 CC = $(IPHONEROOT)/bin/arm-apple-darwin-cc
-LINK = $(IPHONEROOT)/bin/arm-apple-darwin-ld
+LINK = ld
 
 NOPIC_ASFLAGS = -c -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__
 NOPIC_CCFLAGS = -c -v -Wall -DDYNAMIC_NO_PIC -DMACH_HEADER_SYMBOL_NAME=__mh_execute_header -U__PIC__

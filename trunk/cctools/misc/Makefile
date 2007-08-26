@@ -401,7 +401,7 @@ install: all $(RC_OS)_install
 
 teflon_install macos_install: common_install
 	$(MKDIRS) $(DSTROOT)$(USRBINDIR)
-	install -c -s -m 555 $(SYMROOT)/strip.NEW $(DSTROOT)$(USRBINDIR)/strip
+	install -c -m 555 $(SYMROOT)/strip.NEW $(DSTROOT)$(USRBINDIR)/strip
 	install -c -s -m 555 $(SYMROOT)/strings.NEW \
 		$(DSTROOT)$(USRBINDIR)/strings
 	install -c -s -m 555 $(SYMROOT)/size.NEW $(DSTROOT)$(USRBINDIR)/size
