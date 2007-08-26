@@ -2,6 +2,7 @@
 @ Division routines, written by Richard Earnshaw, (rearnsha@armltd.co.uk)
 
 @ IPHONE-BINUTILS LOCAL backport macros to GAS 1.38 style
+@ Backported by pcwalton
 
 /* Copyright 1995, 1996, 1998, 1999, 2000, 2003, 2004, 2005
    Free Software Foundation, Inc.

@@ -374,6 +374,14 @@ extern int flag_iasm_blocks;
 #define TARGET_SET_DEFAULT_TYPE_ATTRIBUTES darwin_set_default_type_attributes
 /* APPLE LOCAL end mainline */
 
+/* IPHONE BINUTILS LOCAL: we need to specify the iPhone's CPU here */
+#undef SUBTARGET_CPU_DEFAULT
+#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm1176jzfs
+
+#undef SUBTARGET_ASM_FLOAT_SPEC
+#define SUBTARGET_ASM_FLOAT_SPEC \
+    "%{!mfpu=*:-mfpu=vfp} ${!mcpu=*:%{!march=*:-march=arm1176jzfs}}"
+
 /* APPLE LOCAL begin LLVM */
 #ifdef ENABLE_LLVM
 

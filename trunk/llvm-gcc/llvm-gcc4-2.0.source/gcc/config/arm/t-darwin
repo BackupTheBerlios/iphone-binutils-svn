@@ -1,1 +1,5 @@
 SHLIB_VERPFX = $(srcdir)/config/arm/darwin-libgcc
+
+LIB1ASMSRC = arm/darwin-lib1funcs.asm
+LIB1ASMFUNCS = _udivsi3 _divsi3 _umodsi3 _modsi3
+
