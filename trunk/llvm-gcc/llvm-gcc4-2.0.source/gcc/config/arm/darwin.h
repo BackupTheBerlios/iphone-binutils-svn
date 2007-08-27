@@ -49,6 +49,11 @@ Boston, MA 02111-1307, USA.  */
   while (0)
 /* APPLE LOCAL end mainline */
 
+/* IPHONE BINUTILS LOCAL */
+#undef SUBTARGET_ASM_FLOAT_SPEC
+#define SUBTARGET_ASM_FLOAT_SPEC \
+    "%{!mfpu=*:-mfpu=vfp} %{!mcpu=*:-mcpu=arm1176jzf-s}"
+
 /* We want -fPIC by default, unless we're using -static to compile for
    the kernel or some such.  */
 
@@ -59,7 +64,8 @@ Boston, MA 02111-1307, USA.  */
   %{!mmacosx-version-min=*:-mmacosx-version-min=%(darwin_minversion)} \
   "/* APPLE LOCAL ignore -mcpu=G4 -mcpu=G5 */"\
   %<faltivec %<mno-fused-madd %<mlong-branch %<mlongcall %<mcpu=G4 %<mcpu=G5 \
-  %{g: %{!fno-eliminate-unused-debug-symbols: -feliminate-unused-debug-symbols }}"
+  %{g: %{!fno-eliminate-unused-debug-symbols: -feliminate-unused-debug-symbols }} " \
+    SUBTARGET_ASM_FLOAT_SPEC
 
 /* APPLE LOCAL AltiVec */
 #define CPP_ALTIVEC_SPEC "%<faltivec"
@@ -85,7 +91,8 @@ Boston, MA 02111-1307, USA.  */
   DARWIN_EXTRA_SPECS						\
   { "darwin_arch", DARWIN_ARCH_SPEC },				\
   { "darwin_crt2", "" },					\
-  { "darwin_subarch", DARWIN_SUBARCH_SPEC },
+  { "darwin_subarch", DARWIN_SUBARCH_SPEC }, \
+  { "subtarget_asm_float_spec", SUBTARGET_ASM_FLOAT_SPEC },
 /* APPLE LOCAL end mainline */
 
 /* Use the following macro for any Darwin/arm-specific command-line option
@@ -378,9 +385,8 @@ extern int flag_iasm_blocks;
 #undef SUBTARGET_CPU_DEFAULT
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm1176jzfs
 
-#undef SUBTARGET_ASM_FLOAT_SPEC
-#define SUBTARGET_ASM_FLOAT_SPEC \
-    "%{!mfpu=*:-mfpu=vfp} ${!mcpu=*:%{!march=*:-march=arm1176jzfs}}"
+#undef FPUTYPE_DEFAULT
+#define FPUTYPE_DEFAULT FPUTYPE_VFP
 
 /* APPLE LOCAL begin LLVM */
 #ifdef ENABLE_LLVM

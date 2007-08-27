@@ -1,3 +1,5 @@
+clz r2,r11
+
 msr cpsr_cxsf,#10
 msr cpsr_c,r10
 msr spsr_xfs,#10

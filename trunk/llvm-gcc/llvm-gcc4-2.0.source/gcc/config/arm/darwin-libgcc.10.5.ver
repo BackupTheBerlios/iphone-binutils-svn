@@ -3,7 +3,7 @@ __Unwind_Backtrace
 __Unwind_DeleteException
 __Unwind_FindEnclosingFunction
 __Unwind_Find_FDE
-__Unwind_ForcedUnwind
+#__Unwind_ForcedUnwind
 __Unwind_GetCFA
 __Unwind_GetDataRelBase
 __Unwind_GetGR
@@ -11,9 +11,9 @@ __Unwind_GetIP
 __Unwind_GetLanguageSpecificData
 __Unwind_GetRegionStart
 __Unwind_GetTextRelBase
-__Unwind_RaiseException
-__Unwind_Resume
-__Unwind_Resume_or_Rethrow
+#__Unwind_RaiseException
+#__Unwind_Resume
+#__Unwind_Resume_or_Rethrow
 __Unwind_SetGR
 __Unwind_SetIP
 ___absvdi2
@@ -54,7 +54,7 @@ ___floatdidf
 ___floatdisf
 # APPLE LOCAL LLVM FIXME!
 #___floatdixf
-___gcc_personality_v0
+#___gcc_personality_v0
 ___lshrdi3
 ___moddi3
 ___muldc3

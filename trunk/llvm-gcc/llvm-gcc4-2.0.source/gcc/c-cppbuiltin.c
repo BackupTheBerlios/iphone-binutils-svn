@@ -308,7 +308,7 @@ define__GNUC__ (void)
        these conditions are not met, since that usually means that
        someone's broken the version string.  */
     const char *vt;
-    
+
     vt = strstr (version_string, "build ");
     if (vt == NULL)
       abort ();

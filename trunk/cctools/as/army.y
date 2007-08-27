@@ -64,7 +64,7 @@ unsigned int instruction;
 %type  <nval> vfp_store_multiple_inst vfp_register_transfer_inst
 %type  <nval> vfp_maybe_imm_offset generic_reg vfp_data_proc_inst
 %type  <nval> vfp_store_inst vfp_misc_inst vfp2_inst vfp_imm_offset_with_u_bit
-%type  <nval> vfp_store_am armv3_inst
+%type  <nval> vfp_store_am armv3_inst clz_class_inst
 
 %%
 
@@ -344,6 +344,11 @@ armv5_inst:
     | smlal_xy_class_inst   { $$ = $1; }
     | smul_xy_class_inst    { $$ = $1; }
     | qadd_class_inst       { $$ = $1; }
+    | clz_class_inst        { $$ = $1; }
+    ;
+
+clz_class_inst:
+      OP_CLZ OPRD_REG ',' OPRD_REG  { $$ = ($1 | ($2 << 12) | $4); }
     ;
 
 blx_class_inst:
