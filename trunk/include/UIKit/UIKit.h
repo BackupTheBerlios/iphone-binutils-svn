@@ -32,6 +32,10 @@
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern UIApplication *UIApp;
 
 extern NSString *UITextFieldTextDidBeginEditingNotification;
@@ -40,6 +44,11 @@ extern NSString *UITextFieldTextDidChangeNotification;
 
 int UIApplicationMain(int argc, char **argv, id Class);
 CGContextRef UICurrentContext();
+struct CGAffineTransform UIIntegralTransform();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

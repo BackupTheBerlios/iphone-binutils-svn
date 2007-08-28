@@ -1,7 +1,7 @@
-CC=arm-apple-darwin-cc
+CC=/usr/local/arm-apple-darwin/bin/gcc
 LD=$(CC)
 CFLAGS=-Wall -ObjC
-LDFLAGS=-F$(HEAVENLY)/System/Library/PrivateFrameworks -framework CoreFoundation -framework Foundation -framework vmutils -lobjc
+LDFLAGS=-Wl,-syslibroot,$(HEAVENLY) -F$(HEAVENLY)/System/Library/PrivateFrameworks -framework CoreFoundation -framework Foundation -framework vmutils -lobjc
 
 all:	weaselprof
 
