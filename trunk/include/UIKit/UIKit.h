@@ -17,6 +17,8 @@
 #import <UIKit/UIImageAndTextTableCell.h>
 #import <UIKit/UIImageView.h>
 #import <UIKit/UIKeyboard.h>
+#import <UIKit/UIKeyboardImpl.h>
+#import <UIKit/UIKeyboardInput.h>
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UINavigationItem.h>
 #import <UIKit/UISearchField.h>
@@ -31,6 +33,7 @@
 #import <UIKit/UIView-Internal.h>
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
+#import <UIKit/WebCaretChangeListenerProtocol.h>
 
 #ifdef __cplusplus
 extern "C" {
