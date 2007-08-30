@@ -4,6 +4,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreAudio/CoreAudio.h>
 
+#import <Celestial/CDStructures.h>
+#import <Celestial/AVController.h>
+
 typedef void * FigAudioOutputUnitRef;
 typedef void * FigNotificationCenterRef;
 typedef void * FigNotificationCallback;
