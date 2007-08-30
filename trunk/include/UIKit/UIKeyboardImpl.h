@@ -5,6 +5,7 @@
  */
 
 #import <UIKit/UIView.h>
+#import <UIKit/UIKeyboardInput.h>
 
 #import "WebCaretChangeListenerProtocol.h"
 
