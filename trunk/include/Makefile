@@ -1,3 +1,17 @@
+all:	CoreGraphics CarbonCore/MachineExceptions.h CarbonCore/fp.h
+
+CoreGraphics:
+	cp -r /System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Headers CoreGraphics
+
+CarbonCore/%.h: CarbonCore/%.h.diff
+	cp /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Headers/$*.h .
+	patch -p0 < $<
+
+clean:
+	rm -f CoreGraphics
+	rm -f CarbonCore/MachineExceptions.h
+	rm -f CarbonCore/fp.h
+
 install:
 	install -d -v architecture/arm /usr/include/architecture/arm
 	install -b -v architecture/arm/*.h /usr/include/architecture/arm
