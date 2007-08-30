@@ -1,7 +1,7 @@
 #ifndef _BSD_ARM_SETJMP_H_
 #define _BSD_ARM_SETJMP_H_
 
-#define _JBLEN  17
+#define _JBLEN  27
 typedef int jmp_buf[_JBLEN];
 typedef int sigjmp_buf[_JBLEN + 1];
 
