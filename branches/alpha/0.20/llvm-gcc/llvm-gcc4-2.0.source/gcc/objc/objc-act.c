@@ -8264,14 +8264,19 @@ objc_build_synchronized (location_t start_locus, tree mutex, tree body)
 /* The following yuckiness should prevent users from having to #include
    <setjmp.h> in their code... */
 
+/* IPHONE-BINUTILS LOCAL add TARGET_ARM here! */
 /* APPLE LOCAL begin mainline 2006-05-24 */
 #ifdef TARGET_POWERPC
 /* snarfed from /usr/include/ppc/setjmp.h */
 /* APPLE LOCAL radar 4404766 */
 #define JBLEN ((TARGET_64BIT) ? (26*2 + 18*2 + 129 + 1) : (26 + 18*2 + 129 + 1))
-#else
+#elif defined(TARGET_ARM)
+#define JBLEN 27
+#elif defined(TARGET_I386)
 /* snarfed from /usr/include/i386/{setjmp,signal}.h */
 #define JBLEN ((TARGET_64BIT) ? ((9 * 2) + 3 + 16) : (18))
+#else
+#error add the correct JBLEN in here for the target arch!
 #endif
 /* APPLE LOCAL end mainline 2006-05-24 */
 
