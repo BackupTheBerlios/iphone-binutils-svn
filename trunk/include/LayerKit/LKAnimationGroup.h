@@ -10,8 +10,6 @@
 {
 }
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30aea488
-- (void *)LK_copyRenderValue;	// IMP=0x30aea4d8
 - (id)animations;	// IMP=0x30aea67c
 - (id)description;	// IMP=0x30aea5f4
 

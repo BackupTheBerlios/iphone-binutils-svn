@@ -4,54 +4,39 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import <Foundation/Foundation.h>
+#import <Foundation/NSObject.h>
+#import <LayerKit/LKTransform.h>
 
-@interface LKLayer : NSObject // <LKTiming, LKObject>
-{
-    unsigned int _superlayer;
-    struct CGPoint _position;
-    struct CGSize _size;
-    void *_contents;
-    struct __CFArray *_sublayers;
-    id _delegate;
-    struct _LKAttrList *_attr;
-    unsigned int _flags;
-}
+@interface LKLayer : NSObject <NSCoding> {}
 
-+ (id)defaultActionForKey:(id)fp8;	// IMP=0x30aee2e4
-+ (id)defaultValueForKey:(id)fp8;	// IMP=0x30aeccc0
-+ (id)layer;	// IMP=0x30aed0fc
-+ (id)properties;	// IMP=0x30aeda2c
-+ (BOOL)resolveInstanceMethod:(SEL)fp8;	// IMP=0x30aeda64
-- (void)__mark:(struct __CFArray *)fp8;	// IMP=0x30af04d4
-- (void)_display;	// IMP=0x30aeeb00
-- (id)actionForKey:(id)fp8;	// IMP=0x30aee784
-- (void)addAnimation:(id)fp8 forKey:(id)fp12;	// IMP=0x30af098c
-- (void)addSublayer:(id)fp8;	// IMP=0x30af2d10
-- (struct CGAffineTransform)affineTransform;	// IMP=0x30aedd58
-- (struct CGRect)bounds;	// IMP=0x30aedcc4
++ (id)defaultActionForKey:(id)key;
++ (id)defaultValueForKey:(id)key;
++ (id)layer;
++ (id)properties;
+- (id)actionForKey:(id)key;
+- (void)addAnimation:(id)animation forKey:(id)key;
+- (void)addSublayer:(id)sublayer;
+- (CGAffineTransform)affineTransform;
+- (CGRect)bounds;	// IMP=0x30aedcc4
 - (BOOL)clearsContext;	// IMP=0x30aee260
-- (BOOL)containsPoint:(struct CGPoint)fp8;	// IMP=0x30aee1f8
+- (BOOL)containsPoint:(CGPoint)fp8;	// IMP=0x30aee1f8
 - (id)contents;	// IMP=0x30aee248
 - (id)contentsGravity;	// IMP=0x30aee290
-- (struct CGPoint)convertPoint:(struct CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30af1644
-- (struct CGPoint)convertPoint:(struct CGPoint)fp8 toLayer:(id)fp16;	// IMP=0x30af16a4
-- (struct CGRect)convertRect:(struct CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30af1708
-- (struct CGRect)convertRect:(struct CGRect)fp8 toLayer:(id)fp24;	// IMP=0x30af1764
+- (CGPoint)convertPoint:(CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30af1644
+- (CGPoint)convertPoint:(CGPoint)fp8 toLayer:(id)fp16;	// IMP=0x30af16a4
+- (CGRect)convertRect:(CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30af1708
+- (CGRect)convertRect:(CGRect)fp8 toLayer:(id)fp24;	// IMP=0x30af1764
 - (double)convertTime:(double)fp8 fromLayer:(id)fp16;	// IMP=0x30af1318
 - (double)convertTime:(double)fp8 toLayer:(id)fp16;	// IMP=0x30af1324
-- (void)dealloc;	// IMP=0x30af29a8
 - (id)delegate;	// IMP=0x30aee2dc
 - (id)description;	// IMP=0x30aed1a4
 - (void)display;	// IMP=0x30aeea9c
-- (void)drawInContext:(struct CGContext *)fp8;	// IMP=0x30aeeda0
-- (void)encodeWithCoder:(id)fp8;	// IMP=0x30aeda50
-- (struct CGRect)frame;	// IMP=0x30af02ec
+- (void)drawInContext:(CGContextRef)fp8;	// IMP=0x30aeeda0
+- (CGRect)frame;	// IMP=0x30af02ec
 - (BOOL)hidden;	// IMP=0x30aedec4
-- (id)hitTest:(struct CGPoint)fp8;	// IMP=0x30aee1cc
+- (id)hitTest:(CGPoint)fp8;	// IMP=0x30aee1cc
 - (id)init;	// IMP=0x30aed8ec
-- (id)initWithBounds:(struct CGRect)fp8;	// IMP=0x30aed138
-- (id)initWithCoder:(id)fp8;	// IMP=0x30aeda3c
+- (id)initWithBounds:(CGRect)fp8;	// IMP=0x30aed138
 - (void)insertSublayer:(id)fp8 above:(id)fp12;	// IMP=0x30af2da0
 - (void)insertSublayer:(id)fp8 atIndex:(unsigned int)fp12;	// IMP=0x30af2d04
 - (void)insertSublayer:(id)fp8 below:(id)fp12;	// IMP=0x30af2d1c
@@ -60,40 +45,84 @@
 - (BOOL)masksToBounds;	// IMP=0x30aee2a8
 - (BOOL)needsDisplayOnBoundsChange;	// IMP=0x30aee280
 - (BOOL)opaque;	// IMP=0x30aee250
-- (struct CGPoint)position;	// IMP=0x30aedd48
-- (struct CGSize)preferredFrameSize;	// IMP=0x30aef98c
+- (CGPoint)position;	// IMP=0x30aedd48
+- (CGSize)preferredFrameSize;	// IMP=0x30aef98c
 - (void)removeAllAnimations;	// IMP=0x30af0950
 - (void)removeAnimationForKey:(id)fp8;	// IMP=0x30af090c
 - (void)removeFromSuperlayer;	// IMP=0x30af22b0
-- (void)renderInContext:(struct CGContext *)fp8;	// IMP=0x30aefa40
+- (void)renderInContext:(CGContextRef)fp8;	// IMP=0x30aefa40
 - (void)replaceSublayer:(id)fp8 with:(id)fp12;	// IMP=0x30af2e24
-- (void)setAffineTransform:(struct CGAffineTransform)fp8;	// IMP=0x30aede48
-- (void)setBounds:(struct CGRect)fp8;	// IMP=0x30af1c6c
+- (void)setAffineTransform:(CGAffineTransform)fp8;	// IMP=0x30aede48
+- (void)setBackgroundColor:(CGColorRef)backgroundColor;
+- (void)setBounds:(CGRect)fp8;	// IMP=0x30af1c6c
 - (void)setClearsContext:(BOOL)fp8;	// IMP=0x30af1fc8
 - (void)setContents:(id)fp8;	// IMP=0x30af1ef4
 - (void)setContentsGravity:(id)fp8;	// IMP=0x30af20dc
 - (void)setDelegate:(id)fp8;	// IMP=0x30af21ac
-- (void)setFrame:(struct CGRect)fp8;	// IMP=0x30aeded4
+- (void)setFrame:(CGRect)fp8;	// IMP=0x30aeded4
 - (void)setHidden:(BOOL)fp8;	// IMP=0x30af1e98
 - (void)setMasksToBounds:(BOOL)fp8;	// IMP=0x30af2140
 - (void)setNeedsDisplay;	// IMP=0x30aeea50
-- (void)setNeedsDisplayInRect:(struct CGRect)fp8;	// IMP=0x30af0578
+- (void)setNeedsDisplayInRect:(CGRect)fp8;	// IMP=0x30af0578
 - (void)setNeedsDisplayOnBoundsChange:(BOOL)fp8;	// IMP=0x30af2080
 - (void)setNeedsLayout;	// IMP=0x30af1104
 - (void)setOpaque:(BOOL)fp8;	// IMP=0x30af1f6c
-- (void)setPosition:(struct CGPoint)fp8;	// IMP=0x30af1e24
+- (void)setPosition:(CGPoint)fp8;	// IMP=0x30af1e24
 - (void)setSortsSublayers:(BOOL)fp8;	// IMP=0x30af2024
 - (void)setSublayers:(id)fp8;	// IMP=0x30af2a68
-- (void)setValue:(id)fp8 forKey:(id)fp12;	// IMP=0x30aed9d0
-- (void)setValue:(id)fp8 forKeyPath:(id)fp12;	// IMP=0x30af0c10
-- (void)setValue:(id)fp8 forUndefinedKey:(id)fp12;	// IMP=0x30af1bcc
+- (void)setSublayerTransform:(LKTransform)sublayerTransform;
+- (void)setTransform:(LKTransform)transform;
 - (BOOL)shouldArchiveValueForKey:(id)fp8;	// IMP=0x30aeda7c
 - (BOOL)sortsSublayers;	// IMP=0x30aee270
 - (id)sublayers;	// IMP=0x30aee2d4
 - (id)superlayer;	// IMP=0x30af116c
-- (id)valueForKey:(id)fp8;	// IMP=0x30aed950
-- (id)valueForKeyPath:(id)fp8;	// IMP=0x30aeda18
-- (id)valueForUndefinedKey:(id)fp8;	// IMP=0x30aed990
 
 @end
 
+@interface LKLayer (LKLayerScrolling)
+- (void)_scrollPoint:(struct CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30afa9cc
+- (void)_scrollRect:(struct CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30afaa40
+- (struct CGRect)_visibleRectOfLayer:(id)fp8;	// IMP=0x30afab04
+- (void)scrollPoint:(struct CGPoint)fp8;	// IMP=0x30afaa18
+- (void)scrollRectToVisible:(struct CGRect)fp8;	// IMP=0x30afaaac
+- (struct CGRect)visibleRect;	// IMP=0x30afab84
+@end
+
+@interface LKLayer (LKLayerPrivate) 
++ (void *)methodForSelector:(SEL)fp8;	// IMP=0x30aef410
++ (BOOL)shouldCopyValueForKey:(id)fp8;	// IMP=0x30aef468
++ (BOOL)shouldRetainValueForKey:(id)fp8;	// IMP=0x30aef450
+- (id)ancestorSharedWithLayer:(id)fp8;	// IMP=0x30af0de8
+- (struct CGPoint)anchorPoint;	// IMP=0x30aef4c0
+- (BOOL)autoreverses;	// IMP=0x30aef4b0
+- (struct CGColor *)backgroundColor;	// IMP=0x30aef61c
+- (id)backgroundFilters;	// IMP=0x30aef634
+- (double)beginTime;	// IMP=0x30aef480
+- (id)compositingFilter;	// IMP=0x30aef63c
+- (struct CGAffineTransform)contentsTransform;	// IMP=0x30aef5b8
+- (void)displayIfNeeded;	// IMP=0x30aef008
+- (double)duration;	// IMP=0x30aef490
+- (id)fillMode;	// IMP=0x30aef4b8
+- (id)filters;	// IMP=0x30aef62c
+- (id)hitTest:(struct CGPoint)fp8 options:(unsigned int)fp16;	// IMP=0x30af0ea8
+- (void)invalidateContents;	// IMP=0x30af0888
+- (BOOL)isDescendantOf:(id)fp8;	// IMP=0x30af0e68
+- (id)magnificationFilter;	// IMP=0x30aef604
+- (id)minificationFilter;	// IMP=0x30aef60c
+- (id)name;	// IMP=0x30aef624
+- (float)nearClippingDepth;	// IMP=0x30aef4f8
+- (BOOL)needsDisplay;	// IMP=0x30aeeff8
+- (BOOL)needsLayout;	// IMP=0x30aef030
+- (float)opacity;	// IMP=0x30aef614
+- (void *)regionBeingDrawn;	// IMP=0x30aeefb8
+- (float)repeatCount;	// IMP=0x30aef4a0
+- (double)repeatDuration;	// IMP=0x30aef4a8
+- (void)setContentsChanged;	// IMP=0x30af0870
+- (struct CGSize)size;	// IMP=0x30aef090
+- (float)speed;	// IMP=0x30aef498
+- (id)sublayerEnumerator;	// IMP=0x30aef040
+- (struct LKTransform)sublayerTransform;	// IMP=0x30aef55c
+- (double)timeOffset;	// IMP=0x30aef488
+- (struct LKTransform)transform;	// IMP=0x30aef500
+- (float)zPosition;	// IMP=0x30aef4f0
+@end

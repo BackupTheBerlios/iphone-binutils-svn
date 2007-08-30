@@ -4,20 +4,11 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSEnumerator.h"
+#import <Foundation/NSEnumerator.h>
 
-@class LKLayer, NSArray;
+@interface LKSublayerEnumerator : NSEnumerator {}
 
-@interface LKSublayerEnumerator : NSEnumerator
-{
-    LKLayer *_mask;
-    NSArray *_sublayers;
-    unsigned int _index;
-    unsigned int _count;
-}
-
-- (void)dealloc;	// IMP=0x30afac60
-- (id)initWithLayer:(id)fp8;	// IMP=0x30afabc4
+- (id)initWithLayer:(id)layer;	// IMP=0x30afabc4
 - (id)nextObject;	// IMP=0x30afacb8
 
 @end

@@ -6,26 +6,7 @@
 
 #import <LayerKit/LKContext.h>
 
-@interface LKContextImpl : LKContext
-{
-    struct _opaque_pthread_mutex_t _mutex;
-    void *_next;
-    void *_layer;
-    struct _LKRenderContext *_renderCtx;
-    unsigned int _serverPort;
-    unsigned int _clientPort;
-    unsigned int _clientId;
-    unsigned int _localId;
-    unsigned int _coderFlags;
-    struct x_list_struct *_shmems;
-    struct x_list_struct *_deletedShmems;
-    float _level;
-    unsigned int _fenceName;
-    unsigned int _fenceCount;
-    unsigned int _ownsServerPort:1;
-    unsigned int _synchronized:1;
-    unsigned int _serverDied:1;
-}
+@interface LKContextImpl : LKContext {}
 
 - (unsigned int)_clientPort;	// IMP=0x30aeb6e0
 - (unsigned int)contextId;	// IMP=0x30aeb924
@@ -39,7 +20,6 @@
 - (float)level;	// IMP=0x30aebaec
 - (void)orderAbove:(unsigned int)fp8;	// IMP=0x30aeba18
 - (void)orderBelow:(unsigned int)fp8;	// IMP=0x30aeba34
-- (struct _LKRenderContext *)renderContext;	// IMP=0x30aebaf4
 - (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	// IMP=0x30aebb10
 - (void)setLayer:(id)fp8;	// IMP=0x30aeb934
 - (void)setLevel:(float)fp8;	// IMP=0x30aeba50

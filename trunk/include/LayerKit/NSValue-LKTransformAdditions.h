@@ -4,10 +4,11 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSValue.h"
+#import <Foundation/NSValue.h>
+#import <LayerKit/LKTransform.h>
 
 @interface NSValue (LKTransformAdditions)
-+ (id)valueWithLKTransform:(struct LKTransform)fp8;	// IMP=0x30af5aa8
-- (struct LKTransform)LKTransformValue;	// IMP=0x30af5ae8
++ (id)valueWithLKTransform:(LKTransform)transform;
+- (LKTransform)LKTransformValue;
 @end
 

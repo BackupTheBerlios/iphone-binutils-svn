@@ -10,7 +10,6 @@
 {
 }
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30afa4d4
 + (id)defaultValueForKey:(id)fp8;	// IMP=0x30afa524
 - (void)_scrollPoint:(struct CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30afa7f8
 - (void)_scrollRect:(struct CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30afa85c

@@ -10,7 +10,6 @@
 {
 }
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30ae9dfc
 - (void *)LK_copyRenderValue;	// IMP=0x30ae9e4c
 - (id)calculationMode;	// IMP=0x30aea1c8
 - (id)keyTimes;	// IMP=0x30aea1d0

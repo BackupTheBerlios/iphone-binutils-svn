@@ -10,8 +10,6 @@
 {
 }
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30aea1f0
-- (void *)LK_copyRenderValue;	// IMP=0x30aea240
 - (id)description;	// IMP=0x30aea3d0
 - (float)endProgress;	// IMP=0x30aea470
 - (id)filter;	// IMP=0x30aea478
@@ -21,3 +19,6 @@
 
 @end
 
+@interface LKTransition (LKTransitionPrivate)
+- (unsigned int)transitionFlags;	// IMP=0x30aea480
+@end

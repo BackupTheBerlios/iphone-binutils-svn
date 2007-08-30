@@ -4,7 +4,7 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
 @interface LKContext : NSObject
 {
@@ -25,7 +25,6 @@
 - (float)level;	// IMP=0x30aeaeec
 - (void)orderAbove:(unsigned int)fp8;	// IMP=0x30aeaee0
 - (void)orderBelow:(unsigned int)fp8;	// IMP=0x30aeaee4
-- (struct _LKRenderContext *)renderContext;	// IMP=0x30aeaed0
 - (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	// IMP=0x30aeaef4
 - (void)setLayer:(id)fp8;	// IMP=0x30aeaecc
 - (void)setLevel:(float)fp8;	// IMP=0x30aeaee8

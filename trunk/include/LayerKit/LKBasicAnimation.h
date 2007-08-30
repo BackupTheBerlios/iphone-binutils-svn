@@ -10,10 +10,12 @@
 {
 }
 
-- (void *)LK_copyRenderValue;	// IMP=0x30ae9c34
 - (id)byValue;	// IMP=0x30ae9d9c
 - (id)fromValue;	// IMP=0x30ae9d8c
 - (id)toValue;	// IMP=0x30ae9d94
 
 @end
 
+@interface LKBasicAnimation (LKAnimationPrivate)
+- (BOOL)roundsToInteger;	// IMP=0x30ae9df4
+@end
