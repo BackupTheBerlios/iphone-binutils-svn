@@ -4,8 +4,8 @@ CoreGraphics:
 	cp -r /System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Headers CoreGraphics
 
 CarbonCore/%.h: CarbonCore/%.h.diff
-	cp /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Headers/$*.h .
-	patch -p0 < $<
+	cp /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Headers/$*.h CarbonCore/$*.h
+	cd CarbonCore && patch -p0 < $*.h.diff 
 
 clean:
 	rm -f CoreGraphics
