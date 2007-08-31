@@ -11,6 +11,7 @@
 #import <UIKit/UIAnimation.h>
 #import <UIKit/UIAnimator.h>
 #import <UIKit/UIApplication.h>
+#import <UIKit/UIBezierPath.h>
 #import <UIKit/UIGradientBar.h>
 #import <UIKit/UIHardware.h>
 #import <UIKit/UIImage.h>
