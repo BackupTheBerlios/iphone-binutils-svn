@@ -6,12 +6,9 @@
 
 #import <LayerKit/LKAnimation.h>
 
-@interface LKAnimationGroup : LKAnimation
-{
-}
+@interface LKAnimationGroup : LKAnimation {}
 
-- (id)animations;	// IMP=0x30aea67c
-- (id)description;	// IMP=0x30aea5f4
+- (NSArray *)animations;
 
 @end
 

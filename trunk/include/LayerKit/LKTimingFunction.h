@@ -8,14 +8,9 @@
 
 @interface LKTimingFunction : NSObject <NSCoding> {}
 
-+ (id)functionWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	// IMP=0x30afaf68
-+ (id)functionWithName:(id)fp8;	// IMP=0x30afafcc
-- (void)_getPoints:(float *)fp8;	// IMP=0x30afb25c
-- (void)getControlPointAtIndex:(unsigned long)fp8 values:(float [2])fp12;	// IMP=0x30afb290
-- (id)initWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	// IMP=0x30afb154
++ (id)functionWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	
++ (id)functionWithName:(id)fp8;
+- (void)getControlPointAtIndex:(unsigned long)fp8 values:(float [2])fp12;	
+- (id)initWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	
 
-@end
-
-@interface LKTimingFunction (LKTimingFunctionPrivate)
-- (float)_solveForInput:(float)fp8;	// IMP=0x30afb834
 @end

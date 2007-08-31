@@ -8,8 +8,8 @@
 
 @interface LKSublayerEnumerator : NSEnumerator {}
 
-- (id)initWithLayer:(id)layer;	// IMP=0x30afabc4
-- (id)nextObject;	// IMP=0x30afacb8
+- (id)initWithLayer:(id)layer;	
+- (id)nextObject;	
 
 @end
 

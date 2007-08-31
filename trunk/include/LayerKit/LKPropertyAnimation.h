@@ -6,15 +6,12 @@
 
 #import <LayerKit/LKAnimation.h>
 
-@interface LKPropertyAnimation : LKAnimation
-{
-}
+@interface LKPropertyAnimation : LKAnimation {}
 
-+ (id)animationWithKeyPath:(id)fp8;	// IMP=0x30ae9a88
-- (BOOL)additive;	// IMP=0x30ae9c1c
-- (BOOL)cumulative;	// IMP=0x30ae9c2c
-- (id)description;	// IMP=0x30ae9b94
-- (id)keyPath;	// IMP=0x30ae9c24
++ (id)animationWithKeyPath:(NSString *)keyPath;	
+- (BOOL)additive;	
+- (BOOL)cumulative;
+- (NSString *)keyPath;
 
 @end
 

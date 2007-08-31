@@ -8,23 +8,22 @@
 
 @interface LKContextImpl : LKContext {}
 
-- (unsigned int)_clientPort;	// IMP=0x30aeb6e0
-- (unsigned int)contextId;	// IMP=0x30aeb924
-- (unsigned int)createSlot;	// IMP=0x30aebb5c
-- (void)dealloc;	// IMP=0x30aeb8c8
-- (void)deleteSlot:(unsigned int)fp8;	// IMP=0x30aebbe4
-- (id)initRemoteWithOptions:(id)fp8;	// IMP=0x30aeb730
-- (id)initWithOptions:(id)fp8;	// IMP=0x30aeb5e4
-- (void)invalidate;	// IMP=0x30aec664
-- (id)layer;	// IMP=0x30aeb92c
-- (float)level;	// IMP=0x30aebaec
-- (void)orderAbove:(unsigned int)fp8;	// IMP=0x30aeba18
-- (void)orderBelow:(unsigned int)fp8;	// IMP=0x30aeba34
-- (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	// IMP=0x30aebb10
-- (void)setLayer:(id)fp8;	// IMP=0x30aeb934
-- (void)setLevel:(float)fp8;	// IMP=0x30aeba50
-- (void)setObject:(id)fp8 forSlot:(unsigned int)fp12;	// IMP=0x30aebc00
-- (BOOL)valid;	// IMP=0x30aebafc
+- (unsigned int)_clientPort;	
+- (unsigned int)contextId;	
+- (unsigned int)createSlot;	
+- (void)dealloc;	
+- (void)deleteSlot:(unsigned int)fp8;	
+- (id)initRemoteWithOptions:(id)fp8;	
+- (id)initWithOptions:(id)fp8;	
+- (void)invalidate;	
+- (id)layer;	
+- (float)level;	
+- (void)orderAbove:(unsigned int)fp8;	
+- (void)orderBelow:(unsigned int)fp8;	
+- (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	
+- (void)setLayer:(id)fp8;	
+- (void)setLevel:(float)fp8;	
+- (void)setObject:(id)fp8 forSlot:(unsigned int)fp12;	
+- (BOOL)valid;	
 
 @end
-

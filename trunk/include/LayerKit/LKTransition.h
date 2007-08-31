@@ -10,15 +10,14 @@
 {
 }
 
-- (id)description;	// IMP=0x30aea3d0
-- (float)endProgress;	// IMP=0x30aea470
-- (id)filter;	// IMP=0x30aea478
-- (float)startProgress;	// IMP=0x30aea468
-- (id)subtype;	// IMP=0x30aea460
-- (id)type;	// IMP=0x30aea458
+- (float)endProgress;	
+- (id)filter;
+- (float)startProgress;	
+- (id)subtype;	
+- (id)type;	
 
 @end
 
 @interface LKTransition (LKTransitionPrivate)
-- (unsigned int)transitionFlags;	// IMP=0x30aea480
+- (unsigned int)transitionFlags;	
 @end

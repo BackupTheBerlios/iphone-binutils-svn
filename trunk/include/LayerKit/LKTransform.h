@@ -27,4 +27,5 @@ typedef struct LKTransform {
 
 extern LKTransform LKTransformIdentity;
 
+LKTransform LKTransformRotate(LKTransform transform, float radians, float x, float y, float z);
 LKTransform LKTransformMakeRotation(float radians, float x, float y, float z);

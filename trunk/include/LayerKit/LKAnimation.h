@@ -14,25 +14,49 @@
 + (id)properties;
 - (void)runActionForKey:(id)key object:(id)object arguments:(id)fp16;
 - (BOOL)shouldArchiveValueForKey:(id)key;
-- (void)setTimingFunction:(LKTimingFunction *)timingFunction;
+
+- (BOOL)autoreverses;
+- (void)setAutoreverses:(BOOL)autoreverses;
+
+- (double)beginTime;
+- (void)setBeginTime:(double)beginTime;
+
+- (id)delegate;
+- (void)setDelegate:(id)delegate;
+
+- (double)duration;
 - (void)setDuration:(float)duration;
+
+- (id)fillMode;
+- (void)setFillMode:(id)fillMode;
+
+- (double)frameInterval;
+- (void)setFrameInterval:(double)frameInterval;
+
+- (BOOL)removedOnCompletion;
+- (void)setRemovedOnCompletion:(BOOL)removedOnCompletion;
+
+- (float)repeatCount;
+- (void)setRepeatCount:(float)repeatCount;
+
+- (double)repeatDuration;
+- (void)setRepeatDuration:(double)repeatDuration;
+
+- (float)speed;
+- (void)setSpeed:(float)speed;
+
+- (double)timeOffset;
+- (void)setTimeOffset:(double)timeOffset;
+
+- (LKTimingFunction *)timingFunction;
+- (void)setTimingFunction:(LKTimingFunction *)timingFunction;
 
 @end
 
 @interface LKAnimation (LKAnimationPrivate)
-+ (void *)methodForSelector:(SEL)fp8;	// IMP=0x30ae9998
-+ (BOOL)shouldCopyValueForKey:(id)fp8;	// IMP=0x30ae92c8
-+ (BOOL)shouldRetainValueForKey:(id)fp8;	// IMP=0x30ae92b0
-- (BOOL)autoreverses;	// IMP=0x30ae9a10
-- (double)beginTime;	// IMP=0x30ae99e0
-- (id)delegate;	// IMP=0x30ae9a30
-- (double)duration;	// IMP=0x30ae99f0
-- (id)fillMode;	// IMP=0x30ae9a18
-- (double)frameInterval;	// IMP=0x30ae99d8
-- (BOOL)removedOnCompletion;	// IMP=0x30ae9a20
-- (float)repeatCount;	// IMP=0x30ae9a00
-- (double)repeatDuration;	// IMP=0x30ae9a08
-- (float)speed;	// IMP=0x30ae99f8
-- (double)timeOffset;	// IMP=0x30ae99e8
-- (id)timingFunction;	// IMP=0x30ae9a28
+
++ (void *)methodForSelector:(SEL)fp8;
++ (BOOL)shouldCopyValueForKey:(id)fp8;
++ (BOOL)shouldRetainValueForKey:(id)fp8;
+
 @end

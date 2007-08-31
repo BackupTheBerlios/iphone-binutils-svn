@@ -1,3 +1,6 @@
+#ifndef LAYERKIT_H
+#define LAYERKIT_H
+
 #import <LayerKit/LKAnimation.h>
 #import <LayerKit/LKAnimationGroup.h>
 #import <LayerKit/LKBasicAnimation.h>
@@ -15,14 +18,8 @@
 #import <LayerKit/LKTransform.h>
 #import <LayerKit/LKTransition.h>
 #import <LayerKit/NSValue-LKTransformAdditions.h>
-#ifndef LAYERKIT_H
-#define LAYERKIT_H
-
-#import <LayerKit/LKLayer.h>
-#import <LayerKit/LKLayer-LKLayerPrivate.h>
 
 int LKPurpleServerIsRunning();
 void LKPurpleServerStart();
 
 #endif
-

@@ -8,7 +8,7 @@
 
 @interface LKSlotProxy : NSObject {}
 
-- (id)initWithName:(unsigned int)fp8;	// IMP=0x30aebe38
+- (id)initWithName:(unsigned int)fp8;
 
 @end
 

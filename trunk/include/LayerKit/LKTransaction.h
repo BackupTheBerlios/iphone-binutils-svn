@@ -14,7 +14,7 @@
 @end
 
 @interface LKTransaction (LKTransactionPrivate)
-+ (BOOL)beginWithoutBlocking;	// IMP=0x30afc674
-+ (unsigned int)currentState;	// IMP=0x30afc584
-+ (void)synchronize;	// IMP=0x30afc500
++ (BOOL)beginWithoutBlocking;	
++ (unsigned int)currentState;	
++ (void)synchronize;	
 @end

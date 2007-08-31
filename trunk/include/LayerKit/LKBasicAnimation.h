@@ -6,16 +6,16 @@
 
 #import <LayerKit/LKPropertyAnimation.h>
 
-@interface LKBasicAnimation : LKPropertyAnimation
-{
-}
+@interface LKBasicAnimation : LKPropertyAnimation {}
 
-- (id)byValue;	// IMP=0x30ae9d9c
-- (id)fromValue;	// IMP=0x30ae9d8c
-- (id)toValue;	// IMP=0x30ae9d94
+- (id)byValue;
+- (id)fromValue;
+- (id)toValue;
 
 @end
 
 @interface LKBasicAnimation (LKAnimationPrivate)
-- (BOOL)roundsToInteger;	// IMP=0x30ae9df4
+
+- (BOOL)roundsToInteger;
+
 @end
