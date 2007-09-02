@@ -1,0 +1,18 @@
+--- ./messages.c.orig	2001-07-09 18:14:08.000000000 -0700
++++ ./messages.c	2006-03-15 20:35:29.000000000 -0800
+@@ -22,7 +22,6 @@
+ #ifdef OLD_PROJECTBUILDER_INTERFACE
+ #include <streams/streams.h>
+ #endif
+-#include "make.h"
+ #include <stdlib.h>
+ #include <string.h>
+ #include <mach/mach.h>
+@@ -30,7 +29,6 @@
+ #if defined(__OPENSTEP__) || defined(__GONZO_BUNSEN_BEAKER__)
+ #include <servers/netname.h>
+ #else
+-#include <servers/bootstrap.h>
+ #endif
+ #include "as.h"
+ #include "input-scrub.h"
