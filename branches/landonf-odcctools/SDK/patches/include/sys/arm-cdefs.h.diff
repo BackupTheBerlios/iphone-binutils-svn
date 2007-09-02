@@ -1,0 +1,20 @@
+--- cdefs.h	2006-09-11 19:16:57.000000000 -0700
++++ cdefs.h	2007-09-01 11:55:43.000000000 -0700
+@@ -240,7 +240,7 @@
+ #endif /* _APPLE_C_SOURCE || _XOPEN_SOURCE || _POSIX_C_SOURCE || __LP64__ */
+ #endif /* !__DARWIN_UNIX03 */
+ 
+-#if __DARWIN_UNIX03 && !defined(__LP64__)
++#if __DARWIN_UNIX03 && !defined(__LP64__) && !defined(__arm__)
+ #define __DARWIN_ALIAS(sym) __asm("_" __STRING(sym) "$UNIX2003")
+ #else
+ #define __DARWIN_ALIAS(sym)
+@@ -327,7 +327,7 @@
+ #   define	__DARWIN_LDBL_COMPAT2(x) /* nothing */
+ #   define	__DARWIN_LONG_DOUBLE_IS_DOUBLE	1
+ #  endif
+-#elif defined(__i386__) || defined(__ppc64__) || defined(__x86_64__)
++#elif defined(__i386__) || defined(__ppc64__) || defined(__x86_64__) || defined(__arm__)
+ #  define	__DARWIN_LDBL_COMPAT(x)	/* nothing */
+ #  define	__DARWIN_LDBL_COMPAT2(x) /* nothing */
+ #  define	__DARWIN_LONG_DOUBLE_IS_DOUBLE	0
