@@ -1,5 +1,5 @@
---- ./main.c.orig	2006-03-15 20:35:28.000000000 -0800
-+++ ./main.c	2006-03-15 20:35:29.000000000 -0800
+--- ./main.c.orig	2007-09-01 13:24:23.000000000 -0700
++++ ./main.c	2007-09-01 13:24:23.000000000 -0700
 @@ -44,6 +44,10 @@
  #include "hppa_disasm.h"
  #include "sparc_disasm.h"
@@ -11,7 +11,7 @@
  /* Name of this program for error messages (argv[0]) */
  char *progname = NULL;
  
-@@ -997,23 +1001,35 @@
+@@ -998,23 +1002,35 @@
  		S_ATTR_SOME_INSTRUCTIONS){
  	    if(strcmp(segname, SEG_OBJC) == 0 &&
  	       strcmp(sectname, "__protocol") == 0 && vflag == TRUE){
@@ -47,7 +47,7 @@
  	    }
  	    else if(get_sect_info(segname, sectname, ofile_mh,
  		ofile->load_commands, ofile->object_byte_sex,
-@@ -1093,10 +1109,14 @@
+@@ -1099,10 +1115,14 @@
  			     ofile->object_size);
  
  	if(oflag)
@@ -62,8 +62,8 @@
  
  	if(load_commands != NULL)
  	    free(load_commands);
---- ./print_objc.c.orig	2004-09-15 15:24:36.000000000 -0700
-+++ ./print_objc.c	2006-03-15 20:35:29.000000000 -0800
+--- ./print_objc.c.orig	2007-09-01 13:24:17.000000000 -0700
++++ ./print_objc.c	2007-09-01 13:24:23.000000000 -0700
 @@ -20,6 +20,13 @@
   * 
   * @APPLE_LICENSE_HEADER_END@

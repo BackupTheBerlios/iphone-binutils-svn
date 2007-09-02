@@ -1,0 +1,23 @@
+--- lipo.c	2006-05-26 16:37:39.000000000 -0700
++++ lipo.c	2007-09-01 12:55:46.000000000 -0700
+@@ -1748,6 +1748,20 @@
+ 		goto print_arch_unknown;
+ 	    }
+ 	    break;
++    case CPU_TYPE_ARM:
++        switch (fat_arch->cpusubtype) {
++            case CPU_SUBTYPE_ARM_ALL:
++                printf("arm");
++                break;
++            case CPU_SUBTYPE_ARM_1176JZ:
++                printf("arm1176jzf-s");
++                break;
++            case 12:
++                // XXX cpu subtype was accidentally set to 12 on early toolchain releases
++                printf("arm-built-with-buggy-toolchain");
++                break;
++        }
++        break; 
+ 	case CPU_TYPE_ANY:
+ 	    switch(fat_arch->cpusubtype){
+ 	    case CPU_SUBTYPE_MULTIPLE:

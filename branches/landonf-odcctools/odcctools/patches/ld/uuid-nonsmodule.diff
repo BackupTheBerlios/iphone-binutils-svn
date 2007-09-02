@@ -1,5 +1,5 @@
---- uuid.c.orig	2006-03-16 08:53:13.000000000 -0800
-+++ uuid.c	2006-03-16 08:55:19.000000000 -0800
+--- ./uuid.c.orig	2007-09-01 13:24:15.000000000 -0700
++++ ./uuid.c	2007-09-01 13:24:21.000000000 -0700
 @@ -23,7 +23,7 @@
  #if defined(__MWERKS__) && !defined(__private_extern__)
  #define __private_extern__ __declspec(private_extern)

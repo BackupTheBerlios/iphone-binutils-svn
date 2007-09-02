@@ -1,5 +1,5 @@
---- src/FileAbstraction.hpp.orig	2006-06-08 20:55:46.000000000 -0700
-+++ src/FileAbstraction.hpp	2006-06-08 20:57:25.000000000 -0700
+--- ./src/FileAbstraction.hpp.orig	2006-01-23 12:43:11.000000000 -0800
++++ ./src/FileAbstraction.hpp	2007-09-01 13:24:22.000000000 -0700
 @@ -29,7 +29,7 @@
  #include <string.h>
  #include <libkern/OSByteOrder.h>

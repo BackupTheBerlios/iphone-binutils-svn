@@ -21,6 +21,10 @@ darwin*)
 esac
 
 case $target_cpu in
+     arm)
+        AC_DEFINE(EMULATED_HOST_CPU_TYPE, 12, [Emulated CPU type])
+        AC_DEFINE(EMULATED_HOST_CPU_SUBTYPE, 6, [Emulated CPU subtype])
+    ;;
      powerpc)
         AC_DEFINE(EMULATED_HOST_CPU_TYPE, 18, [Emulated CPU type])        
         AC_DEFINE(EMULATED_HOST_CPU_SUBTYPE, 100, [Emulated CPU subtype])        
@@ -56,16 +60,16 @@ conftargets=""
 AC_MSG_CHECKING([for configured assembler targets])
 AC_ARG_ENABLE([as-targets],
 		AC_HELP_STRING([--enable-as-targets],
-				[space-separated list ("ppc", "ppc64", "i386", "x86_64", "all")]),
+				[space-separated list ("arm", "ppc", "ppc64", "i386", "x86_64", "all")]),
 		[conftargets="$enableval"],
 		[conftargets="default"])
 
 case "$conftargets" in
      all)
-        ASTARGETS="ppc ppc64 i386 x86_64"
+        ASTARGETS="arm ppc ppc64 i386 x86_64"
 	;;
      default)
-	ASTARGETS="ppc ppc64 i386 x86_64"
+	ASTARGETS="arm ppc ppc64 i386 x86_64"
 	;;
      yes)
 	AC_MSG_ERROR([no assembler targets configured])
@@ -282,6 +286,9 @@ AC_CONFIG_FILES([ar/Makefile])
 AC_CONFIG_FILES([as/Makefile])
 for ast in $ASTARGETS; do
     case $ast in
+    arm)
+	AC_CONFIG_FILES([as/arm/Makefile:as/arm/Makefile.in:as/Makefile.arch.in])
+	;;
     ppc)
 	AC_CONFIG_FILES([as/ppc/Makefile:as/ppc/Makefile.in:as/Makefile.arch.in])
 	;;

@@ -1,0 +1,200 @@
+--- arch.c	2006-04-28 16:51:58.000000000 -0700
++++ arch.c	2007-09-01 12:58:54.000000000 -0700
+@@ -62,6 +62,7 @@
+     { "m88k",   CPU_TYPE_MC88000, CPU_SUBTYPE_MC88000_ALL },
+     { "i860",   CPU_TYPE_I860,    CPU_SUBTYPE_I860_ALL },
+     { "veo",    CPU_TYPE_VEO,     CPU_SUBTYPE_VEO_ALL },
++    { "arm",    CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_1176JZ },
+     /* specific architecture implementations */
+     { "ppc601", CPU_TYPE_POWERPC, CPU_SUBTYPE_POWERPC_601 },
+     { "ppc603", CPU_TYPE_POWERPC, CPU_SUBTYPE_POWERPC_603 },
+@@ -200,7 +202,8 @@
+       flag->cputype == CPU_TYPE_I860 ||
+       flag->cputype == CPU_TYPE_VEO)
+         return BIG_ENDIAN_BYTE_SEX;
+-    else if(flag->cputype == CPU_TYPE_I386)
++    else if(flag->cputype == CPU_TYPE_I386 ||
++            flag->cputype == CPU_TYPE_ARM)
+         return LITTLE_ENDIAN_BYTE_SEX;
+     else
+         return UNKNOWN_BYTE_SEX;
+@@ -223,7 +226,8 @@
+       flag->cputype == CPU_TYPE_I386 ||
+       flag->cputype == CPU_TYPE_SPARC ||
+       flag->cputype == CPU_TYPE_I860 ||
+-      flag->cputype == CPU_TYPE_VEO)
++      flag->cputype == CPU_TYPE_VEO ||
++      flag->cputype == CPU_TYPE_ARM)
+         return(-1);
+     else if(flag->cputype == CPU_TYPE_HPPA)
+         return(+1);
+@@ -259,6 +263,8 @@
+ 	return(0);
+     case CPU_TYPE_HPPA:
+ 	return(0xc0000000-0x04000000);
++    case CPU_TYPE_ARM:
++	return(0x30000000);
+     default:
+ 	return(0);
+     }
+@@ -295,7 +301,8 @@
+ {
+ 	if(flag->cputype == CPU_TYPE_POWERPC ||
+ 	   flag->cputype == CPU_TYPE_VEO ||
+-	   flag->cputype == CPU_TYPE_I386)
++	   flag->cputype == CPU_TYPE_I386 ||
++	   flag->cputype == CPU_TYPE_ARM)
+ 	    return(0x1000); /* 4K */
+ 	else
+ 	    return(0x2000); /* 8K */
+@@ -315,6 +322,20 @@
+ 	    return(VM_PROT_READ | VM_PROT_WRITE | VM_PROT_EXECUTE);
+ }
+ 
++__private_extern__
++unsigned long
++get_shared_region_sz_from_flag(
++const struct arch_flag *flag)
++{
++    switch (flag->cputype) {
++        case CPU_TYPE_ARM:
++            return 0x08000000;
++
++        default:
++            return 0x10000000;
++    }            
++}
++
+ /*
+  * force_cpusubtype_ALL_for_cputype() takes a cputype and returns TRUE if for
+  * that cputype the cpusubtype should always be forced to the ALL cpusubtype,
+--- bytesex.c	2006-06-22 11:32:51.000000000 -0700
++++ bytesex.c	2007-09-01 12:58:54.000000000 -0700
+@@ -201,6 +201,7 @@
+ #include <mach/i386/thread_status.h>
+ #include <mach/hppa/thread_status.h>
+ #include <mach/sparc/thread_status.h>
++#include <mach/arm/thread_status.h>
+ #include <mach-o/nlist.h>
+ #include <mach-o/reloc.h>
+ #include <mach-o/ranlib.h>
+@@ -2329,6 +2330,28 @@
+ 	}
+ }
+ 
++__private_extern__ void swap_arm_thread_state(struct arm_thread_state *cpu,
++    enum byte_sex target_byte_sex)
++{
++    cpu->r0 = SWAP_LONG(cpu->r0);
++    cpu->r1 = SWAP_LONG(cpu->r1);
++    cpu->r2 = SWAP_LONG(cpu->r2);
++    cpu->r3 = SWAP_LONG(cpu->r3);
++    cpu->r4 = SWAP_LONG(cpu->r4);
++    cpu->r5 = SWAP_LONG(cpu->r5);
++    cpu->r6 = SWAP_LONG(cpu->r6);
++    cpu->r7 = SWAP_LONG(cpu->r7);
++    cpu->r8 = SWAP_LONG(cpu->r8);
++    cpu->r9 = SWAP_LONG(cpu->r9);
++    cpu->r10 = SWAP_LONG(cpu->r10);
++    cpu->r11 = SWAP_LONG(cpu->r11);
++    cpu->r12 = SWAP_LONG(cpu->r12);
++    cpu->r13 = SWAP_LONG(cpu->r13);
++    cpu->r14 = SWAP_LONG(cpu->r14);
++    cpu->r15 = SWAP_LONG(cpu->r15);
++    cpu->r16 = SWAP_LONG(cpu->r16);
++}
++
+ __private_extern__
+ void
+ swap_ident_command(
+--- reloc.c	2006-04-28 16:51:58.000000000 -0700
++++ reloc.c	2007-09-01 12:58:54.000000000 -0700
+@@ -22,6 +22,7 @@
+  */
+ #include <mach/machine.h>
+ #include <mach-o/reloc.h>
++#include <mach-o/arm/reloc.h>
+ #include <mach-o/m88k/reloc.h>
+ #include <mach-o/ppc/reloc.h>
+ #include <mach-o/i860/reloc.h>
+@@ -69,6 +70,8 @@
+ 	case CPU_TYPE_SPARC:
+ 	    return(SPARC_RELOC_PAIR);
+ 	    break;
++	case CPU_TYPE_ARM:
++	    return(ARM_RELOC_PAIR);
+ 	}
+ 	fatal("internal error: reloc_pair_r_type() called with unknown "
+ 	      "cputype (%u)", cputype);
+@@ -142,6 +145,10 @@
+ 		r_type == SPARC_RELOC_SECTDIFF)
+ 	      return(TRUE);
+ 	    break;
++	case CPU_TYPE_ARM:
++	    if (r_type == ARM_RELOC_SECTDIFF || r_type == ARM_RELOC_LOCAL_SECTDIFF)
++		return TRUE;
++	    return FALSE;
+ 	default:
+ 	    fatal("internal error: reloc_has_pair() called with unknown "
+ 		  "cputype (%u)", cputype);
+@@ -200,6 +208,10 @@
+ 	       r_type == SPARC_RELOC_LO10_SECTDIFF)
+ 		return(TRUE);
+ 	    break;
++	case CPU_TYPE_ARM:
++	    if (r_type == ARM_RELOC_SECTDIFF || r_type == ARM_RELOC_LOCAL_SECTDIFF)
++		return TRUE;
++	    return FALSE;
+ 	default:
+ 	    fatal("internal error: reloc_is_sectdiff() called with unknown "
+ 		  "cputype (%u)", cputype);
+--- swap_headers.c	2006-05-15 11:12:54.000000000 -0700
++++ swap_headers.c	2007-09-01 12:58:54.000000000 -0700
+@@ -40,6 +40,7 @@
+ #include <mach/i386/thread_status.h>
+ #include <mach/hppa/thread_status.h>
+ #include <mach/sparc/thread_status.h>
++#include <mach/arm/thread_status.h>
+ #include "stuff/bool.h"
+ #include "stuff/bytesex.h"
+ #include "stuff/errors.h"
+@@ -894,6 +895,17 @@
+ 		  break;
+ 		}
+ 		    
++		if (cputype == CPU_TYPE_ARM) {
++		  nflavor = 0;
++
++		  p = (char *)ut + ut->cmdsize;
++		  while (state < p) {
++		    state += 8 + sizeof(arm_thread_state_t);
++		    nflavor++; 
++		  }
++		  break;
++		}
++
+ 		error("in swap_object_headers(): malformed load commands "
+ 		    "(unknown cputype (%d) and cpusubtype (%d) of object and "
+                     "can't byte swap %s command %lu)", cputype, 
+@@ -1356,6 +1368,21 @@
+ 		  }
+ 		  break;
+ 		}
++
++		if (cputype == CPU_TYPE_ARM) {
++		  arm_thread_state_t *thread_state;
++		  while (state < p) {
++		    u_int32_t n;
++		    n = *((u_int32_t *)state); *((u_int32_t *)state) = SWAP_LONG(n);
++		    state += 4;
++		    n = *((u_int32_t *)state); *((u_int32_t *)state) = SWAP_LONG(n);
++		    state += 4;
++		    thread_state = (arm_thread_state_t *)state;
++		    swap_arm_thread_state(thread_state, target_byte_sex);
++		    state += sizeof(arm_thread_state_t);
++		  }
++		}
++
+ 		break;
+ 
+ 	    case LC_IDENT:

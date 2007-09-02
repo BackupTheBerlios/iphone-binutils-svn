@@ -1,5 +1,5 @@
---- ./src/MachOReaderRelocatable.hpp.orig	2006-09-11 20:51:41.000000000 -0700
-+++ ./src/MachOReaderRelocatable.hpp	2006-09-11 20:51:50.000000000 -0700
+--- ./src/MachOReaderRelocatable.hpp.orig	2007-09-01 13:24:22.000000000 -0700
++++ ./src/MachOReaderRelocatable.hpp	2007-09-01 13:24:22.000000000 -0700
 @@ -383,6 +383,16 @@
  	}
  }

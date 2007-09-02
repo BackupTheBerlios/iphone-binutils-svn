@@ -59,7 +59,7 @@ OBJS = $(CFILES:.c=.o)
 default: driver $(ASTARGETS)
 
 $(ASTARGETS):
-	cd $@ && $(MAKE)
+	cd $@ && $(MAKE) default
 
 driver: $(OBJS)
 	$(CC) -o $@ $^ $(MYLINKFLAGS)

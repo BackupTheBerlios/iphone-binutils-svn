@@ -1,5 +1,5 @@
---- ./redo_prebinding.c.orig	2006-09-09 13:50:19.000000000 -0700
-+++ ./redo_prebinding.c	2006-09-09 13:50:50.000000000 -0700
+--- ./redo_prebinding.c.orig	2007-09-01 13:24:23.000000000 -0700
++++ ./redo_prebinding.c	2007-09-01 13:24:23.000000000 -0700
 @@ -88,7 +88,7 @@
  #include <string.h>
  #include <limits.h>

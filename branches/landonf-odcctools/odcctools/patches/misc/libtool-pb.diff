@@ -1,5 +1,5 @@
---- ./libtool.c.orig	2006-06-03 11:45:08.000000000 -0700
-+++ ./libtool.c	2006-06-03 11:45:08.000000000 -0700
+--- ./libtool.c.orig	2007-09-01 13:24:23.000000000 -0700
++++ ./libtool.c	2007-09-01 13:24:23.000000000 -0700
 @@ -47,12 +47,10 @@
  #include "stuff/execute.h"
  #include "stuff/version_number.h"
@@ -12,8 +12,8 @@
 -#include <servers/bootstrap.h>
  #endif
  
- /* used by error routines as the name of the program */
-@@ -2292,6 +2290,7 @@
+ #include <config.h>
+@@ -2304,6 +2302,7 @@
  char *arch_name,
  char *fileName)
  {
@@ -21,7 +21,7 @@
      char message_buf[1024];
      mach_port_t ProjectBuilder_port;
      char *portName;
-@@ -2327,6 +2326,7 @@
+@@ -2339,6 +2338,7 @@
  	    NULL, 0,
  	    0,
  	    message_buf, strlen(message_buf) + 1);

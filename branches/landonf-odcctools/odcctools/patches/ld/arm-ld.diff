@@ -1,0 +1,149 @@
+--- ./layout.c.orig	2007-09-01 15:00:20.000000000 -0700
++++ ./layout.c	2007-09-01 15:01:24.000000000 -0700
+@@ -66,6 +66,7 @@
+ #include <mach/i386/thread_status.h>
+ #include <mach/hppa/thread_status.h>
+ #include <mach/sparc/thread_status.h>
++#include <mach/arm/thread_status.h>
+ #include <mach-o/nlist.h>
+ #include <mach-o/reloc.h>
+ #if defined(RLD) && !defined(SA_RLD) && !(defined(KLD) && defined(__STATIC__))
+@@ -156,6 +157,8 @@
+ static struct hp_pa_integer_thread_state hppa_integer_state = { 0 };
+ /* cputype == CPU_TYPE_SPARC, all subtypes */
+ static struct sparc_thread_state_regs sparc_state = { {0} };
++/* cputype == CPU_TYPE_ARM, all subtypes */
++static arm_thread_state_t arm = { 0 };
+ 
+ static void layout_segments(void);
+ static unsigned long next_vmaddr(
+@@ -197,6 +200,7 @@
+ 	memset(&powerpc,     '\0', sizeof(ppc_thread_state_t));
+ 	memset(&mc88000, '\0', sizeof(m88k_thread_state_grf_t));
+ 	memset(&intel386,'\0', sizeof(i386_thread_state_t));
++	memset(&arm, '\0', sizeof(arm_thread_state_t));
+ 	intel386.es = USER_DATA_SELECTOR;
+ 	intel386.ds = USER_DATA_SELECTOR;
+ 	intel386.ss = USER_DATA_SELECTOR;
+@@ -916,7 +920,8 @@
+ 			  (unsigned int)segalign);
+ 	    }
+ 	    else{
+-		segs_read_write_addr = segs_read_only_addr + 0x10000000;
++		segs_read_write_addr = segs_read_only_addr +
++		get_shared_region_sz_from_flag(&arch_flag);
+ 	    }
+ 	}
+ 	first_msg = merged_segments;
+@@ -1266,6 +1271,14 @@
+ 	      output_thread_info.state = &sparc_state;
+ 	      output_thread_info.thread_command.cmdsize += sizeof(long) *
+ 		SPARC_THREAD_STATE_REGS_COUNT;
++        } else if (arch_flag.cputype == CPU_TYPE_ARM) {
++            output_thread_info.flavor = ARM_THREAD_STATE;
++            output_thread_info.count = ARM_THREAD_STATE_COUNT;
++            output_thread_info.entry_point = &(arm.r15);
++            output_thread_info.stack_pointer = &(arm.r13);
++            output_thread_info.state = &arm;
++            output_thread_info.thread_command.cmdsize += sizeof(long) *
++                ARM_THREAD_STATE_COUNT;
+ 	    }
+ 	    else{
+ 		fatal("internal error: layout_segments() called with unknown "
+--- ./ld.c.orig	2007-09-01 15:00:20.000000000 -0700
++++ ./ld.c	2007-09-01 15:00:26.000000000 -0700
+@@ -117,6 +117,8 @@
+     { "ppc",    CPU_TYPE_POWERPC, CPU_SUBTYPE_POWERPC_ALL };
+ #elif __i386__
+     { "i386",   CPU_TYPE_I386,    CPU_SUBTYPE_I386_ALL };
++#elif __arm__
++    { "arm",    CPU_TYPE_ARM,     CPU_SUBTYPE_ARM_ALL };
+ #elif
+ #error "unsupported architecture for static KLD"
+ #endif
+@@ -2316,7 +2318,8 @@
+ 				seg_addr_table_entry->segs_read_write_addr;
+ 			if(segs_read_only_addr == 0 &&
+ 			   segs_read_write_addr == 0){
+-			    segs_read_write_addr = 0x10000000;
++			    segs_read_write_addr = get_shared_region_sz_from_flag(
++                    &arch_flag);
+ 			    warning("-segs_read_write_addr 0x0 ignored from "
+ 				    "segment address table: %s %s line %lu "
+ 				    "using -segs_read_write_addr 0x%x",
+@@ -2485,13 +2488,14 @@
+ 				    "-segs_read_only_addr 0x%x and "
+ 				    "-segs_read_write_addr 0x%x because "
+ 				    "LD_SPLITSEGS_NEW_LIBRARIES environment is "
+-				    "set",(unsigned int)seg1addr, 0,0x10000000);
++				    "set",(unsigned int)seg1addr, 0,
++                    get_shared_region_sz_from_flag(&arch_flag));
+ 			}
+ 			seg1addr_specified = FALSE;
+ 			seg1addr = 0;
+ 			segs_read_only_addr_specified = TRUE;
+ 			segs_read_only_addr = 0;
+-			segs_read_write_addr = 0x10000000;
++			segs_read_write_addr = get_shared_region_sz_from_flag(&arch_flag);
+ 		    }
+ 		    /*
+ 		     * Finally if this is not a split library then turn off
+--- ./sections.c.orig	2007-09-01 15:00:20.000000000 -0700
++++ ./sections.c	2007-09-01 15:00:26.000000000 -0700
+@@ -70,6 +70,7 @@
+ #include "m88k_reloc.h"
+ #include "hppa_reloc.h"
+ #include "sparc_reloc.h"
++#include "arm_reloc.h"
+ #include "sets.h"
+ #include "hash_string.h"
+ #include "layout.h"
+@@ -3633,6 +3634,8 @@
+ 			hppa_reloc(fake_contents, fake_relocs, &fake_map);
+ 		    else if(arch_flag.cputype == CPU_TYPE_SPARC)
+ 			sparc_reloc(fake_contents, fake_relocs, &fake_map);
++            else if(arch_flag.cputype == CPU_TYPE_ARM)
++            arm_reloc(fake_contents, fake_relocs, &fake_map, NULL, 0);
+ #ifndef RLD
+ 		    else if(arch_flag.cputype == CPU_TYPE_I860)
+ 			i860_reloc(fake_contents, fake_relocs, map);
+@@ -4013,6 +4016,8 @@
+ 	    hppa_reloc(contents, relocs, map);
+ 	else if(arch_flag.cputype == CPU_TYPE_SPARC)
+ 	    sparc_reloc(contents, relocs, map);
++    else if(arch_flag.cputype == CPU_TYPE_ARM)
++        arm_reloc(contents, relocs, map, NULL, 0);
+ #ifndef RLD
+ 	else if(arch_flag.cputype == CPU_TYPE_I860)
+ 	    i860_reloc(contents, relocs, map);
+@@ -5655,6 +5660,8 @@
+ 		generic_reloc(contents, relocs, map, FALSE, &refs, i);
+ 	    else if(arch_flag.cputype == CPU_TYPE_I386)
+ 		generic_reloc(contents, relocs, map, TRUE, &refs, i);
++        else if (arch_flag.cputype == CPU_TYPE_ARM)
++            arm_reloc(contents, relocs, map, &refs, i);
+ 	    else if(arch_flag.cputype == CPU_TYPE_MC88000 ||
+ 		    arch_flag.cputype == CPU_TYPE_HPPA ||
+ 		    arch_flag.cputype == CPU_TYPE_SPARC ||
+--- ./symbols.c.orig	2007-09-01 15:00:20.000000000 -0700
++++ ./symbols.c	2007-09-01 15:00:26.000000000 -0700
+@@ -6892,13 +6892,17 @@
+ 		    if(merged_symbol->definition_object->set_num != cur_set)
+ 			continue;
+ #endif /* RLD */
+-		    if(strip_level == STRIP_DYNAMIC_EXECUTABLE &&
++		    if ((strip_level == STRIP_DYNAMIC_EXECUTABLE &&
+ 		       (merged_symbol->nlist.n_desc & REFERENCED_DYNAMICALLY) !=
+-			REFERENCED_DYNAMICALLY)
++                    REFERENCED_DYNAMICALLY))
+ 			continue;
+ 		    if(dead_strip == TRUE && merged_symbol->live == FALSE)
+ 			continue;
+ 
++            if (strip_level == STRIP_DYNAMIC_EXECUTABLE &&
++                (merged_symbol->nlist.n_type & N_PEXT) == N_PEXT)
++                continue;
++
+ 		    /*
+ 		     * See if this is a defined private extern symbol (but not
+ 		     * still a common private extern symbol).

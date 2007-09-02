@@ -1,3 +1,7 @@
+2007-09-01  Landon Fuller <landonf@opendarwin.org>
+	* Import cctools-622.5
+	* Integrate arm support from the iphone-binutils project (trunk, r150)
+
 2006-09-11  Shantonu Sen  <ssen@opendarwin.org>
 
 	* Import cctools-622.3 and ld64-59.2

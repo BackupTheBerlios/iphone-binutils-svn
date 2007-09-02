@@ -56,7 +56,7 @@ OBJS = $(CFILES:.c=.o)
 
 default: as
 
-as: $(OBJS)
+as: $(GEN_FILES_$(ARCH)) $(OBJS)
 	$(CC) -o $@ $^ $(MYLINKFLAGS)
 
 install: as

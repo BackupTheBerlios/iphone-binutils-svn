@@ -1,0 +1,9 @@
+ARCH	=	arm
+
+CFILES_arm	=	army.c arm.c armop.c
+MYDEFS_arm	=	-DARM
+MYLIBS_arm	=	-lstuff
+GENFILES_arm	=	army.c army.h
+
+.y.c:
+	bison -v -o $@ -d $<

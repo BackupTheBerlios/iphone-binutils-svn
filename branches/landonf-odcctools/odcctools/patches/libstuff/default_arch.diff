@@ -1,5 +1,5 @@
---- get_arch_from_host.c.orig	2006-11-15 07:39:11.000000000 -0800
-+++ get_arch_from_host.c	2006-11-15 07:40:27.000000000 -0800
+--- ./get_arch_from_host.c.orig	2007-09-01 13:24:16.000000000 -0700
++++ ./get_arch_from_host.c	2007-09-01 13:24:22.000000000 -0700
 @@ -28,7 +28,7 @@
  #include "stuff/openstep_mach.h"
  #include "stuff/arch.h"

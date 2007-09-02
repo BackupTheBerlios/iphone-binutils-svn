@@ -1,5 +1,5 @@
 --- ./src/MachOReaderDylib.hpp.orig	2006-09-06 13:26:13.000000000 -0700
-+++ ./src/MachOReaderDylib.hpp	2006-09-12 13:37:21.000000000 -0700
++++ ./src/MachOReaderDylib.hpp	2007-09-01 13:24:22.000000000 -0700
 @@ -246,13 +246,13 @@
  			case LC_DYSYMTAB:
  				dynamicInfo = (macho_dysymtab_command<P>*)cmd;
@@ -17,7 +17,7 @@
  				if ( !options.fFlatNamespace ) {
  					const char* frameworkLeafName = ((macho_sub_umbrella_command<P>*)cmd)->sub_umbrella();
 --- ./src/MachOReaderRelocatable.hpp.orig	2006-09-06 13:32:03.000000000 -0700
-+++ ./src/MachOReaderRelocatable.hpp	2006-09-12 13:38:36.000000000 -0700
++++ ./src/MachOReaderRelocatable.hpp	2007-09-01 13:24:22.000000000 -0700
 @@ -1544,7 +1544,7 @@
  								// not associated with an atom, just copy
  								stab.string = symString;
