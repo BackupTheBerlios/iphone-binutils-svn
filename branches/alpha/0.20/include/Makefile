@@ -8,7 +8,7 @@ CarbonCore/%.h: CarbonCore/%.h.diff
 	cd CarbonCore && patch -p0 < $*.h.diff 
 
 clean:
-	rm -f CoreGraphics
+	rm -fr CoreGraphics
 	rm -f CarbonCore/MachineExceptions.h
 	rm -f CarbonCore/fp.h
 
