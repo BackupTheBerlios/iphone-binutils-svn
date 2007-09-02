@@ -4,7 +4,7 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSString.h"
+#import <Foundation/Foundation.h>
 
 @interface NSString (UIWebViewAdditions)
 - (id)_uikit_stringByTrimmingWhitespaceAndNewlines;	// IMP=0x324367f4

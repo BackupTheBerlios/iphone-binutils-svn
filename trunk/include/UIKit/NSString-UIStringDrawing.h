@@ -4,7 +4,7 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSString.h"
+#import <Foundation/Foundation.h>
 
 @interface NSString (UIStringDrawing)
 - (void)clearStringDrawingOrigin;	// IMP=0x323be2f0
