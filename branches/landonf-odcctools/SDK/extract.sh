@@ -2,7 +2,7 @@
 
 set -e
 
-DISTDIR=arm-sdk
+DISTDIR=arm-apple-darwin
 SDKROOT=/Developer/SDKs/MacOSX10.4u.sdk
 FRAMEWORK_ROOT=${SDKROOT}/System/Library/Frameworks
 
