@@ -1,0 +1,93 @@
+--- _limits.h	2006-09-11 19:16:33.000000000 -0700
++++ _limits.h	2007-09-01 11:55:38.000000000 -0700
+@@ -26,6 +26,8 @@
+ #include "ppc/_limits.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/_limits.h"
++#elif defined(__arm__)
++#include "arm/_limits.h"
+ #else
+ #error architecture not supported
+ #endif
+--- _types.h	2006-09-11 19:16:33.000000000 -0700
++++ _types.h	2007-09-01 11:55:38.000000000 -0700
+@@ -26,6 +26,8 @@
+ #include "ppc/_types.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/_types.h"
++#elif defined(__arm__)
++#include <arm/_types.h>
+ #else
+ #error architecture not supported
+ #endif
+--- endian.h	2006-09-11 19:16:33.000000000 -0700
++++ endian.h	2007-09-01 11:55:38.000000000 -0700
+@@ -30,6 +30,8 @@
+ #include "ppc/endian.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/endian.h"
++#elif defined(__arm__)
++#include <arm/endian.h>
+ #else
+ #error architecture not supported
+ #endif
+--- limits.h	2006-09-11 15:38:37.000000000 -0700
++++ limits.h	2007-09-01 11:55:38.000000000 -0700
+@@ -6,6 +6,8 @@
+ #include <ppc/limits.h>
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include <i386/limits.h>
++#elif defined (__arm__)
++#include <arm/limits.h>
+ #else
+ #error architecture not supported
+ #endif
+--- param.h	2006-09-11 19:16:33.000000000 -0700
++++ param.h	2007-09-01 11:55:38.000000000 -0700
+@@ -30,6 +30,8 @@
+ #include "ppc/param.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/param.h"
++#elif defined (__arm__)
++#include "arm/param.h"
+ #else
+ #error architecture not supported
+ #endif
+--- setjmp.h	2006-09-11 19:16:33.000000000 -0700
++++ setjmp.h	2007-09-01 11:55:38.000000000 -0700
+@@ -26,11 +26,13 @@
+ 
+ 
+ #if defined (__ppc__) || defined (__ppc64__)
+ #include "ppc/setjmp.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/setjmp.h"
++#elif defined(__arm__)
++#include "arm/setjmp.h"
+ #else
+ #error architecture not supported
+ #endif
+ 
+ 
+--- signal.h	2006-09-11 19:16:33.000000000 -0700
++++ signal.h	2007-09-01 11:55:38.000000000 -0700
+@@ -27,6 +27,8 @@
+ #include "ppc/signal.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/signal.h"
++#elif defined (__arm__)
++#include "arm/signal.h"
+ #else
+ #error architecture not supported
+ #endif
+--- types.h	2006-09-11 19:16:33.000000000 -0700
++++ types.h	2007-09-01 11:55:38.000000000 -0700
+@@ -30,6 +30,8 @@
+ #include "ppc/types.h"
+ #elif defined (__i386__) || defined(__x86_64__)
+ #include "i386/types.h"
++#elif defined(__arm__)
++#include <arm/types.h>
+ #else
+ #error architecture not supported
+ #endif
