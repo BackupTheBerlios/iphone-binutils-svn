@@ -21,8 +21,13 @@ while [ $# -gt 0 ]; do
 	    shift
 	    UPDATEPATCH=1
 	    ;;
+	--heavenly)
+	    shift
+	    HEAVENLY=$1
+	    shift
+	    ;;
 	--help)
-	    echo "Usage: $0 [--help] [--distfile] [--updatepatch]" 1>&2
+	    echo "Usage: $0 [--help] [--distfile] [--updatepatch] [--heavenly dir]" 1>&2
 	    exit 0
 	    ;;
 	*)
@@ -31,7 +36,15 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+if [ "$HEAVENLY" == "" ]; then
+    echo "Missing required --heavenly option"
+    exit 1
+fi
 
+if [ ! -d "$HEAVENLY" ]; then
+    echo "$HEAVENLY does not exist"
+    exit 1
+fi
 
 if [ "`tar --help | grep -- --strip-components 2> /dev/null`" ]; then
     TARSTRIP=--strip-components
@@ -68,6 +81,9 @@ tar cf - -C "$FRAMEWORK_ROOT/CoreServices.framework/Frameworks/CarbonCore.framew
 # CoreGraphics
 mkdir -p ${DISTDIR}/include/CoreGraphics
 tar cf - -C "$FRAMEWORK_ROOT/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Headers" . | tar xf - -C ${DISTDIR}/include/CoreGraphics
+
+# Standard libraries
+tar cf - -C "$HEAVENLY/usr" lib | tar xf - -C ${DISTDIR}
 
 set +e
 
