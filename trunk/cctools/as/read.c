@@ -1137,19 +1137,24 @@ char *buffer)
 		continue;
 	    }
 
-	    /* local label  ("4:") */
-	    if(isdigit(c)){
-		digit_value = c - '0';
-		if(*input_line_pointer++ == ':' ){
-		    local_colon(digit_value);
-		}
-		else{
-		    as_bad("Spurious digit %d.", digit_value);
-		    input_line_pointer--;
-		    ignore_rest_of_line();
-		}
+	    /* local label  ("4:")
+         * iPhone binutils local - allow more than 10 local labels */
+        char *ptr = input_line_pointer - 1;
+        int local_label_no = 0;
+        while (isdigit(*ptr)) {
+            local_label_no = local_label_no * 10 + ((*ptr) - '0');
+            ptr++;
+        }
+        if (*ptr == ':') {
+            input_line_pointer = ptr + 1;
+            local_colon(local_label_no);
+            continue;
+        }
+
+        as_bad("Spurious digit %d.", digit_value);
+        input_line_pointer--;
+        ignore_rest_of_line();
 		continue;
-	    }
 
 	    /*
 	     * The only full line comment that should make it here is the first
