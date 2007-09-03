@@ -26,5 +26,10 @@
 foo r1
 bar r2
 baz e=r1,a=r3,b=r4,d=r5,c=r6
- 
+baz r3,r4,r6, r5,r1
+boo
+boo r4 
+wibble e=r1,a=,b=r4,d=r5,c=r6
+wibble ,r1,,, 
+
 

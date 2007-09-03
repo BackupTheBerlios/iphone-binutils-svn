@@ -4108,11 +4108,13 @@ int value)
 
         macro_info->new_style = macro_info->arg_count > 0;
 
+#if 0
         printf("macro %s:\n", macro_info->name);
         int i;
         for (i = 0; i < macro_info->arg_count; i++)
             printf("arg %d: name %s, default %s\n", i,
                 macro_info->args[i]->name, macro_info->args[i]->default_value);
+#endif
 
 #if 0
     int c;
@@ -4156,8 +4158,10 @@ int value)
 	}
 	else{
 	    obstack_1grow(&macros, '\0');
-	    errorString = hash_insert(ma_hash, macro_name,
-				      obstack_finish(&macros));
+        
+        macro_info->contents = obstack_finish(&macros);
+
+	    errorString = hash_insert(ma_hash, macro_name, macro_info);
 	    if(errorString != NULL && *errorString)
 		as_bad("The macro named \"%s\" is already defined",
 			macro_name);
@@ -4249,19 +4253,22 @@ struct macro_info *info)
         ptr = input_line_pointer;
 
         /* Ok, now parse each argument. */
-        while (!is_end_of_line(*input_line_pointer)) {
-            input_line_pointer++;
-
+        while (1) {
             if (is_end_of_line(*input_line_pointer) || *input_line_pointer ==
                 ',') {
                 len = input_line_pointer - ptr;
                 arg_buf = malloc(len + 1);
-                strncpy(arg_buf, ptr, len);
+                if (len)
+                    strncpy(arg_buf, ptr, len);
                 arg_buf[len] = '\0';
+
+#if 0
+                printf("arg is '%s'\n", arg_buf);
+#endif
 
                 if (named_invocation) {
                     arg_val_ptr = arg_buf;
-                    strsep(&arg_val_ptr, '=');
+                    strsep(&arg_val_ptr, "=");
                     if (arg_val_ptr == NULL) {
                         as_bad("In a named-argument-style macro invocation, "
                             "all of the arguments must be specified in the "
@@ -4291,14 +4298,15 @@ struct macro_info *info)
                     arguments[index++] = arg_buf; 
                 }
 
-                if (input_line_pointer == ',') {
+                if (*input_line_pointer == ',') {
                     input_line_pointer++;
                     while (is_ignorable_ws(*input_line_pointer))
                         input_line_pointer++; 
                     ptr = input_line_pointer;
                 } else  /* must be end of line */
                     break;
-            }
+            } else
+                input_line_pointer++;
         }
 
         nargs = info->arg_count;
@@ -4358,30 +4366,73 @@ struct macro_info *info)
 	 * substituted
 	 */
 	obstack_1grow(&macros, '\n');
-	while((c = *macro_contents++)){
-	    if(c == '$'){
-            if(*macro_contents == '$'){
-                macro_contents++;
-            }
-            else if((*macro_contents >= '0') && (*macro_contents <= '9')){
-                index = *macro_contents++ - '0';
-                last_input_line_pointer = macro_contents;
-                macro_contents = arguments[index];
-                if(macro_contents){
-                while ((c = * macro_contents ++))
-                obstack_1grow (&macros, c);
+
+    if (info->new_style) {
+        while((c = *macro_contents++)){
+            if (c == '\\') {
+                if (*macro_contents == '\\')
+                    macro_contents++;
+                else {
+                    ptr = macro_contents;
+                    while (is_part_of_name(*ptr))
+                        ptr++;
+
+                    index = -1;
+                    for (i = 0; i < info->arg_count; i++) {
+                        if (!strncmp(macro_contents, info->args[i]->name,
+                            ptr - macro_contents)) {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    macro_contents = ptr;
+
+                    if (index == -1)
+                        as_bad("Undeclared macro argument");
+                    else {
+                        last_input_line_pointer = macro_contents;
+                        macro_contents = arguments[index];
+                        if (macro_contents) {
+                            while ((c = *(macro_contents++)))
+                                obstack_1grow(&macros, c);
+                        }
+                        macro_contents = last_input_line_pointer;
+                        continue;
+                    }
                 }
-                macro_contents = last_input_line_pointer;
-                continue;
             }
-            else if (*macro_contents == 'n'){
-                macro_contents++ ;
-                obstack_1grow(&macros, nargs + '0');
-                continue;
+
+            obstack_1grow (&macros, c);
+        }
+    } else {
+        while((c = *macro_contents++)){
+            if(c == '$'){
+                if(*macro_contents == '$'){
+                    macro_contents++;
+                }
+                else if((*macro_contents >= '0') && (*macro_contents <= '9')){
+                    index = *macro_contents++ - '0';
+                    last_input_line_pointer = macro_contents;
+                    macro_contents = arguments[index];
+                    if(macro_contents){
+                    while ((c = * macro_contents ++))
+                    obstack_1grow (&macros, c);
+                    }
+                    macro_contents = last_input_line_pointer;
+                    continue;
+                }
+                else if (*macro_contents == 'n'){
+                    macro_contents++ ;
+                    obstack_1grow(&macros, nargs + '0');
+                    continue;
+                }
             }
-	    }
-	    obstack_1grow (&macros, c);
-	}
+            obstack_1grow (&macros, c);
+        }
+    }
+
+
 	obstack_1grow (&macros, '\n');
 	obstack_1grow (&macros, '\0');
 	last_buffer_limit = buffer_limit;
@@ -4390,9 +4441,10 @@ struct macro_info *info)
 	buffer_limit = obstack_next_free (&macros) - 1;
 	buffer = obstack_finish (&macros);
 	count_lines = FALSE;
-	/*
+
+#if 0
 	printf("expanded macro: %s", buffer + 1);
-	*/
+#endif
 #ifdef PPC
 	if(flagseen[(int)'p'] == TRUE)
 	    ppcasm_parse_a_buffer(buffer + 1);
