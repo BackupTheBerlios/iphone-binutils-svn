@@ -354,6 +354,14 @@ int yylex()
          * when by themselves (e.g. in '..., -r1'). If they are by themselves,
          * strtoll(3) will fail and we will catch them below. */
         if (ptr != input_line_pointer) {
+            /* If 'f' or 'b' immediately follows, it's a local label, not a
+             * number. Hand it off to the expression parser. */
+            if (*ptr == 'f' || *ptr == 'b') {
+                yylval.eval = calloc(sizeof(expressionS), 1);
+                expression(yylval.eval);
+                return OPRD_EXP;
+            }
+
             if (n < 0)
                 yylval.ival = (int)n;
             else
