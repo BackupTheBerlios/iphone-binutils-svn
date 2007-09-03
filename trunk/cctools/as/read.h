@@ -103,6 +103,10 @@ extern void s_macro(
     int value);
 extern void s_endmacro(
     int value);
+extern void s_rept(
+    int value);
+extern void s_endr(
+    int value);
 extern void big_cons(
     int nbytes);
 #endif /* _READ_H_ */

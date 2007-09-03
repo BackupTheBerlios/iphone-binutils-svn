@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GAS; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* iPhone binutils additions by Patrick Walton <pcwalton@uchicago.edu>. */
+
 #define MASK_CHAR (0xFF)	/* If your chars aren't 8 bits, you will
 				   change this a bit.  But then, GNU isnt
 				   spozed to run on your machine anyway.
@@ -189,6 +191,10 @@ static int macros_on = TRUE;	/* .macros_on and .macros_off toggles this to
 static void expand_macro(struct macro_info *info);
 static void macro_begin(void);
 
+/* iPhone binutils local: "repeat" command recording */
+int rept_recording = 0;
+char *rept_record_start;
+int rept_times = 0;
 
 /*
  * The .dump and .load feature is implemented with these variables and
@@ -510,6 +516,8 @@ static const pseudo_typeS pseudo_table[] = {
   { "load",	s_load,		0	},
   { "subsections_via_symbols",	s_subsections_via_symbols,	0	},
   { "machine",	s_machine,	0	},
+  { "rept", s_rept, 0       },
+  { "endr", s_endr, 0       },
   { NULL }	/* end sentinel */
 };
 
@@ -4169,6 +4177,71 @@ int value)
 	}
 }
 
+void s_rept(int value)
+{
+    if (rept_recording)
+        as_bad("Nested repetition ('.rept') isn't allowed");
+    else {
+        rept_times = strtol(input_line_pointer, &input_line_pointer, 10);
+
+        rept_recording = 1;
+        rept_record_start = input_line_pointer;
+    }
+
+    totally_ignore_line(); 
+}
+
+void s_endr(int value)
+{
+    char *buffer, *last_buffer_limit, *last_input_line_pointer, *new_buf, *ptr;
+    int i, last_count_lines, len;
+
+    if (!rept_recording) {
+        as_bad("'.endr' found, but I wasn't instructed to repeat anything");
+        return;
+    }
+
+    ptr = input_line_pointer;
+    while (*ptr != '.')
+        ptr--;          /* back up to before this op so it isn't parsed */
+    ptr--;
+
+    len = ptr - rept_record_start;
+    new_buf = malloc(len + 2);
+    strncpy(new_buf, rept_record_start, len);
+    new_buf[len] = '\n';
+    new_buf[len+1] = '\0';
+
+#if 0
+    printf("new buf is: %s\n", new_buf);
+#endif
+
+	last_buffer_limit = buffer_limit;
+	last_count_lines = count_lines;
+	last_input_line_pointer = input_line_pointer;
+
+    /* Note: we start at 1 because one instance will have already been
+     * assembled at this point. */
+    for (i = 1; i < rept_times; i++) {
+        buffer_limit = new_buf + len + 1;
+        buffer = new_buf;
+        count_lines = FALSE;
+
+    #ifdef PPC
+        if(flagseen[(int)'p'] == TRUE)
+            ppcasm_parse_a_buffer(buffer);
+        else
+    #endif /* PPC */
+            parse_a_buffer(buffer);
+    }
+
+	buffer_limit = last_buffer_limit;
+	count_lines = last_count_lines;
+	input_line_pointer = last_input_line_pointer;
+
+    rept_recording = 0;
+}
+
 /*
  * macro_begin() initializes macros.
  */
@@ -4202,6 +4275,8 @@ char *char_pointer)
 
 /*
  * expand_macro() is called to expand macros.
+ *
+ * iPhone binutils local: lots of additions to deal with GAS 2.17-style macros. 
  */
 static
 void
@@ -4255,7 +4330,7 @@ struct macro_info *info)
         /* Ok, now parse each argument. */
         while (1) {
             if (is_end_of_line(*input_line_pointer) || *input_line_pointer ==
-                ',') {
+                ',' || is_ignorable_ws(*input_line_pointer)) {
                 len = input_line_pointer - ptr;
                 arg_buf = malloc(len + 1);
                 if (len)
@@ -4298,7 +4373,8 @@ struct macro_info *info)
                     arguments[index++] = arg_buf; 
                 }
 
-                if (*input_line_pointer == ',') {
+                if (*input_line_pointer == ',' || is_ignorable_ws(
+                    *input_line_pointer)) {
                     input_line_pointer++;
                     while (is_ignorable_ws(*input_line_pointer))
                         input_line_pointer++; 
@@ -4442,9 +4518,7 @@ struct macro_info *info)
 	buffer = obstack_finish (&macros);
 	count_lines = FALSE;
 
-#if 0
 	printf("expanded macro: %s", buffer + 1);
-#endif
 #ifdef PPC
 	if(flagseen[(int)'p'] == TRUE)
 	    ppcasm_parse_a_buffer(buffer + 1);

@@ -20,8 +20,15 @@
 
 @ new-style macro with 5 args and some defaults
 .macro wibble a=r0,b,c=r3 d=r5,e=r9
-    add \a,\d,\c
+    add \a, \d, \c, lsl \e
+    add \a, \d, \c, lsl\e
 .endmacro
+
+.macro wobble a=r0
+.rept 12
+    add \a,\a,#50
+.endr
+.endm
 
 .text
 nop
@@ -29,7 +36,13 @@ nop
 nop
 nop
 
+wobble
 
+.rept 5
+add r0,r0,#1
+.endr
+
+wibble r0 r1 r2 r3 r4
 foo r1
 bar r2
 baz e=r1,a=r3,b=r4,d=r5,c=r6

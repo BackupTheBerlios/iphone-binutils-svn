@@ -313,12 +313,13 @@ int yylex()
     struct arm_op_info *info;
     struct arm_reserved_word_info *rinfo, *rinfo2;
 
+    /* eat initial whitespace */
+    while (isspace(*input_line_pointer) && *input_line_pointer != '\n')
+        input_line_pointer++;
+
     ptr = input_line_pointer;
     if (!*ptr)
         return 0;
-
-    while (isspace(*input_line_pointer) && *input_line_pointer != '\n')
-        input_line_pointer++;
 
     if (parsing_op) {
         while (isalnum(*ptr))
