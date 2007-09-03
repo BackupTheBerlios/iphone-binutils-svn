@@ -52,9 +52,9 @@ boo r4
 wibble e=r1,a=,b=r4,d=r5,c=r6
 wibble ,r1,,, 
 
-    b 1f
-1:  mov r0,#42
+    b 14f
+14: mov r0,#42
     mov r0,#19
     mov r4,#30
-    b 1b
+    b 14b
 
