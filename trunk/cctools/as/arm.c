@@ -623,6 +623,13 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             fill_reloc_value(buf, (unsigned int)n, 0x00000fff); 
             break;
 
+        case ARM_RELOC_SHIFT_IMM:
+            if (val == 32)
+                val = 0;
+            n = ((unsigned int)val) & 31;
+            fill_reloc_value(buf, n << 7, 31 << 7);
+            break;
+
         default:
             fprintf(stderr, "reloc type %d\n", fixP->fx_r_type);
             as_fatal("md_number_to_imm: reloc unimplemented");

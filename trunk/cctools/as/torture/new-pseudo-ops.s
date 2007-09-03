@@ -36,6 +36,12 @@ nop
 nop
 nop
 
+.set shifter, 31
+.rept 32
+mov r1,r2,lsl #shifter
+.set shifter, shifter - 1
+.endr
+
 wobble
 
 .rept 5

@@ -215,6 +215,11 @@ shifter_operand_lsl_arg:
                 as_bad("immediate value (%d) too large", $2);
             $$ = (n << 7); 
         }
+    | '#' expr
+        {
+            register_reloc_type(ARM_RELOC_SHIFT_IMM, 4, 0);
+            $$ = 0;
+        }
     | OPRD_REG  { $$ = ((1 << 4) | ($1 << 8)); }
     ;
 
@@ -309,6 +314,11 @@ maybe_am_lsl_subclause:
             if (n >= (1 << 5))
                 as_bad("immediate value (%d) too large", $4);
             $$ = ($2 | (n << 7));
+        }
+    | ',' OPRD_LSL_LIKE '#' expr
+        {
+            register_reloc_type(ARM_RELOC_SHIFT_IMM, 4, 0);
+            $$ = $2;
         }
     ;
 
