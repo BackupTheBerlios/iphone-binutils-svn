@@ -1,5 +1,6 @@
 /* ----------------------------------------------------------------------------
- *   ARM1176/iPhone support for Apple GAS.
+ *   ARM1176/iPhone support for Apple GAS.                 v0.20 - 09/03/2007
+ *
  *   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> and
  *   contributors but freely redistributable under the terms of the GNU
  *   General Public License v2.
@@ -316,6 +317,9 @@ int yylex()
     if (!*ptr)
         return 0;
 
+    while (isspace(*input_line_pointer) && *input_line_pointer != '\n')
+        input_line_pointer++;
+
     if (parsing_op) {
         while (isalnum(*ptr))
             *ptr++;
@@ -439,6 +443,8 @@ int yylex()
         /* The "LSLK hack": constructions like "asl r0" are collapsed by
          * the dumb GAS parser into "aslr0". We need to parse these as their
          * constituent reserved words, not as one identifier. */
+        /* FIXME: this shit is deprecated now that we've fixed app: remove
+         * this */
         if (sz == 5 || sz == 6) {
             tok2 = strdup(tok + 3);
             tok[3] = '\0';

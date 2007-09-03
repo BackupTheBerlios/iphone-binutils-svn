@@ -4035,6 +4035,16 @@ int value)
 	demand_empty_rest_of_line();
 }
 
+int is_eol(char c)
+{
+    return (c == '\r' || c == '\n' || c == '\0');
+}
+
+int is_ignorable_ws(char c)
+{
+    return (c == ' ' || c == '\t');
+}
+
 /*
  * s_macro() implements the pseudo op:
  *	.macro macro_name
@@ -4047,25 +4057,18 @@ s_macro(
 int value)
 {
     char *ptr;
-    size_t len;
+    int len;
     struct macro_arg *arg;
 
 	if(macro_name)
 	    as_bad("Can't define a macro inside another macro definition");
 	else{
-        while (isspace(*input_line_pointer) && *input_line_pointer)
-            input_line_pointer++;
-        input_line_pointer++;
-        while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
-            input_line_pointer++;
-        input_line_pointer--;
-
-        while (isspace(*input_line_pointer) && *input_line_pointer)
+        while (is_ignorable_ws(*input_line_pointer))
             input_line_pointer++;
         ptr = input_line_pointer;
-        while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
+        while (is_part_of_name(*input_line_pointer))
             input_line_pointer++;
-        len = input_line_pointer - ptr - 1;
+        len = input_line_pointer - ptr;
         macro_name = malloc(len + 1);
         strncpy(macro_name, ptr, len);
         macro_name[len] = '\0';
@@ -4079,13 +4082,14 @@ int value)
 
         /* Grab the arguments. */
         while (1) {
-            while ((isspace(*input_line_pointer) || *input_line_pointer == ',')
-                && *input_line_pointer)
+            while (is_ignorable_ws(*input_line_pointer) || *input_line_pointer
+                == ',')
                 input_line_pointer++;
             ptr = input_line_pointer;
-            while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
+            while (is_part_of_name(*input_line_pointer) || *input_line_pointer
+                == '=')
                 input_line_pointer++;
-            len = input_line_pointer - ptr - 1;
+            len = input_line_pointer - ptr;
 
             if (len <= 0)
                 break;
@@ -4096,10 +4100,19 @@ int value)
             arg->default_value = arg->name;
             strsep(&(arg->default_value), "=");
 
+            if (!(arg->default_value))
+                arg->default_value = "";
+
             macro_info->args[(macro_info->arg_count)++] = arg;
         }
 
         macro_info->new_style = macro_info->arg_count > 0;
+
+        printf("macro %s:\n", macro_info->name);
+        int i;
+        for (i = 0; i < macro_info->arg_count; i++)
+            printf("arg %d: name %s, default %s\n", i,
+                macro_info->args[i]->name, macro_info->args[i]->default_value);
 
 #if 0
     int c;
