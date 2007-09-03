@@ -161,17 +161,32 @@ static int if_depth = 0;
  * Assembler macros are implemented with these variables and functions.
  */
 #define MAX_MACRO_DEPTH 20
+
+struct macro_arg {
+    char *name;
+    char *default_value;
+};
+
+struct macro_info {
+    char *name;
+    char *contents;
+    int new_style;
+    int arg_count;
+    struct macro_arg **args;
+};
+
 static int macro_depth = 0;
 static struct hash_control
 	*ma_hash = NULL;	/* use before set up: NULL-> address error */
 static struct obstack macros;	/* obstack for macro text */
 static char *macro_name = NULL;	/* name of macro we are defining */
+static struct macro_info *macro_info;   /* info re. macro we are defining */
 static int count_lines = TRUE;	/* turns line number counting on and off */
 static int macros_on = TRUE;	/* .macros_on and .macros_off toggles this to
 				   allow macros to be turned off, which allows
 				   macros to override a machine instruction and
 				   still use it. */
-static void expand_macro(char *macro_contents);
+static void expand_macro(struct macro_info *info);
 static void macro_begin(void);
 
 
@@ -484,6 +499,7 @@ static const pseudo_typeS pseudo_table[] = {
   { "include",	s_include,	0	},
   { "macro",	s_macro,	0	},
   { "endmacro",	s_endmacro,	0	},
+  { "endm",	s_endmacro,	0	},  /* GAS 2.17 compatibility */
   { "macros_on",s_macros_on,	0	},
   { "macros_off",s_macros_off,	0	},
   { "if",	s_if,		0	},
@@ -845,7 +861,7 @@ char *buffer)
 			   used only for macro expansion */
     pseudo_typeS *pop;	/* pointer to a pseudo op stucture returned by
 			   hash_find(po_hash, s+1) to determine if it is one */
-    char *the_macro;	/* pointer to a macro name returned by
+    struct macro_info *the_macro;	/* pointer to a macro name returned by
 			   hash_find(ma_hash, s) to determine if it is one */
     int digit_value;	/* the value of a digit label as an integer, 1: == 1 */
 
@@ -4023,32 +4039,90 @@ int value)
  * s_macro() implements the pseudo op:
  *	.macro macro_name
  * that defines a macro.
+ *
+ * iPhone binutils local: support the GAS 2.17-style macro definitions
  */
 void
 s_macro(
 int value)
 {
-    int c;
-    pseudo_typeS *pop;
+    char *ptr;
+    size_t len;
+    struct macro_arg *arg;
 
 	if(macro_name)
 	    as_bad("Can't define a macro inside another macro definition");
 	else{
-	    SKIP_WHITESPACE();
+        while (isspace(*input_line_pointer) && *input_line_pointer)
+            input_line_pointer++;
+        input_line_pointer++;
+        while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
+            input_line_pointer++;
+        input_line_pointer--;
+
+        while (isspace(*input_line_pointer) && *input_line_pointer)
+            input_line_pointer++;
+        ptr = input_line_pointer;
+        while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
+            input_line_pointer++;
+        len = input_line_pointer - ptr - 1;
+        macro_name = malloc(len + 1);
+        strncpy(macro_name, ptr, len);
+        macro_name[len] = '\0';
+
+        macro_info = (struct macro_info *)malloc(sizeof(struct macro_info));
+        macro_info->name = macro_name;
+        macro_info->contents = NULL;
+        macro_info->arg_count = 0;
+        macro_info->args = (struct macro_arg **)malloc(sizeof(struct macro_arg
+            *) * 32);   /* TODO: don't have a hard arg limit */
+
+        /* Grab the arguments. */
+        while (1) {
+            while ((isspace(*input_line_pointer) || *input_line_pointer == ',')
+                && *input_line_pointer)
+                input_line_pointer++;
+            ptr = input_line_pointer;
+            while (is_part_of_name(*input_line_pointer) && *input_line_pointer)
+                input_line_pointer++;
+            len = input_line_pointer - ptr - 1;
+
+            if (len <= 0)
+                break;
+
+            arg = (struct macro_arg *)malloc(sizeof(struct macro_arg));
+            arg->name = malloc(len + 1);
+            strncpy(arg->name, ptr, len);
+            arg->default_value = arg->name;
+            strsep(&(arg->default_value), "=");
+
+            macro_info->args[(macro_info->arg_count)++] = arg;
+        }
+
+        macro_info->new_style = macro_info->arg_count > 0;
+
+#if 0
+    int c;
+    pseudo_typeS *pop;
+
+        *input_line_pointer++;
+
 	    while(is_part_of_name(c = *input_line_pointer ++))
-		obstack_1grow (&macros, c);
+            obstack_1grow (&macros, c);
 	    obstack_1grow(&macros, '\0');
 	    --input_line_pointer;
 	    macro_name = obstack_finish(&macros);
 	    if(macro_name == "")
-		as_bad("Missing name of macro");
+            as_bad("Missing name of macro");
 	    if(*macro_name == '.'){
-		pop = (pseudo_typeS *)hash_find(po_hash, macro_name + 1);
-		if(pop != NULL)
-		    as_bad("Pseudo-op name: %s can't be a macro name",
+            pop = (pseudo_typeS *)hash_find(po_hash, macro_name + 1);
+            if(pop != NULL)
+                as_bad("Pseudo-op name: %s can't be a macro name",
 			    macro_name);
 	    }
+#endif
 	}
+
 	totally_ignore_line();
 }
 
@@ -4115,8 +4189,9 @@ char *char_pointer)
 static
 void
 expand_macro(
-char *macro_contents)
+struct macro_info *info)
 {
+    char *macro_contents;
     char *buffer;
     char c;
     int index, nargs;
@@ -4124,6 +4199,8 @@ char *macro_contents)
     int last_count_lines;
     char *last_input_line_pointer;
     char *arguments [10]; /* at most 10 arguments, each is substituted */
+
+    macro_contents = info->contents;
 
 	if(macro_depth >= MAX_MACRO_DEPTH)
 	   as_fatal("You can't nest macros more than %d levels deep",
