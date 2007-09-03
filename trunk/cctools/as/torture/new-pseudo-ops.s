@@ -23,3 +23,8 @@
     add \a,\d,\c
 .endmacro
 
+foo r1
+bar r2
+baz e=r1,a=r3,b=r4,d=r5,c=r6
+ 
+

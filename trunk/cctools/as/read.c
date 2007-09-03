@@ -4206,10 +4206,12 @@ struct macro_info *info)
 {
     char *macro_contents;
     char *buffer;
+    char *ptr, *arg_buf, *arg_val_ptr;
     char c;
     int index, nargs;
     char *last_buffer_limit;
     int last_count_lines;
+    int named_invocation, len, i, which_arg;
     char *last_input_line_pointer;
     char *arguments [10]; /* at most 10 arguments, each is substituted */
 
@@ -4222,48 +4224,135 @@ struct macro_info *info)
 
 	/* copy each argument to a object in the macro obstack */
 	nargs = 0;
-	for(index = 0; index < 10; index ++){
-	    if(*input_line_pointer == ' ')
-		++input_line_pointer;
-	    know(*input_line_pointer != ' ');
-	    c = *input_line_pointer;
-	    if(is_end_of_line(c))
-		arguments[index] = NULL;
-	    else{
-		int parenthesis_depth = 0;
-		do{
-		    c = *input_line_pointer++;
-		    if(parenthesis_depth){
-			if(c == ')')
-			    parenthesis_depth --;
-		    }
-		    else{
-			if(c == '(')
-			    parenthesis_depth ++;
-			else
-			    if(is_end_of_line(c) ||
-			       (c == ' ') || (c == ','))
-			    break;
-		    }
-		    know(c != '\0');
-		    if(is_end_of_line(c))
-			as_bad("mismatched parenthesis");
-		    obstack_1grow(&macros, c);
-		}while(1);
-		obstack_1grow(&macros, '\0');
-		arguments[index] = obstack_finish(&macros);
-		nargs++;
-		if(is_end_of_line(c))
-		    --input_line_pointer;
-		else if(c == ' ')
-		    if(*input_line_pointer == ',')
-			input_line_pointer++;
-	    }
-	}
-	if(!is_end_of_line(c)){
-	    as_bad("More than 10 arguments not allowed for macros");
-	    ignore_rest_of_line();
-	}
+
+    memset(arguments, '\0', sizeof(char *) * 10);
+
+    /* iPhone binutils new: parse new-style arguments */
+    if (info->new_style) {
+        /* First, determine if it's a named-argument style invocation or a
+         * normal invocation. The presence of '=' should be good enough to
+         * determine which it is. */
+        named_invocation = 0;
+        ptr = input_line_pointer;
+        while (!is_end_of_line(*ptr)) {
+            if (*ptr == '=') {
+                named_invocation = 1;
+                break;
+            }
+            ptr++;
+        }
+
+        index = 0;
+
+        while (is_ignorable_ws(*input_line_pointer))
+            input_line_pointer++; 
+        ptr = input_line_pointer;
+
+        /* Ok, now parse each argument. */
+        while (!is_end_of_line(*input_line_pointer)) {
+            input_line_pointer++;
+
+            if (is_end_of_line(*input_line_pointer) || *input_line_pointer ==
+                ',') {
+                len = input_line_pointer - ptr;
+                arg_buf = malloc(len + 1);
+                strncpy(arg_buf, ptr, len);
+                arg_buf[len] = '\0';
+
+                if (named_invocation) {
+                    arg_val_ptr = arg_buf;
+                    strsep(&arg_val_ptr, '=');
+                    if (arg_val_ptr == NULL) {
+                        as_bad("In a named-argument-style macro invocation, "
+                            "all of the arguments must be specified in the "
+                            "named-argument style, but one or more weren't");
+                        break;
+                    }
+
+                    /* We've parsed it fine, now just find which argument the
+                     * user meant. */
+                    which_arg = -1;
+                    for (i = 0; i < info->arg_count; i++) {
+                        if (!strcmp(arg_buf, info->args[i]->name)) {
+                            which_arg = i;
+                            break;
+                        }
+                    }
+
+                    if (which_arg == -1) {
+                        as_bad("'%s' doesn't name an argument of the macro "
+                            "'%s'", arg_buf, info->name);
+                        break;
+                    }
+
+                    arguments[which_arg] = arg_val_ptr; 
+                } else {
+                    /* If not a named invocation, it's simple. */
+                    arguments[index++] = arg_buf; 
+                }
+
+                if (input_line_pointer == ',') {
+                    input_line_pointer++;
+                    while (is_ignorable_ws(*input_line_pointer))
+                        input_line_pointer++; 
+                    ptr = input_line_pointer;
+                } else  /* must be end of line */
+                    break;
+            }
+        }
+
+        nargs = info->arg_count;
+
+        /* Fill in blank args with default values. */
+        for (i = 0; i < nargs; i++)
+            if (arguments[i] == NULL || arguments[i][0] == '\0')
+                arguments[i] = info->args[i]->default_value;
+    } else {
+        /* Fall back to the old-style arguments - note that it doesn't matter
+         * which we use for a zero-argument macro. */ 
+        for(index = 0; index < 10; index ++){
+            if(*input_line_pointer == ' ')
+            ++input_line_pointer;
+            know(*input_line_pointer != ' ');
+            c = *input_line_pointer;
+            if(is_end_of_line(c))
+            arguments[index] = NULL;
+            else{
+            int parenthesis_depth = 0;
+            do{
+                c = *input_line_pointer++;
+                if(parenthesis_depth){
+                if(c == ')')
+                    parenthesis_depth --;
+                }
+                else{
+                if(c == '(')
+                    parenthesis_depth ++;
+                else
+                    if(is_end_of_line(c) ||
+                       (c == ' ') || (c == ','))
+                    break;
+                }
+                know(c != '\0');
+                if(is_end_of_line(c))
+                as_bad("mismatched parenthesis");
+                obstack_1grow(&macros, c);
+            }while(1);
+            obstack_1grow(&macros, '\0');
+            arguments[index] = obstack_finish(&macros);
+            nargs++;
+            if(is_end_of_line(c))
+                --input_line_pointer;
+            else if(c == ' ')
+                if(*input_line_pointer == ',')
+                input_line_pointer++;
+            }
+        }
+        if(!is_end_of_line(c)){
+            as_bad("More than 10 arguments not allowed for macros");
+            ignore_rest_of_line();
+        }
+    }
 	/*
 	 * Build a buffer containing the macro contents with arguments
 	 * substituted
@@ -4271,25 +4360,25 @@ struct macro_info *info)
 	obstack_1grow(&macros, '\n');
 	while((c = *macro_contents++)){
 	    if(c == '$'){
-		if(*macro_contents == '$'){
-		    macro_contents++;
-		}
-		else if((*macro_contents >= '0') && (*macro_contents <= '9')){
-		    index = *macro_contents++ - '0';
-		    last_input_line_pointer = macro_contents;
-		    macro_contents = arguments[index];
-		    if(macro_contents){
-			while ((c = * macro_contents ++))
-			obstack_1grow (&macros, c);
-		    }
-		    macro_contents = last_input_line_pointer;
-		    continue;
-		}
-		else if (*macro_contents == 'n'){
-		    macro_contents++ ;
-		    obstack_1grow(&macros, nargs + '0');
-		    continue;
-		}
+            if(*macro_contents == '$'){
+                macro_contents++;
+            }
+            else if((*macro_contents >= '0') && (*macro_contents <= '9')){
+                index = *macro_contents++ - '0';
+                last_input_line_pointer = macro_contents;
+                macro_contents = arguments[index];
+                if(macro_contents){
+                while ((c = * macro_contents ++))
+                obstack_1grow (&macros, c);
+                }
+                macro_contents = last_input_line_pointer;
+                continue;
+            }
+            else if (*macro_contents == 'n'){
+                macro_contents++ ;
+                obstack_1grow(&macros, nargs + '0');
+                continue;
+            }
 	    }
 	    obstack_1grow (&macros, c);
 	}
@@ -4311,9 +4400,13 @@ struct macro_info *info)
 #endif /* PPC */
 	    parse_a_buffer(buffer + 1);
 	obstack_free (&macros, buffer);
-	for(index = 9; index >= 0; index --)
-	    if(arguments[index])
-		obstack_free(&macros, arguments[index]);
+
+    if (!(info->new_style)) {
+        for(index = 9; index >= 0; index --)
+            if(arguments[index])
+            obstack_free(&macros, arguments[index]);
+    }
+
 	buffer_limit = last_buffer_limit;
 	count_lines = last_count_lines;
 	input_line_pointer = last_input_line_pointer;
