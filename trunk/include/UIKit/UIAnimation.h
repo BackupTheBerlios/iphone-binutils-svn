@@ -6,32 +6,38 @@
 
 #import <Foundation/Foundation.h>
 
-@interface UIAnimation : NSObject
-{
-    id _target;
-    SEL _action;
-    id _delegate;
-    struct {
-        unsigned int curve:4;
-        unsigned int tvOutput:1;
-        unsigned int reserved:27;
-    } _animationFlags;
-    double _startTime;
-    double _duration;
-    int _state;
-}
+typedef enum {
+    kUIAnimationCurveEaseInEaseOut,
+    kUIAnimationCurveEaseIn,
+    kUIAnimationCurveEaseOut,
+    kUIAnimationCurveLinear
+} UIAnimationCurve;
 
-- (SEL)action;	// IMP=0x323fc8e4
-- (void)dealloc;	// IMP=0x323fca38
-- (id)delegate;	// IMP=0x323fc8d4
-- (id)initWithTarget:(id)fp8;	// IMP=0x323fc794
-- (float)progressForFraction:(float)fp8;	// IMP=0x323fc908
-- (void)setAction:(SEL)fp8;	// IMP=0x323fc8dc
-- (void)setAnimationCurve:(int)fp8;	// IMP=0x323fc8ec
-- (void)setDelegate:(id)fp8;	// IMP=0x323fc8cc
-- (void)setProgress:(float)fp8;	// IMP=0x323fc904
-- (void)stopAnimation;	// IMP=0x323fc884
-- (id)target;	// IMP=0x323fc8c4
+@interface UIAnimation : NSObject {}
+
+- (id)initWithTarget:(id)target;
+- (id)target;
+
+- (SEL)action;
+- (void)setAction:(SEL)action;
+
+- (void)setAnimationCurve:(UIAnimationCurve)animationCurve;
+
+- (id)delegate;
+- (void)setDelegate:(id)delegate;
+
+- (float)progressForFraction:(float)fraction;
+- (void)setProgress:(float)progress;
+
+- (void)stopAnimation;
 
 @end
 
+@interface UIAnimation (Internal)
+- (float)fractionForTime:(double)time;	
+- (void)markStart:(double)fp8;	
+- (void)markStop;	
+- (void)setDuration:(double)duration;	
+- (int)state;	
+- (BOOL)tvOutput;	
+@end
