@@ -1,6 +1,7 @@
 RC_OS = macos
 export USE_APPLE_PB_SUPPORT = all
-OFLAG = -Os
+# OFLAG = -Os
+OFLAG = -O0
 ifeq "macos" "$(RC_OS)"
   X_CFLAGS := $(shell if [ "$(RC_RELEASE)" != "Beaker" ] &&    \
 			 [ "$(RC_RELEASE)" != "Bunsen" ] &&    \
@@ -128,14 +129,14 @@ driver_build:	$(OBJROOT)/driver_dir
 	@if [ $(SRCROOT) = . ];						\
 	then								\
 	    cd driver_dir;  $(MAKE) -f ../Makefile driver VPATH=..	\
-		OFILE_DIR=. CFLAGS="-g -O -I../../include $(GCC_FLAGS)" \
+		OFILE_DIR=. CFLAGS="-g $(OFLAG) -I../../include $(GCC_FLAGS)" \
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
 		RC_FLAGS="$(RC_CFLAGS)" DEP_DIR=driver_dir;		\
 	else								\
 	    cd $(OBJROOT)/driver_dir; $(MAKE) -f $(SRCROOT)/Makefile	\
 		driver VPATH=$(SRCROOT) OFILE_DIR=$(OBJROOT)/driver_dir \
 		SYMROOT=$(SYMROOT)/driver_dir SRCROOT=$(SRCROOT)	\
-		CFLAGS="-g -O -I$(SRCROOT)/../include $(GCC_FLAGS)"	\
+		CFLAGS="-g $(OFLAG) -I$(SRCROOT)/../include $(GCC_FLAGS)"	\
 		VERS_STRING_FLAGS="$(VERS_STRING_FLAGS)"		\
 		RC_FLAGS="$(RC_CFLAGS)" DEP_DIR=driver_dir;		\
 	fi

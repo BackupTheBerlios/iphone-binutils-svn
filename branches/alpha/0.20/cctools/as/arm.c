@@ -1,5 +1,6 @@
 /* ----------------------------------------------------------------------------
- *   ARM1176/iPhone support for Apple GAS.
+ *   ARM1176/iPhone support for Apple GAS.                 v0.20 - 09/03/2007
+ *
  *   Copyright (c) 2007 Patrick Walton <pcwalton@uchicago.edu> and
  *   contributors but freely redistributable under the terms of the GNU
  *   General Public License v2.
@@ -312,6 +313,10 @@ int yylex()
     struct arm_op_info *info;
     struct arm_reserved_word_info *rinfo, *rinfo2;
 
+    /* eat initial whitespace */
+    while (isspace(*input_line_pointer) && *input_line_pointer != '\n')
+        input_line_pointer++;
+
     ptr = input_line_pointer;
     if (!*ptr)
         return 0;
@@ -350,6 +355,14 @@ int yylex()
          * when by themselves (e.g. in '..., -r1'). If they are by themselves,
          * strtoll(3) will fail and we will catch them below. */
         if (ptr != input_line_pointer) {
+            /* If 'f' or 'b' immediately follows, it's a local label, not a
+             * number. Hand it off to the expression parser. */
+            if (*ptr == 'f' || *ptr == 'b') {
+                yylval.eval = calloc(sizeof(expressionS), 1);
+                expression(yylval.eval);
+                return OPRD_EXP;
+            }
+
             if (n < 0)
                 yylval.ival = (int)n;
             else
@@ -439,6 +452,8 @@ int yylex()
         /* The "LSLK hack": constructions like "asl r0" are collapsed by
          * the dumb GAS parser into "aslr0". We need to parse these as their
          * constituent reserved words, not as one identifier. */
+        /* FIXME: this shit is deprecated now that we've fixed app: remove
+         * this */
         if (sz == 5 || sz == 6) {
             tok2 = strdup(tok + 3);
             tok[3] = '\0';
@@ -606,6 +621,13 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
         case ARM_RELOC_SHIFT_IMM12:
             n = generate_shifted_immediate(val);
             fill_reloc_value(buf, (unsigned int)n, 0x00000fff); 
+            break;
+
+        case ARM_RELOC_SHIFT_IMM:
+            if (val == 32)
+                val = 0;
+            n = ((unsigned int)val) & 31;
+            fill_reloc_value(buf, n << 7, 31 << 7);
             break;
 
         default:

@@ -296,6 +296,12 @@ FILE *fp)
 			state++;
 			return ' ';
 		}
+#ifdef ARM
+        /* because it COULDN'T POSSIBLY BE THE CASE that spaces could be
+         * significant between keywords?!?! */
+        if (state == 3)
+            return ' ';
+#endif
 #ifdef PPC
 		if(flagseen[(int)'p'] == TRUE && state == 3){
 			return ' ';
@@ -623,6 +629,10 @@ do_scrub_next_char_from_string()
 			state++;
 			return ' ';
 		}
+#ifdef ARM
+        if (state == 3)
+            return ' '; /* stupid stupid stupid. */
+#endif
 #ifdef PPC
 		if(flagseen[(int)'p'] == TRUE && state == 3){
 			return ' ';

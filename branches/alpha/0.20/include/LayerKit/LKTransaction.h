@@ -4,18 +4,17 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
-@interface LKTransaction : NSObject
-{
-}
-
-+ (void)_callbackTimer:(id)fp8;	// IMP=0x30afc2e4
-+ (void)begin;	// IMP=0x30afc0c0
-+ (void)commit;	// IMP=0x30afc3d4
-+ (void)flush;	// IMP=0x30afc438
-+ (void)setValue:(id)fp8 forKey:(id)fp12;	// IMP=0x30afc4c4
-+ (id)valueForKey:(id)fp8;	// IMP=0x30afc480
+@interface LKTransaction : NSObject {}
++ (void)begin;
++ (void)commit;
++ (void)flush;
 
 @end
 
+@interface LKTransaction (LKTransactionPrivate)
++ (BOOL)beginWithoutBlocking;	
++ (unsigned int)currentState;	
++ (void)synchronize;	
+@end

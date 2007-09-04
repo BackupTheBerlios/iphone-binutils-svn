@@ -6,17 +6,13 @@
 
 #import <LayerKit/LKPropertyAnimation.h>
 
-@interface LKKeyframeAnimation : LKPropertyAnimation
-{
-}
+@interface LKKeyframeAnimation : LKPropertyAnimation {}
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30ae9dfc
-- (void *)LK_copyRenderValue;	// IMP=0x30ae9e4c
-- (id)calculationMode;	// IMP=0x30aea1c8
-- (id)keyTimes;	// IMP=0x30aea1d0
-- (struct CGPath *)path;	// IMP=0x30aea1e8
-- (id)timingFunctions;	// IMP=0x30aea1d8
-- (id)values;	// IMP=0x30aea1e0
+- (id)calculationMode;	
+- (NSArray *)keyTimes;	
+- (CGPathRef)path;	
+- (NSArray *)timingFunctions;	
+- (NSArray *)values;
 
 @end
 

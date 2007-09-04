@@ -1,6 +1,15 @@
 #ifndef GRAPHICSSERVICES_H
 #define GRAPHICSSERVICES_H
-#import <UIKit/UIKit.h>
+
+#define kGSEventTypeOneFingerDown   1
+#define kGSEventTypeAllFingersUp    2
+#define kGSEventTypeOneFingerUp     5
+/* A "gesture" is either one finger dragging or two fingers down. */
+#define kGSEventTypeGesture         6
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct __GSEvent;
 typedef struct __GSEvent GSEvent;
@@ -11,11 +20,17 @@ typedef struct CGPoint CGPoint;
 
 int GSEventIsChordingHandEvent(GSEvent *ev);
 int GSEventGetClickCount(GSEvent *ev);
-CGPoint GSEventGetLocationInWindow(GSEvent *ev, UIWindow *window);
+CGPoint GSEventGetLocationInWindow(GSEvent *ev);
 float GSEventGetDeltaX(GSEvent *ev); 
 float GSEventGetDeltaY(GSEvent *ev); 
 CGPoint GSEventGetInnerMostPathPosition(GSEvent *ev);
 CGPoint GSEventGetOuterMostPathPosition(GSEvent *ev);
+unsigned int GSEventGetSubType(GSEvent *ev);
+unsigned int GSEventGetType(GSEvent *ev);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

@@ -1,33 +1,8 @@
-##
- # Copyright (C) 2007 Nightwatch iZsh 
- # 
- # This software is free software; you can redistribute it and/or
- # modify it under the terms of the GNU General Public
- # License version 2, as published by the Free Software Foundation.
- #
- # This software is distributed in the hope that it will be useful,
- # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- #
- # See the GNU General Public License version 2 for more details
- ##
+This file is out of date. Please see the instructions at:
 
-To install:
-% ./configure --prefix=/path_to/install --with-heavenly=/path_to_iphone_heavenly
-% make
+http://iphone.fiveforty.net/wiki/index.php/Toolchain_Project
 
-Notes:
-- LLVM and LLVM-GCC are no longer automatically provided, to economize on our
-host's bandwidth and to simplify development. You can get LLVM and LLVM-GCC
-from <http://llvm.org/>. In both cases, version 2.0 must be compiled and
-installed before you can build the toolchain.
+for details installing.
 
-- Because of the inter-dependencies between the sub-tools in the toolchain
-"make" is compiling and installing files as well. We'll remove this hack
-later.
-
-- In order to prevent from conflicts or overwriting existing files on
-your system, we suggest to set the --prefix path to a dedicated,
-independant directory. the default prefix is /Developer/SDKs/iPhone
-
+-pcwalton
 

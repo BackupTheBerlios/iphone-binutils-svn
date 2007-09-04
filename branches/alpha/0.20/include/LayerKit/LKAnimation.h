@@ -4,36 +4,59 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
+#import <LayerKit/LKTimingFunction.h>
 
-#import "LKActionProtocol.h"
-#import "LKObjectProtocol.h"
-#import "LKTimingProtocol.h"
-#import "NSCopyingProtocol.h"
+@interface LKAnimation : NSObject <NSCopying> {}
 
-@interface LKAnimation : NSObject <NSCopying, LKTiming, LKObject, LKAction>
-{
-    struct _LKAttrList *_attr;
-    unsigned int _flags;
-}
++ (id)animation;
++ (id)defaultValueForKey:(id)key;
++ (id)properties;
+- (void)runActionForKey:(id)key object:(id)object arguments:(id)fp16;
+- (BOOL)shouldArchiveValueForKey:(id)key;
 
-+ (id)animation;	// IMP=0x30ae8e1c
-+ (id)defaultValueForKey:(id)fp8;	// IMP=0x30ae8d34
-+ (id)properties;	// IMP=0x30ae8fd0
-+ (BOOL)resolveInstanceMethod:(SEL)fp8;	// IMP=0x30ae9020
-- (struct _LKRenderAnimation *)_setLKRenderAnimation:(struct _LKRenderAnimation *)fp8;	// IMP=0x30ae8e58
-- (id)copyWithZone:(struct _NSZone *)fp8;	// IMP=0x30ae9208
-- (void)dealloc;	// IMP=0x30ae8f44
-- (void)encodeWithCoder:(id)fp8;	// IMP=0x30ae900c
-- (id)initWithCoder:(id)fp8;	// IMP=0x30ae8ff8
-- (void)runActionForKey:(id)fp8 object:(id)fp12 arguments:(id)fp16;	// IMP=0x30ae8fa0
-- (void)setValue:(id)fp8 forKey:(id)fp12;	// IMP=0x30ae9078
-- (void)setValue:(id)fp8 forKeyPath:(id)fp12;	// IMP=0x30ae9154
-- (void)setValue:(id)fp8 forUndefinedKey:(id)fp12;	// IMP=0x30ae9100
-- (BOOL)shouldArchiveValueForKey:(id)fp8;	// IMP=0x30ae8fe0
-- (id)valueForKey:(id)fp8;	// IMP=0x30ae9038
-- (id)valueForKeyPath:(id)fp8;	// IMP=0x30ae9140
-- (id)valueForUndefinedKey:(id)fp8;	// IMP=0x30ae90c0
+- (BOOL)autoreverses;
+- (void)setAutoreverses:(BOOL)autoreverses;
+
+- (double)beginTime;
+- (void)setBeginTime:(double)beginTime;
+
+- (id)delegate;
+- (void)setDelegate:(id)delegate;
+
+- (double)duration;
+- (void)setDuration:(float)duration;
+
+- (id)fillMode;
+- (void)setFillMode:(id)fillMode;
+
+- (double)frameInterval;
+- (void)setFrameInterval:(double)frameInterval;
+
+- (BOOL)removedOnCompletion;
+- (void)setRemovedOnCompletion:(BOOL)removedOnCompletion;
+
+- (float)repeatCount;
+- (void)setRepeatCount:(float)repeatCount;
+
+- (double)repeatDuration;
+- (void)setRepeatDuration:(double)repeatDuration;
+
+- (float)speed;
+- (void)setSpeed:(float)speed;
+
+- (double)timeOffset;
+- (void)setTimeOffset:(double)timeOffset;
+
+- (LKTimingFunction *)timingFunction;
+- (void)setTimingFunction:(LKTimingFunction *)timingFunction;
 
 @end
 
+@interface LKAnimation (LKAnimationPrivate)
+
++ (void *)methodForSelector:(SEL)fp8;
++ (BOOL)shouldCopyValueForKey:(id)fp8;
++ (BOOL)shouldRetainValueForKey:(id)fp8;
+
+@end

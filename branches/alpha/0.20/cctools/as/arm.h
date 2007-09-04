@@ -43,6 +43,7 @@ extern struct arm_op_info arm_op_info[];
 
 unsigned int vfp_encode_reg_list(unsigned int list, int precision);
 
+unsigned int generate_shifted_immediate(unsigned int n);
 void register_reloc_type(int type, int size, int pcrel);
 void register_expression(expressionS *expr);
 

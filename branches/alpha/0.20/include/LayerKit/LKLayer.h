@@ -4,96 +4,154 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import <Foundation/Foundation.h>
+#import <Foundation/NSObject.h>
+#import <LayerKit/LKTransform.h>
 
-@interface LKLayer : NSObject // <LKTiming, LKObject>
-{
-    unsigned int _superlayer;
-    struct CGPoint _position;
-    struct CGSize _size;
-    void *_contents;
-    struct __CFArray *_sublayers;
-    id _delegate;
-    struct _LKAttrList *_attr;
-    unsigned int _flags;
-}
+@interface LKLayer : NSObject <NSCoding> {}
 
-+ (id)defaultActionForKey:(id)fp8;	// IMP=0x30aee2e4
-+ (id)defaultValueForKey:(id)fp8;	// IMP=0x30aeccc0
-+ (id)layer;	// IMP=0x30aed0fc
-+ (id)properties;	// IMP=0x30aeda2c
-+ (BOOL)resolveInstanceMethod:(SEL)fp8;	// IMP=0x30aeda64
-- (void)__mark:(struct __CFArray *)fp8;	// IMP=0x30af04d4
-- (void)_display;	// IMP=0x30aeeb00
-- (id)actionForKey:(id)fp8;	// IMP=0x30aee784
-- (void)addAnimation:(id)fp8 forKey:(id)fp12;	// IMP=0x30af098c
-- (void)addSublayer:(id)fp8;	// IMP=0x30af2d10
-- (struct CGAffineTransform)affineTransform;	// IMP=0x30aedd58
-- (struct CGRect)bounds;	// IMP=0x30aedcc4
-- (BOOL)clearsContext;	// IMP=0x30aee260
-- (BOOL)containsPoint:(struct CGPoint)fp8;	// IMP=0x30aee1f8
-- (id)contents;	// IMP=0x30aee248
-- (id)contentsGravity;	// IMP=0x30aee290
-- (struct CGPoint)convertPoint:(struct CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30af1644
-- (struct CGPoint)convertPoint:(struct CGPoint)fp8 toLayer:(id)fp16;	// IMP=0x30af16a4
-- (struct CGRect)convertRect:(struct CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30af1708
-- (struct CGRect)convertRect:(struct CGRect)fp8 toLayer:(id)fp24;	// IMP=0x30af1764
-- (double)convertTime:(double)fp8 fromLayer:(id)fp16;	// IMP=0x30af1318
-- (double)convertTime:(double)fp8 toLayer:(id)fp16;	// IMP=0x30af1324
-- (void)dealloc;	// IMP=0x30af29a8
-- (id)delegate;	// IMP=0x30aee2dc
-- (id)description;	// IMP=0x30aed1a4
-- (void)display;	// IMP=0x30aeea9c
-- (void)drawInContext:(struct CGContext *)fp8;	// IMP=0x30aeeda0
-- (void)encodeWithCoder:(id)fp8;	// IMP=0x30aeda50
-- (struct CGRect)frame;	// IMP=0x30af02ec
-- (BOOL)hidden;	// IMP=0x30aedec4
-- (id)hitTest:(struct CGPoint)fp8;	// IMP=0x30aee1cc
-- (id)init;	// IMP=0x30aed8ec
-- (id)initWithBounds:(struct CGRect)fp8;	// IMP=0x30aed138
-- (id)initWithCoder:(id)fp8;	// IMP=0x30aeda3c
-- (void)insertSublayer:(id)fp8 above:(id)fp12;	// IMP=0x30af2da0
-- (void)insertSublayer:(id)fp8 atIndex:(unsigned int)fp12;	// IMP=0x30af2d04
-- (void)insertSublayer:(id)fp8 below:(id)fp12;	// IMP=0x30af2d1c
-- (void)layoutIfNeeded;	// IMP=0x30af10dc
-- (void)layoutSublayers;	// IMP=0x30aeef38
-- (BOOL)masksToBounds;	// IMP=0x30aee2a8
-- (BOOL)needsDisplayOnBoundsChange;	// IMP=0x30aee280
-- (BOOL)opaque;	// IMP=0x30aee250
-- (struct CGPoint)position;	// IMP=0x30aedd48
-- (struct CGSize)preferredFrameSize;	// IMP=0x30aef98c
-- (void)removeAllAnimations;	// IMP=0x30af0950
-- (void)removeAnimationForKey:(id)fp8;	// IMP=0x30af090c
-- (void)removeFromSuperlayer;	// IMP=0x30af22b0
-- (void)renderInContext:(struct CGContext *)fp8;	// IMP=0x30aefa40
-- (void)replaceSublayer:(id)fp8 with:(id)fp12;	// IMP=0x30af2e24
-- (void)setAffineTransform:(struct CGAffineTransform)fp8;	// IMP=0x30aede48
-- (void)setBounds:(struct CGRect)fp8;	// IMP=0x30af1c6c
-- (void)setClearsContext:(BOOL)fp8;	// IMP=0x30af1fc8
-- (void)setContents:(id)fp8;	// IMP=0x30af1ef4
-- (void)setContentsGravity:(id)fp8;	// IMP=0x30af20dc
-- (void)setDelegate:(id)fp8;	// IMP=0x30af21ac
-- (void)setFrame:(struct CGRect)fp8;	// IMP=0x30aeded4
-- (void)setHidden:(BOOL)fp8;	// IMP=0x30af1e98
-- (void)setMasksToBounds:(BOOL)fp8;	// IMP=0x30af2140
-- (void)setNeedsDisplay;	// IMP=0x30aeea50
-- (void)setNeedsDisplayInRect:(struct CGRect)fp8;	// IMP=0x30af0578
-- (void)setNeedsDisplayOnBoundsChange:(BOOL)fp8;	// IMP=0x30af2080
-- (void)setNeedsLayout;	// IMP=0x30af1104
-- (void)setOpaque:(BOOL)fp8;	// IMP=0x30af1f6c
-- (void)setPosition:(struct CGPoint)fp8;	// IMP=0x30af1e24
-- (void)setSortsSublayers:(BOOL)fp8;	// IMP=0x30af2024
-- (void)setSublayers:(id)fp8;	// IMP=0x30af2a68
-- (void)setValue:(id)fp8 forKey:(id)fp12;	// IMP=0x30aed9d0
-- (void)setValue:(id)fp8 forKeyPath:(id)fp12;	// IMP=0x30af0c10
-- (void)setValue:(id)fp8 forUndefinedKey:(id)fp12;	// IMP=0x30af1bcc
-- (BOOL)shouldArchiveValueForKey:(id)fp8;	// IMP=0x30aeda7c
-- (BOOL)sortsSublayers;	// IMP=0x30aee270
-- (id)sublayers;	// IMP=0x30aee2d4
-- (id)superlayer;	// IMP=0x30af116c
-- (id)valueForKey:(id)fp8;	// IMP=0x30aed950
-- (id)valueForKeyPath:(id)fp8;	// IMP=0x30aeda18
-- (id)valueForUndefinedKey:(id)fp8;	// IMP=0x30aed990
++ (id)layer;
+- (id)initWithBounds:(CGRect)bounds;
+
++ (id)defaultActionForKey:(id)key;
++ (id)defaultValueForKey:(id)key;
++ (id)properties;
+- (id)actionForKey:(id)key;
+- (BOOL)shouldArchiveValueForKey:(id)key;
+
+- (CGSize)preferredFrameSize;
+
+- (id)hitTest:(CGPoint)point;
+- (BOOL)containsPoint:(CGPoint)point;
+- (CGPoint)convertPoint:(CGPoint)point fromLayer:(id)layer;
+- (CGPoint)convertPoint:(CGPoint)point toLayer:(id)layer;
+- (CGRect)convertRect:(CGRect)rect fromLayer:(id)layer;
+- (CGRect)convertRect:(CGRect)rect toLayer:(id)layer;
+- (double)convertTime:(double)time fromLayer:(id)layer;
+- (double)convertTime:(double)time toLayer:(id)layer;
+
+- (void)addAnimation:(id)animation forKey:(id)key;
+- (void)removeAllAnimations;
+- (void)removeAnimationForKey:(id)key;
+
+- (void)addSublayer:(id)sublayer;
+- (void)insertSublayer:(id)fp8 above:(id)fp12;
+- (void)insertSublayer:(id)fp8 atIndex:(unsigned int)fp12;
+- (void)insertSublayer:(id)fp8 below:(id)fp12;
+- (void)replaceSublayer:(id)layer with:(id)otherLayer;
+- (void)removeFromSuperlayer;
+
+- (id)sublayers;
+- (id)superlayer;
+- (BOOL)sortsSublayers;
+
+- (void)display;
+- (void)displayIfNeeded;
+- (BOOL)needsDisplay;
+- (void)setNeedsDisplay;
+- (void)setNeedsDisplayInRect:(CGRect)needsDisplay;
+- (BOOL)needsDisplayOnBoundsChange;
+- (void)setNeedsDisplayOnBoundsChange:(BOOL)needsDisplay;
+- (BOOL)needsLayout;
+- (void)setNeedsLayout;
+- (void)layoutIfNeeded;
+- (void)layoutSublayers;
+- (void)drawInContext:(CGContextRef)context;
+- (void)renderInContext:(CGContextRef)context;
+
+- (CGPoint)anchorPoint;
+
+- (CGAffineTransform)affineTransform;
+- (void)setAffineTransform:(CGAffineTransform)affineTransform;
+
+- (CGColorRef)backgroundColor;
+- (void)setBackgroundColor:(CGColorRef)backgroundColor;
+
+- (id)backgroundFilters;
+
+- (CGRect)bounds;
+- (void)setBounds:(CGRect)bounds;
+
+- (BOOL)clearsContext;
+- (void)setClearsContext:(BOOL)clearsContext;
+
+- (id)compositingFilter;
+
+- (id)contents;
+- (void)setContents:(id)contents;
+
+- (id)contentsGravity;
+- (void)setContentsGravity:(id)contentsGravity;
+
+- (CGAffineTransform)contentsTransform;
+
+- (id)delegate;
+- (void)setDelegate:(id)delegate;
+
+- (id)fillMode;
+
+- (id)filters;
+
+- (CGRect)frame;
+- (void)setFrame:(CGRect)frame;
+
+- (BOOL)hidden;
+- (void)setHidden:(BOOL)hidden;
+
+- (BOOL)masksToBounds;
+- (void)setMasksToBounds:(BOOL)masksToBounds;
+
+- (id)magnificationFilter;
+
+- (id)minificationFilter;
+
+- (id)name;
+
+- (float)opacity;
+
+- (BOOL)opaque;
+- (void)setOpaque:(BOOL)opaque;
+
+- (CGPoint)position;
+- (void)setPosition:(CGPoint)fp8;
+
+- (void)setSortsSublayers:(BOOL)fp8;
+- (void)setSublayers:(id)sublayers;
+
+- (LKTransform)sublayerTransform;
+- (void)setSublayerTransform:(LKTransform)sublayerTransform;
+
+- (LKTransform)transform;
+- (void)setTransform:(LKTransform)transform;
+
+- (void)setZPosition:(float)zPosition;
+- (float)zPosition;
 
 @end
 
+@interface LKLayer (LKLayerScrolling)
+- (void)scrollPoint:(CGPoint)point;
+- (void)scrollRectToVisible:(CGRect)rect;
+- (CGRect)visibleRect;
+@end
+
+@interface LKLayer (LKLayerPrivate) 
++ (BOOL)shouldCopyValueForKey:(id)key;
++ (BOOL)shouldRetainValueForKey:(id)key;
+- (id)hitTest:(CGPoint)point options:(unsigned int)options;
+- (void)setContentsChanged;
+- (void)invalidateContents;
+- (id)ancestorSharedWithLayer:(id)layer;
+- (BOOL)isDescendantOf:(id)superlayer;
+- (float)nearClippingDepth;
+- (void *)regionBeingDrawn;
+- (BOOL)autoreverses;
+- (double)beginTime;
+- (double)duration;
+- (float)repeatCount;
+- (double)repeatDuration;
+- (CGSize)size;
+- (float)speed;
+- (id)sublayerEnumerator;
+- (double)timeOffset;
+
+@end

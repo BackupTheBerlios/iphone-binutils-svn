@@ -4,23 +4,13 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
-#import "NSCodingProtocol.h"
+@interface LKTimingFunction : NSObject <NSCoding> {}
 
-@interface LKTimingFunction : NSObject <NSCoding>
-{
-    struct LKTimingFunctionPrivate *_priv;
-}
-
-+ (id)functionWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	// IMP=0x30afaf68
-+ (id)functionWithName:(id)fp8;	// IMP=0x30afafcc
-- (void)_getPoints:(float *)fp8;	// IMP=0x30afb25c
-- (void)dealloc;	// IMP=0x30afb204
-- (void)encodeWithCoder:(id)fp8;	// IMP=0x30afb344
-- (void)getControlPointAtIndex:(unsigned long)fp8 values:(float [2])fp12;	// IMP=0x30afb290
-- (id)initWithCoder:(id)fp8;	// IMP=0x30afb3e4
-- (id)initWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	// IMP=0x30afb154
++ (id)functionWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	
++ (id)functionWithName:(id)fp8;
+- (void)getControlPointAtIndex:(unsigned long)fp8 values:(float [2])fp12;	
+- (id)initWithControlPoints:(float)fp8:(float)fp12:(float)fp16:(float)fp20;	
 
 @end
-

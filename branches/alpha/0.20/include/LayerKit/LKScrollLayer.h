@@ -6,17 +6,10 @@
 
 #import <LayerKit/LKLayer.h>
 
-@interface LKScrollLayer : LKLayer
-{
-}
+@interface LKScrollLayer : LKLayer {}
 
-+ (unsigned long)copyPropertyList:(const struct _LKPropertyDescription **)fp8;	// IMP=0x30afa4d4
-+ (id)defaultValueForKey:(id)fp8;	// IMP=0x30afa524
-- (void)_scrollPoint:(struct CGPoint)fp8 fromLayer:(id)fp16;	// IMP=0x30afa7f8
-- (void)_scrollRect:(struct CGRect)fp8 fromLayer:(id)fp24;	// IMP=0x30afa85c
-- (struct CGRect)_visibleRectOfLayer:(id)fp8;	// IMP=0x30afa8f4
-- (void)scrollToPoint:(struct CGPoint)fp8;	// IMP=0x30afa5b0
-- (void)scrollToRect:(struct CGRect)fp8;	// IMP=0x30afa670
++ (id)defaultValueForKey:(id)fp8;
+- (void)scrollToPoint:(CGPoint)fp8;	
+- (void)scrollToRect:(CGRect)fp8;	
 
 @end
-

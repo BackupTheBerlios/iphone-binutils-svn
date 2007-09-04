@@ -4,33 +4,30 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
-@interface LKContext : NSObject
-{
-}
+@interface LKContext : NSObject {}
 
-+ (id)allContexts;	// IMP=0x30aeafd0
-+ (id)localContext;	// IMP=0x30aead78
-+ (id)localContextWithOptions:(id)fp8;	// IMP=0x30aead98
-+ (id)objectForSlot:(unsigned int)fp8;	// IMP=0x30aeae68
-+ (id)remoteContext;	// IMP=0x30aeade8
-+ (id)remoteContextWithOptions:(id)fp8;	// IMP=0x30aeae08
-+ (void)setClientPort:(unsigned int)fp8;	// IMP=0x30aeae58
-- (unsigned int)contextId;	// IMP=0x30aeaeb8
-- (unsigned int)createSlot;	// IMP=0x30aeaef8
-- (void)deleteSlot:(unsigned int)fp8;	// IMP=0x30aeaf00
-- (void)invalidate;	// IMP=0x30aeaec0
-- (id)layer;	// IMP=0x30aeaec4
-- (float)level;	// IMP=0x30aeaeec
-- (void)orderAbove:(unsigned int)fp8;	// IMP=0x30aeaee0
-- (void)orderBelow:(unsigned int)fp8;	// IMP=0x30aeaee4
-- (struct _LKRenderContext *)renderContext;	// IMP=0x30aeaed0
-- (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	// IMP=0x30aeaef4
-- (void)setLayer:(id)fp8;	// IMP=0x30aeaecc
-- (void)setLevel:(float)fp8;	// IMP=0x30aeaee8
-- (void)setObject:(id)fp8 forSlot:(unsigned int)fp12;	// IMP=0x30aeaf04
-- (BOOL)valid;	// IMP=0x30aeaed8
++ (id)allContexts;
++ (id)localContext;
++ (id)localContextWithOptions:(id)fp8;
++ (id)objectForSlot:(unsigned int)fp8;
++ (id)remoteContext;
++ (id)remoteContextWithOptions:(id)fp8;
++ (void)setClientPort:(unsigned int)fp8;
+- (unsigned int)contextId;	
+- (unsigned int)createSlot;	
+- (void)deleteSlot:(unsigned int)fp8;	
+- (void)invalidate;	
+- (id)layer;	
+- (float)level;	
+- (void)orderAbove:(unsigned int)fp8;	
+- (void)orderBelow:(unsigned int)fp8;	
+- (void)setFence:(unsigned int)fp8 count:(unsigned int)fp12;	
+- (void)setLayer:(id)fp8;	
+- (void)setLevel:(float)fp8;	
+- (void)setObject:(id)fp8 forSlot:(unsigned int)fp12;	
+- (BOOL)valid;	
 
 @end
 

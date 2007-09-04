@@ -5,27 +5,39 @@
  */
 
 #import <UIKit/UIView.h>
+#import <UIKit/UIAnimation.h>
 
 @interface UIView (Animation)
-+ (void)beginAnimations:(id)fp8;	// IMP=0x323c5e2c
-+ (void)beginAnimations:(id)fp8 context:(void *)fp12;	// IMP=0x323c5e4c
-+ (void)disableAnimation;	// IMP=0x323c5f3c
-+ (void)enableAnimation;	// IMP=0x323c5f54
-+ (void)endAnimations;	// IMP=0x323c5e74
-+ (void)setAnimationAutoreverses:(BOOL)fp8;	// IMP=0x323c600c
-+ (void)setAnimationCurve:(int)fp8;	// IMP=0x323c5fdc
-+ (void)setAnimationDelay:(double)fp8;	// IMP=0x323c5f88
-+ (void)setAnimationDelegate:(id)fp8;	// IMP=0x323c5e9c
-+ (void)setAnimationDidStopSelector:(SEL)fp8;	// IMP=0x323c60d8
-+ (void)setAnimationDuration:(double)fp8;	// IMP=0x323c5f6c
-+ (void)setAnimationFrameInterval:(double)fp8;	// IMP=0x323c5fa4
-+ (void)setAnimationFromCurrentState:(BOOL)fp8;	// IMP=0x323c5ef4
-+ (void)setAnimationPosition:(struct CGPoint)fp8;	// IMP=0x323c5f20
-+ (void)setAnimationRepeatCount:(float)fp8;	// IMP=0x323c5ff4
-+ (void)setAnimationRoundsToInteger:(BOOL)fp8;	// IMP=0x323c6038
-+ (void)setAnimationStartTime:(double)fp8;	// IMP=0x323c5fc0
-+ (void)setAnimationTransition:(int)fp8 forView:(id)fp12 cache:(BOOL)fp16;	// IMP=0x323c6064
-+ (void)setAnimationWillStartSelector:(SEL)fp8;	// IMP=0x323c60c0
-- (void)addAnimation:(id)fp8 forKey:(id)fp12;	// IMP=0x323c60f0
++ (void)disableAnimation;
++ (void)enableAnimation;
+
+/* For example:
+ [UIView beginAnimations:nil];
+ [UIView setAnimationDuration:2.0];
+ [view setFrame:CGRectMake(0, 0, 100, 100)]; // animate to the new frame in 2 seconds
+ [UIView endAnimations];
+*/
+
++ (void)beginAnimations:(id)fp8;	
++ (void)beginAnimations:(id)fp8 context:(void *)fp12;
++ (void)endAnimations;
+
++ (void)setAnimationAutoreverses:(BOOL)autoreverses;	
++ (void)setAnimationCurve:(UIAnimationCurve)animationCurve;	
++ (void)setAnimationDelay:(double)delay;	
++ (void)setAnimationDelegate:(id)delegate;	
++ (void)setAnimationDidStopSelector:(SEL)didStopSelector;	
++ (void)setAnimationDuration:(double)duration;	
++ (void)setAnimationFrameInterval:(double)frameInterval;	
++ (void)setAnimationFromCurrentState:(BOOL)shouldAnimateFromCurrentState;	
++ (void)setAnimationPosition:(CGPoint)position;	
++ (void)setAnimationRepeatCount:(float)repeatCount;	
++ (void)setAnimationRoundsToInteger:(BOOL)roundsToInteger;	
++ (void)setAnimationStartTime:(double)startTime;	
++ (void)setAnimationTransition:(int)transition forView:(id)view cache:(BOOL)shouldCache; // enum needed
++ (void)setAnimationWillStartSelector:(SEL)willStartSelector;
+
+- (void)addAnimation:(UIAnimation *)animation forKey:(id)key;
+
 @end
 

@@ -1,8 +1,6 @@
 @ libgcc routines for ARM cpu.
 @ Division routines, written by Richard Earnshaw, (rearnsha@armltd.co.uk)
 
-@ IPHONE-BINUTILS LOCAL backport macros to GAS 1.38 style
-
 /* Copyright 1995, 1996, 1998, 1999, 2000, 2003, 2004, 2005
    Free Software Foundation, Inc.
 
@@ -165,7 +163,10 @@ LSYM(Ldiv0):
 .endm
 
 .macro DIV_FUNC_END name
+#if 0
+@ How is this supposed to be valid? Multiply defined label ahoy...
 LSYM(Ldiv0):
+#endif
 #ifdef __thumb__
 	THUMB_LDIV0
 #else

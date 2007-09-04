@@ -3,6 +3,12 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#define kCoreSurfaceLockTypeGimmeVRAM   3
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void * CoreSurfaceBufferRef;
 typedef void * CoreSurfaceAcceleratorRef;
 
@@ -22,8 +28,8 @@ unsigned int CoreSurfaceBufferGetPixelFormatType(CoreSurfaceBufferRef surface);
 unsigned int CoreSurfaceBufferGetID(CoreSurfaceBufferRef surface);
 unsigned int CoreSurfaceBufferGetPlaneCount(CoreSurfaceBufferRef surface);
 
-/* Set type to 3. */
-int CoreSurfaceBufferLock(CoreSurfaceBufferRef surface, int type);
+/* lockType is one of kCoreSurfaceLockType*. */
+int CoreSurfaceBufferLock(CoreSurfaceBufferRef surface, unsigned int lockType);
 int CoreSurfaceBufferUnlock(CoreSurfaceBufferRef surface);
 int CoreSurfaceBufferWrapClientMemory(CoreSurfaceBufferRef surface);
 void *CoreSurfaceBufferGetBaseAddress(CoreSurfaceBufferRef surface);
@@ -34,6 +40,10 @@ int CoreSurfaceAcceleratorCreate(CFAllocatorRef allocator, int type,
 unsigned int CoreSurfaceAcceleratorTransferSurfaceWithSwap(
     CoreSurfaceAcceleratorRef accelerator, CoreSurfaceBufferRef dest,
     CoreSurfaceBufferRef src, CFDictionaryRef options);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

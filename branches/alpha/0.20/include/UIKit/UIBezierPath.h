@@ -4,36 +4,39 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
-@interface UIBezierPath : NSObject
-{
-    struct CGPath *_pathRef;
-    float _width;
-}
+typedef enum {
+    kUIBezierPathTopLeftCorner = 1,
+    kUIBezierPathTopRightCorner = 1 << 1,
+    kUIBezierPathBottomLeftCorner = 1 << 2,
+    kUIBezierPathBottomRightCorner = 1 << 3,
+    kUIBezierPathAllCorners = (kUIBezierPathTopLeftCorner | kUIBezierPathTopRightCorner | kUIBezierPathBottomLeftCorner | kUIBezierPathBottomRightCorner)
+} UIBezierPathCornerOptions;
 
-+ (id)bezierPath;	// IMP=0x323b9978
-+ (id)bezierPathKnockingOutBottomOfRect:(struct CGRect)fp8 withCornerRadius:(float)fp24;	// IMP=0x323b9e48
-+ (id)bezierPathKnockingOutTopOfRect:(struct CGRect)fp8 withCornerRadius:(float)fp24;	// IMP=0x323b9cb0
-+ (id)roundedRectBezierPath:(struct CGRect)fp8 withRoundedCorners:(int)fp24 visibleEdges:(int)fp28 cornerRadius:(float)fp32;	// IMP=0x323b9fb4
-+ (id)roundedRectBezierPath:(struct CGRect)fp8 withRoundedCorners:(int)fp24 withCornerRadii:(id)fp28;	// IMP=0x323ba590
-+ (id)roundedRectBezierPath:(struct CGRect)fp8 withRoundedCorners:(int)fp24 withCornerRadius:(float)fp28;	// IMP=0x323bab68
-+ (id)roundedRectBezierPath:(struct CGRect)fp8 withRoundedEdges:(int)fp24;	// IMP=0x323baed0
-- (struct CGPath *)_pathRef;	// IMP=0x323b9a70
-- (void)appendBezierPath:(id)fp8;	// IMP=0x323b9ab0
-- (void)appendBezierPathWithArcWithCenter:(struct CGPoint)fp8 radius:(float)fp16 startAngle:(float)fp20 endAngle:(float)fp24 clockwise:(BOOL)fp28;	// IMP=0x323b9bb8
-- (void)appendBezierPathWithOvalInRect:(struct CGRect)fp8;	// IMP=0x323b9b14
-- (void)appendBezierPathWithOvalInRect:(struct CGRect)fp8 transform:(struct CGAffineTransform)fp24;	// IMP=0x323b9b5c
-- (void)appendBezierPathWithRect:(struct CGRect)fp8;	// IMP=0x323b9acc
-- (void)clip;	// IMP=0x323b9c88
-- (void)closePath;	// IMP=0x323b9ba4
-- (void)dealloc;	// IMP=0x323b9a1c
-- (void)fill;	// IMP=0x323b9c0c
-- (id)init;	// IMP=0x323b99c0
-- (void)lineToPoint:(struct CGPoint)fp8;	// IMP=0x323b9a94
-- (void)moveToPoint:(struct CGPoint)fp8;	// IMP=0x323b9a78
-- (void)setLineWidth:(float)fp8;	// IMP=0x323b9c04
-- (void)stroke;	// IMP=0x323b9c44
+@interface UIBezierPath : NSObject {}
+
++ (id)bezierPath;	
++ (id)bezierPathKnockingOutBottomOfRect:(CGRect)rect withCornerRadius:(float)radius;	
++ (id)bezierPathKnockingOutTopOfRect:(CGRect)rect withCornerRadius:(float)radius;	
++ (id)roundedRectBezierPath:(CGRect)rect withRoundedCorners:(UIBezierPathCornerOptions)cornerOptions visibleEdges:(int)fp28 cornerRadius:(float)radius;	
++ (id)roundedRectBezierPath:(CGRect)rect withRoundedCorners:(UIBezierPathCornerOptions)cornerOptions withCornerRadii:(id)fp28; // NSArray of NSNumbers?
++ (id)roundedRectBezierPath:(CGRect)rect withRoundedCorners:(UIBezierPathCornerOptions)cornerOptions withCornerRadius:(float)radius;	
++ (id)roundedRectBezierPath:(CGRect)rect withRoundedEdges:(UIBezierPathCornerOptions)cornerOptions;	
+- (CGPathRef)_pathRef;	
+- (void)appendBezierPath:(UIBezierPath *)path;	
+- (void)appendBezierPathWithArcWithCenter:(CGPoint)center radius:(float)radius startAngle:(float)startAngle endAngle:(float)endAngle clockwise:(BOOL)clockwise;	
+- (void)appendBezierPathWithOvalInRect:(CGRect)rect;	
+- (void)appendBezierPathWithOvalInRect:(CGRect)rect transform:(CGAffineTransform)transform;	
+- (void)appendBezierPathWithRect:(CGRect)rect;	
+- (void)clip;	
+- (void)closePath;	
+- (void)dealloc;	
+- (void)fill;	
+- (id)init;	
+- (void)lineToPoint:(CGPoint)point;	
+- (void)moveToPoint:(CGPoint)point;	
+- (void)setLineWidth:(float)point;	
+- (void)stroke;	
 
 @end
-
