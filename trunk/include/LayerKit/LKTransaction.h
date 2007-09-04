@@ -6,6 +6,11 @@
 
 #import <Foundation/NSObject.h>
 
+extern NSString *kLKTransactionDisableActions;
+extern NSString *kLKTransactionAnimationDelegate;
+extern NSString *kLKTransactionAnimationDuration;
+extern NSString *kLKTransactionAnimationTimingFunction;
+
 @interface LKTransaction : NSObject {}
 + (void)begin;
 + (void)commit;

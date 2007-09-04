@@ -24,6 +24,4 @@
 int LKPurpleServerIsRunning();
 void LKPurpleServerStart();
 
-extern NSString *kLKTransactionDisableActions;
-
 #endif
