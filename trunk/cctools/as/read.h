@@ -29,7 +29,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef PERMIT_WHITESPACE
 #define SKIP_WHITESPACE()			\
-  ((*input_line_pointer == ' ') ? ++input_line_pointer : 0)
+    do {                                                                    \
+        while (*input_line_pointer == ' ' || *input_line_pointer == '\t')   \
+            input_line_pointer++;                                           \
+    } while (0)
 #else
 #define SKIP_WHITESPACE() know(*input_line_pointer != ' ' )
 #endif
@@ -106,6 +109,8 @@ extern void s_endmacro(
 extern void s_rept(
     int value);
 extern void s_endr(
+    int value);
+extern void s_ifc(
     int value);
 extern void big_cons(
     int nbytes);

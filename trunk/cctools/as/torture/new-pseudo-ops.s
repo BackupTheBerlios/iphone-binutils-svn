@@ -36,6 +36,18 @@ nop
 nop
 nop
 
+.ifc "foo","bar"
+bkpt 0
+.else
+mov r12,r0
+.endif
+
+.ifc "foo","foo"
+mov r0,r12
+.else
+bkpt 0
+.endif
+
 .set shifter, 31
 .rept 32
 mov r1,r2,lsl #shifter

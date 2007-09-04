@@ -518,6 +518,7 @@ static const pseudo_typeS pseudo_table[] = {
   { "machine",	s_machine,	0	},
   { "rept", s_rept, 0       },
   { "endr", s_endr, 0       },
+  { "ifc", s_ifc,   0       },
   { NULL }	/* end sentinel */
 };
 
@@ -3931,6 +3932,36 @@ int value)
 	}
 }
 
+/* iPhone binutils extension: .ifc assembles if the two strings are the same */
+void s_ifc(int value)
+{
+    char *ptr1, *ptr2;
+    int len1, len2;
+
+    if (if_depth >= MAX_IF_DEPTH)
+        as_fatal("Maximum if nesting level reached");
+    last_states[if_depth++] = the_cond_state;
+    the_cond_state.the_cond = if_cond;
+
+    if (the_cond_state.ignore)
+        totally_ignore_line();
+    else {
+        ptr1 = demand_copy_string(&len1);
+        
+        SKIP_WHITESPACE();
+        if (*input_line_pointer != ',')
+            as_bad(".ifc needs two strings separated by a comma (',')");
+        else
+            input_line_pointer++;
+        
+        ptr2 = demand_copy_string(&len2);
+
+        the_cond_state.cond_met = (len1 == len2 && !strncmp(ptr1, ptr2, len1));
+        the_cond_state.ignore = !the_cond_state.cond_met;
+        demand_empty_rest_of_line();
+    }
+}
+
 /*
  * s_elseif() implements the pseudo op:
  *	.elseif expression
@@ -4523,7 +4554,9 @@ struct macro_info *info)
 	buffer = obstack_finish (&macros);
 	count_lines = FALSE;
 
+#if 0
 	printf("expanded macro: %s", buffer + 1);
+#endif
 #ifdef PPC
 	if(flagseen[(int)'p'] == TRUE)
 	    ppcasm_parse_a_buffer(buffer + 1);

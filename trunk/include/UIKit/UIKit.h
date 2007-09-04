@@ -32,6 +32,7 @@
 #import <UIKit/UIView-Geometry.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Internal.h>
+#import <UIKit/UIView-LKLayerDelegate.h>
 #import <UIKit/UIView-Rendering.h>
 #import <UIKit/UIWindow.h>
 #import <UIKit/WebCaretChangeListenerProtocol.h>

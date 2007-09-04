@@ -5,6 +5,7 @@
  */
 
 #import <UIKit/UIView.h>
+#import <LayerKit/LayerKit.h>
 
 @interface UIView (Internal)
 + (BOOL)_invalidatesViewUponCreation;	// IMP=0x323c619c
@@ -21,7 +22,7 @@
 - (id)_interceptMouseEvent:(struct __GSEvent *)fp8;	// IMP=0x323c6318
 - (void)_invalidateLayerContents;	// IMP=0x323c62e0
 - (void)_invalidateSubviewCache;	// IMP=0x323c6290
-- (id)_layer;	// IMP=0x323c61fc
+- (LKLayer *)_layer;	// IMP=0x323c61fc
 - (void)_mouseDown:(struct __GSEvent *)fp8;	// IMP=0x323c6dbc
 - (void)_mouseDragged:(struct __GSEvent *)fp8;	// IMP=0x323c6df8
 - (void)_mouseUp:(struct __GSEvent *)fp8;	// IMP=0x323c6e34
