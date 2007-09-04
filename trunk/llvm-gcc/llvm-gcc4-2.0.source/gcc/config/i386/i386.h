@@ -4037,6 +4037,7 @@ enum ix86_builtins
       F.setCPU(TARGET_64BIT ? "core2" : "yonah");             \
     else                                                      \
       F.setCPU(ix86_arch_string);                             \
+    if (TARGET_64BIT) F.AddFeature("64bit");                  \
     if (TARGET_MMX)   F.AddFeature("mmx");                    \
     if (TARGET_SSE)   F.AddFeature("sse");                    \
     if (TARGET_SSE2)  F.AddFeature("sse2");                   \
@@ -4067,11 +4068,8 @@ enum ix86_builtins
  *  return true.This macro is invoked from a method in the TreeToLLVM class.
  */
 #define LLVM_TARGET_INTRINSIC_LOWER(EXP, BUILTIN_CODE, DESTLOC, RESULT,       \
-                                    DESTTY, OPS, ARGS, CURBB,                 \
-                                    RESISSIGNED, EXPISSIGNED)                 \
-        TargetIntrinsicLower(EXP, BUILTIN_CODE, DESTLOC, RESULT,              \
-                             DESTTY, OPS, ARGS, CURBB,                        \
-                             RESISSIGNED, EXPISSIGNED);
+                                    DESTTY, OPS)                              \
+        TargetIntrinsicLower(EXP, BUILTIN_CODE, DESTLOC, RESULT, DESTTY, OPS);
 /* APPLE LOCAL end LLVM */
 
 /*

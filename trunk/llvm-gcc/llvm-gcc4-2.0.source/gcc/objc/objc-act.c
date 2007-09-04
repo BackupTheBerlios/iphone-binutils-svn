@@ -1855,8 +1855,10 @@ objc_build_compound_setter_call (tree receiver, tree prop_ident, tree rhs)
       /* To allow for correct property assignment semantics 
          and in accordance with C99 rules we generate: type temp; 
          (temp = rhs, [lhs Setter:temp], temp) */
-      temp = objc_create_named_tmp_var (
-      objc_decay_parm_type (TREE_TYPE (rhs)), "prop");
+      /* APPLE LOCAL begin radar 5279122 */
+      rhs = default_conversion(rhs);
+      temp = objc_create_named_tmp_var (TREE_TYPE (rhs), "prop");
+      /* APPLE LOCAL end radar 5279122 */
       bind = build (BIND_EXPR, void_type_node, temp, NULL, NULL);
       TREE_SIDE_EFFECTS (bind) = 1;
       add_stmt (bind);
@@ -1867,6 +1869,8 @@ objc_build_compound_setter_call (tree receiver, tree prop_ident, tree rhs)
   else
     {
       comma_exp = objc_setter_func_call (receiver, prop_ident, rhs);
+      /* APPLE LOCAL radar 5279122 */
+      rhs = default_conversion(rhs);
       /* APPLE LOCAL 5140757 */
       temp = save_expr (rhs);
       if (TREE_CODE (temp) == VAR_DECL || TREE_CODE (temp) == PARM_DECL)
@@ -9275,6 +9279,11 @@ generate_protocols (void)
 					     /* APPLE LOCAL radar 4695109 */
 					     UOBJC_PROTOCOL_EXT_decl, NULL_TREE);
       /* APPLE LOCAL end radar 4585769 - Objective-C 1.0 extensions */
+      /* APPLE LOCAL begin LLVM */
+      /* Force 4 byte alignment for protocols */
+      DECL_ALIGN(decl) = 32;
+      DECL_USER_ALIGN(decl) = 1;
+      /* APPLE LOCAL end LLVM */
       finish_var_decl (decl, initlist);
     }
 }
@@ -18158,6 +18167,13 @@ handle_class_ref (tree chain)
   DECL_INITIAL (decl) = exp;
   TREE_STATIC (decl) = 1;
   TREE_USED (decl) = 1;
+/* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+  /* This decl's name is special. Ask llvm to not add leading underscore by 
+     setting it as a user supplied asm name.  */
+  set_user_assembler_name(decl, string);
+#endif ENABLE_LLVM
+/* APPLE LOCAL end LLVM */
 
   pushdecl (decl);
   rest_of_decl_compilation (decl, 0, 0);
@@ -18194,8 +18210,16 @@ handle_impent (struct imp_entry *impent)
       /* Do the same for categories.  Even though no references to
          these symbols are generated automatically by the compiler, it
          gives you a handle to pull them into an archive by hand.  */
+/* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+      /* The * is a sentinel for gcc's back end, but is not wanted by llvm. */
+      sprintf (string, "%sobjc_category_name_%s_%s",
+               (flag_next_runtime ? "." : "__"), class_name, class_super_name);
+#else
       sprintf (string, "*%sobjc_category_name_%s_%s",
                (flag_next_runtime ? "." : "__"), class_name, class_super_name);
+#endif
+/* APPLE LOCAL end LLVM */
     }
   else
     return;

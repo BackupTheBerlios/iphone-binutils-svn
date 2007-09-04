@@ -1,6 +1,6 @@
 /* APPLE LOCAL begin LLVM (ENTIRE FILE!)  */
 /* Internal interfaces between the LLVM backend components
-Copyright (C) 2005 Free Software Foundation, Inc.
+Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 Contributed by Chris Lattner  (sabre@nondot.org)
 
 This file is part of GCC.
@@ -35,6 +35,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Intrinsics.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/DataTypes.h"
+#include "llvm/Support/LLVMBuilder.h"
 #include "llvm/Support/Streams.h"
 
 extern "C" {
@@ -85,7 +86,17 @@ extern llvm::OStream *AsmOutFile;
 extern std::vector<std::pair<Function*, int> > StaticCtors, StaticDtors;
 
 /// AttributeUsedGlobals - The list of globals that are marked attribute(used).
-extern std::vector<GlobalValue*> AttributeUsedGlobals;
+extern std::vector<Constant*> AttributeUsedGlobals;
+
+/// AttributeNoinlineFunctions - The list of functions that are 
+/// marked attribute(noinline)
+extern std::vector<Constant*> AttributeNoinlineFunctions;
+
+extern Constant* ConvertMetadataStringToGV(const char* str);
+
+/// AddAnnotateAttrsToGlobal - Adds decls that have a
+/// annotate attribute to a vector to be emitted later.
+extern void AddAnnotateAttrsToGlobal(GlobalValue *GV, union tree_node* decl);
 
 void changeLLVMValue(Value *Old, Value *New);
 void readLLVMTypesStringTable();
@@ -95,6 +106,10 @@ void writeLLVMValues();
 void clearTargetBuiltinCache();
 
 struct StructTypeConversionInfo;
+
+/// Return true if and only if field no. N from struct type T is a padding
+/// element added to match llvm struct type size and gcc struct type size.
+bool isPaddingElement(const Type *T, unsigned N);
 
 /// TypeConverter - Implement the converter from GCC types to LLVM types.
 ///
@@ -114,10 +129,17 @@ public:
   
   const Type *ConvertType(tree_node *type);
   
+  /// GCCTypeOverlapsWithLLVMTypePadding - Return true if the specified GCC type
+  /// has any data that overlaps with structure padding in the specified LLVM
+  /// type.
+  static bool GCCTypeOverlapsWithLLVMTypePadding(tree_node *t, const Type *Ty);
+  
+  
   /// ConvertFunctionType - Convert the specified FUNCTION_TYPE or METHOD_TYPE
   /// tree to an LLVM type.  This does the same thing that ConvertType does, but
   /// it also returns the function's LLVM calling convention.
   const FunctionType *ConvertFunctionType(tree_node *type,
+                                          tree_node *decl,
                                           tree_node *static_chain,
                                           unsigned &CallingConv);
   
@@ -213,9 +235,9 @@ class TreeToLLVM {
   
   // State that changes as the function is emitted.
 
-  /// CurBB - Always the same as &Fn->back() - the current basic block to insert
-  /// code into.
-  BasicBlock *CurBB;
+  /// Builder - Instruction creator, the location to insert into is always the
+  /// same as &Fn->back().
+  LLVMBuilder Builder;
 
   // AllocaInsertionPoint - Place to insert alloca instructions.  Lazily created
   // and managed by CreateTemporary.
@@ -237,25 +259,39 @@ class TreeToLLVM {
     BranchFixup(BranchInst *srcBranch, bool IsExceptionEdge)
       : SrcBranch(srcBranch), isExceptionEdge(IsExceptionEdge) {}
   };
-  
+
+  enum CatchTypes { Unknown = 0, CatchList, FilterExpr };
+
   /// EHScope - One of these scopes is maintained for each TRY_CATCH_EXPR and
   /// TRY_FINALLY_EXPR blocks that we are currently in.
   struct EHScope {
-    /// TryExpr - This is the actual TRY_CATCH_EXPR or TRY_FINALLY_EXPR.
-    tree_node *TryExpr;
-    
+    /// CatchExpr - Contains the cleanup code for a TRY_CATCH_EXPR, and NULL for
+    /// a TRY_FINALLY_EXPR.
+    tree_node *CatchExpr;
+
     /// UnwindBlock - A basic block in this scope that branches to the unwind
     /// destination.  This is lazily created by the first invoke in this scope.
     BasicBlock *UnwindBlock;
-    
+
     // The basic blocks that are directly in this region.
     std::vector<BasicBlock*> Blocks;
-    
+
     /// BranchFixups - This is a list of fixups we need to process in this scope
     /// or in a parent scope.
     std::vector<BranchFixup> BranchFixups;
-    
-    EHScope(tree_node *expr) : TryExpr(expr), UnwindBlock(0) {}
+
+    /// InfosType - The nature of the type infos CatchExpr contains: a list of
+    /// CATCH_EXPR (-> CatchList) or an EH_FILTER_EXPR (-> FilterExpr).  Equal
+    /// to Unknown if type info information has not yet been gathered.
+    CatchTypes InfosType;
+
+    /// TypeInfos - The type infos corresponding to the catches or filter in
+    /// CatchExpr.  If InfosType is Unknown then this information has not yet
+    /// been gathered.
+    std::vector<Constant *> TypeInfos;
+
+    EHScope(tree_node *expr) :
+        CatchExpr(expr), UnwindBlock(0), InfosType(Unknown) {}
   };
   
   /// CurrentEHScopes - The current stack of exception scopes we are
@@ -267,7 +303,13 @@ class TreeToLLVM {
   /// list of blocks maintained by the scope and the scope number is added to
   /// this map.
   std::map<BasicBlock*, unsigned> BlockEHScope;
-  
+
+  /// CleanupFilter - Lazily created EH_FILTER_EXPR wrapped in a STATEMENT_LIST
+  /// used to catch exceptions thrown by the finally part of a TRY_FINALLY_EXPR.
+  /// The handler code is specified by the lang_protect_cleanup_actions langhook
+  /// (which returns a call to "terminate" in the case of C++).
+  tree_node *CleanupFilter;
+
   /// ExceptionValue - Is the local to receive the current exception.
   /// 
   Value *ExceptionValue;
@@ -284,10 +326,6 @@ class TreeToLLVM {
   ///
   Function *FuncEHSelector;
   
-  /// FuncEHFilter - Function used to handle the exception filtering.
-  ///
-  Function *FuncEHFilter;
-
   /// FuncEHGetTypeID - Function used to return type id for give typeinfo.
   ///
   Function *FuncEHGetTypeID;
@@ -401,7 +439,8 @@ private: // Helper functions.
   /// EmitAggregateCopy - Copy the elements from SrcPtr to DestPtr, using the
   /// GCC type specified by GCCType to know which elements to copy.
   void EmitAggregateCopy(Value *DestPtr, Value *SrcPtr, tree_node *GCCType,
-                         bool isDstVolatile, bool isSrcVolatile);
+                         bool isDstVolatile, bool isSrcVolatile,
+                         unsigned Alignment);
   /// EmitAggregateZero - Zero the elements of DestPtr.
   ///
   void EmitAggregateZero(Value *DestPtr, tree_node *GCCType);
@@ -429,10 +468,14 @@ private:
   static bool isNoopCast(Value *V, const Type *Ty);
 
   void HandleMultiplyDefinedGCCTemp(tree_node *var);
+  
+  /// EmitAnnotateIntrinsic - Emits call to annotate attr intrinsic
+  void EmitAnnotateIntrinsic(Value *V, tree_node *decl);
+  
 private:
   /// GatherTypeInfo - Walk through the expression gathering all the
   /// typeinfos that are used.
-  void GatherTypeInfo(tree_node *exp, std::vector<Value *> &TypeInfos);
+  void GatherTypeInfo(tree_node *exp, std::vector<Constant *> &TypeInfos);
 
   /// AddLandingPad - Insert code to fetch and save the exception and exception
   /// selector.
@@ -448,7 +491,11 @@ private:
   // Basic lists and binding scopes.
   Value *EmitBIND_EXPR(tree_node *exp, Value *DestLoc);
   Value *EmitSTATEMENT_LIST(tree_node *exp, Value *DestLoc);
-  
+
+  // Helpers for exception handling.
+  void   EmitProtectedCleanups(tree_node *cleanups);
+  Value *EmitTryInternal(tree_node *inner, tree_node *handler, bool isCatch);
+
   // Control flow.
   Value *EmitLABEL_EXPR(tree_node *exp);
   Value *EmitGOTO_EXPR(tree_node *exp);
@@ -459,7 +506,7 @@ private:
   Value *EmitCATCH_EXPR(tree_node *exp);
   Value *EmitEXC_PTR_EXPR(tree_node *exp);
   Value *EmitEH_FILTER_EXPR(tree_node *exp);
-  
+
   // Expressions.
   void   EmitINTEGER_CST_Aggregate(tree_node *exp, Value *DestLoc);
   Value *EmitLoadOfLValue(tree_node *exp, Value *DestLoc);
@@ -477,6 +524,7 @@ private:
   Value *EmitABS_EXPR(tree_node *exp);
   Value *EmitBIT_NOT_EXPR(tree_node *exp);
   Value *EmitTRUTH_NOT_EXPR(tree_node *exp);
+  Value *EmitEXACT_DIV_EXPR(tree_node *exp, Value *DestLoc);
   Value *EmitCompare(tree_node *exp, unsigned UIPred, unsigned SIPred, 
                      unsigned FPOpc);
   Value *EmitBinOp(tree_node *exp, Value *DestLoc, unsigned Opc);
@@ -528,6 +576,14 @@ private:
   bool EmitBuiltinFrobReturnAddr(tree_node *exp, Value *&Result);
   bool EmitBuiltinStackSave(tree_node *exp, Value *&Result);
   bool EmitBuiltinStackRestore(tree_node *exp);
+  bool EmitBuiltinDwarfCFA(tree_node *exp, Value *&Result);
+  bool EmitBuiltinDwarfSPColumn(tree_node *exp, Value *&Result);
+  bool EmitBuiltinEHReturnDataRegno(tree_node *exp, Value *&Result);
+  bool EmitBuiltinEHReturn(tree_node *exp, Value *&Result);
+  bool EmitBuiltinInitDwarfRegSizes(tree_node *exp, Value *&Result);
+  bool EmitBuiltinUnwindInit(tree_node *exp, Value *&Result);
+  bool EmitBuiltinInitTrampoline(tree_node *exp);
+  bool EmitBuiltinAdjustTrampoline(tree_node *exp, Value *&Result);
 
   // Complex Math Expressions.
   void EmitLoadFromComplex(Value *&Real, Value *&Imag, Value *SrcComplex,
@@ -557,11 +613,7 @@ private:
                             Value *DestLoc,
                             Value *&Result,
                             const Type *ResultType,
-                            std::vector<Value*> &Ops,
-                            SmallVector<tree_node *, 8> &Args,
-                            BasicBlock *CurBB,
-                            bool ResIsSigned,
-                            bool ExpIsSigned);
+                            std::vector<Value*> &Ops);
 };
 
 /// TreeConstantToLLVM - An instance of this class is created and used to 
@@ -592,6 +644,7 @@ public:
   static Constant *EmitLV_STRING_CST(tree_node *exp);
   static Constant *EmitLV_COMPONENT_REF(tree_node *exp);
   static Constant *EmitLV_ARRAY_REF(tree_node *exp);
+  
 };
 
 #endif

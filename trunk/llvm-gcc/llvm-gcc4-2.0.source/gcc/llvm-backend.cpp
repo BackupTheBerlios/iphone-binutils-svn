@@ -78,8 +78,15 @@ TargetMachine *TheTarget = 0;
 TypeConverter *TheTypeConverter = 0;
 llvm::OStream *AsmOutFile = 0;
 
+/// DisableLLVMOptimizations - Allow the user to specify:
+/// "-mllvm -disable-llvm-optzns" on the llvm-gcc command line to force llvm
+/// optimizations off.
+static cl::opt<bool> DisableLLVMOptimizations("disable-llvm-optzns");
+
 std::vector<std::pair<Function*, int> > StaticCtors, StaticDtors;
-std::vector<GlobalValue*> AttributeUsedGlobals;
+std::vector<Constant*> AttributeUsedGlobals;
+std::vector<Constant*> AttributeNoinlineFunctions;
+std::vector<Constant*> AttributeAnnotateGlobals;
 
 /// PerFunctionPasses - This is the list of cleanup passes run per-function
 /// as each is compiled.  In cases where we are not doing IPO, it includes the 
@@ -109,9 +116,14 @@ void llvm_initialize_backend(void) {
     Args.push_back("--disable-fp-elim");
   if (!flag_zero_initialized_in_bss)
     Args.push_back("--nozero-initialized-in-bss");
-// Disabled until PR1224 is resolved.
-  //if (flag_exceptions)
-  //  Args.push_back("--enable-eh");
+  if (flag_debug_asm)
+    Args.push_back("--asm-verbose");
+  if (flag_debug_pass_structure)
+    Args.push_back("--debug-pass=Structure");
+  if (flag_debug_pass_arguments)
+    Args.push_back("--debug-pass=Arguments");
+  if (flag_exceptions)
+    Args.push_back("--enable-eh");
 
   // If there are options that should be passed through to the LLVM backend
   // directly from the command line, do so now.  This is mainly for debugging
@@ -220,7 +232,11 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
     delete PerModulePasses;
     delete CodeGenPasses;
 
-    createOptimizationPasses();
+    // Don't run codegen, when we should output PCH
+    if (!flag_pch_file)
+      createOptimizationPasses();
+    else
+      llvm_pch_write_init();
   }
     
   // Read LLVM Types string table
@@ -266,7 +282,7 @@ static void createOptimizationPasses() {
   HasPerFunctionPasses = true;
 #endif
 
-  if (optimize > 0) {
+  if (optimize > 0 && !DisableLLVMOptimizations) {
     HasPerFunctionPasses = true;
     PerFunctionPasses->add(createCFGSimplificationPass());
     if (optimize == 1)
@@ -282,7 +298,7 @@ static void createOptimizationPasses() {
   PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
   bool HasPerModulePasses = false;
 
-  if (optimize > 0) {
+  if (optimize > 0 && !DisableLLVMOptimizations) {
     HasPerModulePasses = true;
     PassManager *PM = PerModulePasses;
     if (flag_unit_at_a_time)
@@ -323,7 +339,7 @@ static void createOptimizationPasses() {
     PM->add(createReassociatePass());           // Reassociate expressions
     PM->add(createLoopRotatePass());            // Rotate Loop
     PM->add(createLICMPass());                  // Hoist loop invariants
-    PM->add(createLoopUnswitchPass());          // Unswitch loops.
+    PM->add(createLoopUnswitchPass(optimize_size ? true : false));
     PM->add(createInstructionCombiningPass());  // Clean up after LICM/reassoc
     PM->add(createIndVarSimplifyPass());        // Canonicalize indvars
     if (flag_unroll_loops)
@@ -463,15 +479,43 @@ void llvm_asm_file_end(void) {
     CreateStructorsList(StaticDtors, "llvm.global_dtors");
   
   if (!AttributeUsedGlobals.empty()) {
-    std::vector<Constant*> GlobalInit;
     const Type *SBP = PointerType::get(Type::Int8Ty);
-    for (unsigned i = 0, e = AttributeUsedGlobals.size(); i != e; ++i)
-      GlobalInit.push_back(ConstantExpr::getBitCast(AttributeUsedGlobals[i], 
-                                                    SBP));
     ArrayType *AT = ArrayType::get(SBP, AttributeUsedGlobals.size());
-    Constant *Init = ConstantArray::get(AT, GlobalInit);
-    new GlobalVariable(AT, false, GlobalValue::AppendingLinkage, Init,
+    Constant *Init = ConstantArray::get(AT, AttributeUsedGlobals);
+    GlobalValue* gv = new GlobalVariable(AT, false, 
+                       GlobalValue::AppendingLinkage, Init,
                        "llvm.used", TheModule);
+    gv->setSection("llvm.metadata");
+    AttributeUsedGlobals.clear();
+  }
+  
+  // Add llvm.noinline
+  if (!AttributeNoinlineFunctions.empty()) {
+    const Type *SBP= PointerType::get(Type::Int8Ty);
+    ArrayType *AT = ArrayType::get(SBP, AttributeNoinlineFunctions.size());
+    Constant *Init = ConstantArray::get(AT, AttributeNoinlineFunctions);
+    GlobalValue *gv = new GlobalVariable(AT, false, 
+                                        GlobalValue::AppendingLinkage, Init,
+                                        "llvm.noinline", TheModule);
+    gv->setSection("llvm.metadata");
+    
+    // Clear vector
+    AttributeNoinlineFunctions.clear();
+  }
+  
+  // Add llvm.global.annotations
+  if (!AttributeAnnotateGlobals.empty()) {
+    
+    Constant *Array =
+    ConstantArray::get(ArrayType::get(AttributeAnnotateGlobals[0]->getType(), 
+                                      AttributeAnnotateGlobals.size()),
+                       AttributeAnnotateGlobals);
+    GlobalValue *gv = new GlobalVariable(Array->getType(), false, 
+                                         GlobalValue::AppendingLinkage, Array, 
+                                         "llvm.global.annotations", TheModule); 
+    gv->setSection("llvm.metadata");
+    AttributeAnnotateGlobals.clear();
+  
   }
   
   // Finish off the per-function pass.
@@ -635,6 +679,72 @@ void emit_alias_to_llvm(tree decl, tree target, tree target_decl) {
   return;
 }
 
+// Convert string to global value. Use existing global if possible.
+Constant* ConvertMetadataStringToGV(const char *str) {
+  
+  Constant *Init = ConstantArray::get(std::string(str));
+
+  // Use cached string if it exists.
+  static std::map<Constant*, GlobalVariable*> StringCSTCache;
+  GlobalVariable *&Slot = StringCSTCache[Init];
+  if (Slot) return Slot;
+  
+  // Create a new string global.
+  GlobalVariable *GV = new GlobalVariable(Init->getType(), true,
+                                          GlobalVariable::InternalLinkage,
+                                          Init, ".str", TheModule);
+  GV->setSection("llvm.metadata");
+  Slot = GV;
+  return GV;
+  
+}
+
+/// AddAnnotateAttrsToGlobal - Adds decls that have a
+/// annotate attribute to a vector to be emitted later.
+void AddAnnotateAttrsToGlobal(GlobalValue *GV, tree decl) {
+  
+  // Handle annotate attribute on global.
+  tree annotateAttr = lookup_attribute("annotate", DECL_ATTRIBUTES (decl));
+  
+  // Get file and line number
+ Constant *lineNo = ConstantInt::get(Type::Int32Ty, DECL_SOURCE_LINE(decl));
+ Constant *file = ConvertMetadataStringToGV(DECL_SOURCE_FILE(decl));
+ const Type *SBP= PointerType::get(Type::Int8Ty);
+ file = ConstantExpr::getBitCast(file, SBP);
+ 
+  // There may be multiple annotate attributes. Pass return of lookup_attr 
+  //  to successive lookups.
+  while (annotateAttr) {
+    
+    // Each annotate attribute is a tree list.
+    // Get value of list which is our linked list of args.
+    tree args = TREE_VALUE(annotateAttr);
+    
+    // Each annotate attribute may have multiple args.
+    // Treat each arg as if it were a separate annotate attribute.
+    for (tree a = args; a; a = TREE_CHAIN(a)) {
+      // Each element of the arg list is a tree list, so get value
+      tree val = TREE_VALUE(a);
+      
+      // Assert its a string, and then get that string.
+      assert(TREE_CODE(val) == STRING_CST && 
+             "Annotate attribute arg should always be a string");
+      Constant *strGV = TreeConstantToLLVM::EmitLV_STRING_CST(val);
+      Constant *Element[4] = {ConstantExpr::getBitCast(GV,SBP),
+        ConstantExpr::getBitCast(strGV,SBP),
+        file,
+        lineNo};
+ 
+      AttributeAnnotateGlobals.push_back(ConstantStruct::get(Element, 4, false));
+    }
+      
+    // Get next annotate attribute.
+    annotateAttr = TREE_CHAIN(annotateAttr);
+    if (annotateAttr)
+      annotateAttr = lookup_attribute("annotate", annotateAttr);
+  }
+}
+
   
 /// emit_global_to_llvm - Emit the specified VAR_DECL or aggregate CONST_DECL to
 /// LLVM as a global variable.  This function implements the end of
@@ -733,15 +843,24 @@ void emit_global_to_llvm(tree decl) {
 #endif
     }
     
-    // Set the alignment for the global.
-    if (DECL_ALIGN_UNIT(decl) && 
-        getTargetData().getABITypeAlignment(GV->getType()->getElementType()) !=
-        DECL_ALIGN_UNIT(decl))
-      GV->setAlignment(DECL_ALIGN_UNIT(decl));
+    // Set the alignment for the global if one of the following condition is met
+    // 1) DECL_ALIGN_UNIT does not match alignment as per ABI specification
+    // 2) DECL_ALIGN is set by user.
+    if (DECL_ALIGN_UNIT(decl)) {
+      unsigned TargetAlign = getTargetData().getABITypeAlignment(GV->getType()->getElementType());
+      if (DECL_USER_ALIGN(decl) || TargetAlign != DECL_ALIGN_UNIT(decl))
+        GV->setAlignment(DECL_ALIGN_UNIT(decl));
+    }
 
     // Handle used decls
-    if (DECL_PRESERVE_P (decl))
-      AttributeUsedGlobals.push_back(GV);
+    if (DECL_PRESERVE_P (decl)) {
+      const Type *SBP= PointerType::get(Type::Int8Ty);
+      AttributeUsedGlobals.push_back(ConstantExpr::getBitCast(GV, SBP));
+    }
+  
+    // Add annotate attributes for globals
+    if (DECL_ATTRIBUTES(decl))
+      AddAnnotateAttrsToGlobal(GV, decl);
   }
   
   if (TheDebugInfo) TheDebugInfo->EmitGlobalVariable(GV, decl); 
@@ -874,7 +993,7 @@ void make_decl_llvm(tree decl) {
     if (FnEntry == 0) {
       unsigned CC;
       const FunctionType *Ty = 
-        TheTypeConverter->ConvertFunctionType(TREE_TYPE(decl), NULL, CC);
+        TheTypeConverter->ConvertFunctionType(TREE_TYPE(decl), decl, NULL, CC);
       FnEntry = new Function(Ty, Function::ExternalLinkage, Name, TheModule);
       FnEntry->setCallingConv(CC);
 
@@ -1040,7 +1159,10 @@ void llvm_mark_decl_weak(tree decl) {
 //
 void llvm_emit_ctor_dtor(tree FnDecl, int InitPrio, int isCtor) {
   mark_decl_referenced(FnDecl);  // Inform cgraph that we used the global.
-  Function *F = cast<Function>(DECL_LLVM(FnDecl));
+  
+  if (errorcount || sorrycount) return;
+  
+  Function *F = cast_or_null<Function>(DECL_LLVM(FnDecl));
   (isCtor ? &StaticCtors:&StaticDtors)->push_back(std::make_pair(F, InitPrio));
 }
 

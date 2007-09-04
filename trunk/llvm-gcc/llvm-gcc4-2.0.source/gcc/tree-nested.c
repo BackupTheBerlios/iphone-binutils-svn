@@ -409,6 +409,8 @@ get_trampoline_type (void)
   align = TRAMPOLINE_ALIGNMENT;
   size = TRAMPOLINE_SIZE;
 
+/* APPLE LOCAL LLVM */
+#ifndef ENABLE_LLVM /* Rely on LLVM supporting large alignments. */
   /* If we won't be able to guarantee alignment simply via TYPE_ALIGN,
      then allocate extra space so that we can do dynamic alignment.  */
   /* APPLE LOCAL STACK_BOUNDARY must be a signed expression on Darwin/x86 */
@@ -417,6 +419,8 @@ get_trampoline_type (void)
       size += ((align/BITS_PER_UNIT) - 1) & -(STACK_BOUNDARY/BITS_PER_UNIT);
       align = STACK_BOUNDARY;
     }
+/* APPLE LOCAL LLVM */
+#endif
 
   t = build_index_type (build_int_cst (NULL_TREE, size - 1));
   t = build_array_type (char_type_node, t);
@@ -882,7 +886,15 @@ convert_nonlocal_reference (tree *tp, int *walk_subtrees, void *data)
 	 of whether a NOP_EXPR or VIEW_CONVERT_EXPR needs a simple value.  */
       wi->val_only = true;
       wi->is_lhs = false;
+      /* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+      /* Support the "array ref with pointer base" extension. */
+      for (; handled_component_p (t) || TREE_CODE(t) == ARRAY_REF;
+           tp = &TREE_OPERAND (t, 0), t = *tp)
+#else
       for (; handled_component_p (t); tp = &TREE_OPERAND (t, 0), t = *tp)
+#endif
+      /* APPLE LOCAL end LLVM */
 	{
 	  if (TREE_CODE (t) == COMPONENT_REF)
 	    walk_tree (&TREE_OPERAND (t, 2), convert_nonlocal_reference, wi,
@@ -1017,7 +1029,16 @@ convert_local_reference (tree *tp, int *walk_subtrees, void *data)
       save_val_only = wi->val_only;
       wi->val_only = true;
       wi->is_lhs = false;
+      
+      /* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+      /* Support the "array ref with pointer base" extension. */
+      for (; handled_component_p (t) || TREE_CODE(t) == ARRAY_REF;
+           tp = &TREE_OPERAND (t, 0), t = *tp)
+#else
       for (; handled_component_p (t); tp = &TREE_OPERAND (t, 0), t = *tp)
+#endif
+      /* APPLE LOCAL end LLVM */
 	{
 	  if (TREE_CODE (t) == COMPONENT_REF)
 	    walk_tree (&TREE_OPERAND (t, 2), convert_local_reference, wi,

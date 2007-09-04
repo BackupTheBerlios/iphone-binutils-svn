@@ -660,6 +660,12 @@ static tree handle_warn_unused_result_attribute (tree *, tree, tree, int,
 						 bool *);
 static tree handle_sentinel_attribute (tree *, tree, tree, int, bool *);
 
+/* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+static tree handle_annotate_attribute (tree*, tree, tree, int, bool *);
+#endif
+/* APPLE LOCAL end LLVM */
+
 static void check_function_nonnull (tree, tree);
 static void check_nonnull_arg (void *, tree, unsigned HOST_WIDE_INT);
 static bool nonnull_check_p (tree, unsigned HOST_WIDE_INT);
@@ -747,6 +753,12 @@ const struct attribute_spec c_common_attribute_table[] =
 			      handle_warn_unused_result_attribute },
   { "sentinel",               0, 1, false, true, true,
 			      handle_sentinel_attribute },
+  /* APPLE LOCAL begin LLVM */
+  #ifdef ENABLE_LLVM
+  { "annotate",                0, -1, true, false, false,
+                              handle_annotate_attribute },
+  #endif
+  /* APPLE LOCAL end LLVM */
   { NULL,                     0, 0, false, false, false, NULL }
 };
 
@@ -2624,6 +2636,18 @@ c_common_truthvalue_conversion (tree expr)
 	    && DECL_EXTERNAL (TREE_OPERAND (expr, 0)))
 	  break;
 
+/* APPLE LOCAL begin llvm */
+#if ENABLE_LLVM
+        /* LLVM extends ARRAY_REF to allow pointers to be the base value.  It is not
+           valid to assume ADDR of this is nonzero, because it could be derived from
+           original (P+constant).  Radar 5286401.  */
+        if (TREE_CODE (TREE_OPERAND (expr, 0)) == ARRAY_REF 
+            && TREE_CODE (TREE_TYPE (TREE_OPERAND (TREE_OPERAND (expr, 0), 0))) 
+                != ARRAY_TYPE)
+          break;
+#endif
+/* APPLE LOCAL end llvm */
+
 	if (TREE_SIDE_EFFECTS (TREE_OPERAND (expr, 0)))
 	  return build2 (COMPOUND_EXPR, truthvalue_type_node,
 			 TREE_OPERAND (expr, 0), truthvalue_true_node);
@@ -3545,6 +3569,8 @@ c_common_nodes_and_builtins (void)
 #undef DEF_FUNCTION_TYPE_2
 #undef DEF_FUNCTION_TYPE_3
 #undef DEF_FUNCTION_TYPE_4
+#undef DEF_FUNCTION_TYPE_5
+#undef DEF_FUNCTION_TYPE_6
 #undef DEF_FUNCTION_TYPE_VAR_0
 #undef DEF_FUNCTION_TYPE_VAR_1
 #undef DEF_FUNCTION_TYPE_VAR_2
@@ -5756,6 +5782,39 @@ handle_sentinel_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
+/* APPLE LOCAL begin LLVM */
+#ifdef ENABLE_LLVM
+/* Handle "annotate" attribute */
+static tree
+handle_annotate_attribute (tree *node, tree name, tree args,
+			   int ARG_UNUSED (flags), bool *no_add_attrs)
+{
+  tree id;
+  id = TREE_VALUE (args);
+
+  if (TREE_CODE (*node) == FUNCTION_DECL ||
+      TREE_CODE (*node) == VAR_DECL || TREE_CODE (*node) == PARM_DECL)  
+  {
+  
+    /* Arg must be a string and node must be a var or function decl */
+    if (TREE_CODE (id) != STRING_CST) 
+    {
+      error ("%qs attribute arg is required to be a string", 
+               IDENTIFIER_POINTER (name));
+      *no_add_attrs = true;
+    }
+  }
+  else
+  {
+    warning ("%qs attribute ignored", IDENTIFIER_POINTER (name));
+    *no_add_attrs = true;
+  }
+  
+  return NULL_TREE;
+}
+#endif
+/* APPLE LOCAL end LLVM */
+
 /* Check for valid arguments being passed to a function.  */
 void
 check_function_arguments (tree attrs, tree params)

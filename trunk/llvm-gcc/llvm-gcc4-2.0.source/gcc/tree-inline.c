@@ -1222,7 +1222,7 @@ inlinable_function_p (tree fn)
 
   /* Squirrel away the result so that we don't have to check again.  */
   DECL_UNINLINABLE (fn) = !inlinable;
-
+  
   return inlinable;
 }
 
