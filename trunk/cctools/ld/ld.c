@@ -568,6 +568,14 @@ char *envp[])
 		  print("[Logging ld options]\t%s\n", argv[i]);
 
 	        p = &(argv[i][1]);
+
+        /* iPhone binutils local: allow -compatibility_version and
+         * -current_version as synonyms for -dylib_compatibility_version and
+         * -dylib_current_version, for compatibility with GNU libtool */
+        if (!strcmp(p, "compatibility_version") || !strcmp(p,
+            "current_version"))
+            asprintf(&p, "dylib_%s", p);
+
 		switch(*p){
 		case 'l':
 		    if(p[1] == '\0')
@@ -801,7 +809,7 @@ char *envp[])
 			dylib_install_name = argv[i + 1];
 			i += 1;
 		    }
-		    else if(strcmp(p, "dylib_current_version") == 0){
+		    else if(strcmp(p, "dylib_current_version") == 0) {
 			if(i + 1 >= argc)
 			    fatal("-dylib_current_version: argument missing");
 			if(dylib_current_version != 0)
@@ -814,7 +822,7 @@ char *envp[])
 				  "zero");
 			i += 1;
 		    }
-		    else if(strcmp(p, "dylib_compatibility_version") == 0){
+		    else if(strcmp(p, "dylib_compatibility_version") == 0) {
 			if(i + 1 >= argc)
 			    fatal("-dylib_compatibility_version: argument "
 				  "missing");
