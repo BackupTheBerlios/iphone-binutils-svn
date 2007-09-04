@@ -1,7 +1,8 @@
 #ifndef LAYERKIT_H
 #define LAYERKIT_H
-#import <CoreFoundation/CoreFoundation.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <Foundation/Foundation.h>
+
 #import <LayerKit/LKAnimation.h>
 #import <LayerKit/LKAnimationGroup.h>
 #import <LayerKit/LKBasicAnimation.h>
@@ -23,6 +24,6 @@
 int LKPurpleServerIsRunning();
 void LKPurpleServerStart();
 
-extern CFStringRef kLKTransactionDisableActions;
+extern NSString *kLKTransactionDisableActions;
 
 #endif
