@@ -2449,6 +2449,7 @@ int value)
     struct attribute_name *attribute_name;
     char *attributename, *sizeof_stub_name, f, g, *t, *u, *endp;
 
+    SKIP_WHITESPACE();
 	segname = input_line_pointer;
 	do{
 	    c = *input_line_pointer++ ;
@@ -2460,6 +2461,7 @@ int value)
 	}
 	p = input_line_pointer - 1;
 
+    SKIP_WHITESPACE();
 	sectname = input_line_pointer;
 	do{
 	    d = *input_line_pointer++ ;
@@ -2496,6 +2498,10 @@ int value)
 	attribute_name = attribute_names;
 	sizeof_stub = 0;
 	if(d == ','){
+#if 0
+        printf("YES optional section type\n");
+#endif
+
 	    typename = input_line_pointer;
 	    do{
 		e = *input_line_pointer++ ;
@@ -2517,6 +2523,10 @@ int value)
 	     * Now see if the optional section attribute is present.
 	     */
 	    if(e == ','){
+#if 0
+        printf("YES optional section attribute\n");
+#endif
+
 		do{
 		    attributename = input_line_pointer;
 		    do{
@@ -2607,10 +2617,11 @@ int value)
     symbolS *symbolP;
     int size, align;
 
+    SKIP_WHITESPACE();
 	segname = input_line_pointer;
 	do{
 	    c = *input_line_pointer++ ;
-	}while(c != ',' && c != '\0' && c != '\n');
+	}while(c != ',' && c != '\0' && c != '\n' && c != ' ' && c != '\t');
 	if(c != ','){
 	    as_bad("Expected comma after segment-name");
 	    ignore_rest_of_line();
@@ -2618,10 +2629,11 @@ int value)
 	}
 	p = input_line_pointer - 1;
 
+    SKIP_WHITESPACE();
 	sectname = input_line_pointer;
 	do{
 	    d = *input_line_pointer++ ;
-	}while(d != ',' && d != '\0' && d != '\n');
+	}while(d != ',' && d != '\0' && d != '\n' && c != ' ' && c != '\t');
 	if(p + 1 == input_line_pointer){
 	    as_bad("Expected section-name after comma");
 	    ignore_rest_of_line();
@@ -2663,6 +2675,11 @@ int value)
 	if(d != ',')
 	    return;
 
+#if 0
+            printf("YES optional extra attribute\n");
+#endif
+
+	SKIP_WHITESPACE();
 	if(*input_line_pointer == '"')
 	    name = input_line_pointer + 1;
 	else
@@ -2676,6 +2693,7 @@ int value)
 	    ignore_rest_of_line();
 	    return;
 	}
+    SKIP_WHITESPACE();
 	input_line_pointer ++;
 	if((size = get_absolute_expression()) < 0){
 	    as_bad("zerofill size (%d.) <0! Ignored.", size);
@@ -2683,7 +2701,12 @@ int value)
 	    return;
 	}
 	align = 0;
+    SKIP_WHITESPACE();
 	if(*input_line_pointer == ','){
+#if 0
+            printf("YES optional align  attribute\n");
+#endif
+
 	    input_line_pointer++;
 	    align = get_absolute_expression();
 	    if(align > MAX_ALIGNMENT){
@@ -2923,8 +2946,10 @@ void)
 	SKIP_WHITESPACE();
 	if(is_end_of_line(*input_line_pointer))
 	    input_line_pointer++;
-	else
+	else {
+        as_bad("Rest of this line needed to be empty but wasn't");
 	    ignore_rest_of_line();
+    }
 }
 
 /* we simply ignore the rest of this statement */

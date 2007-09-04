@@ -1,3 +1,6 @@
+    .section    __TEXT,__cstring,cstring_literals
+    .zerofill   __DATA__, __common, .objc_class_name_HelloApplication, 4, 2
+
 @ old-style macro
 .macro foo
     add r0,r0,$0
