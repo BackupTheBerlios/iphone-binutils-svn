@@ -4,7 +4,7 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import "NSObject.h"
+#import <Foundation/NSObject.h>
 
 @class NSMutableArray, NSRecursiveLock;
 
@@ -16,27 +16,27 @@
     unsigned int _flags;
 }
 
-+ (id)avQueue;	// IMP=0x3027e198
-+ (id)queueWithArray:(id)fp8 error:(id *)fp12;	// IMP=0x3027e1dc
-- (int)_instantiateItem;	// IMP=0x3027e424
-- (BOOL)appendItem:(id)fp8 error:(id *)fp12;	// IMP=0x3027e670
-- (BOOL)appendItemsFromArray:(id)fp8 error:(id *)fp12;	// IMP=0x3027e5c8
-- (void)dealloc;	// IMP=0x3027e378
-- (unsigned int)indexOfItem:(id)fp8;	// IMP=0x3027e4c8
-- (id)init;	// IMP=0x3027e2b0
-- (id)initWithArray:(id)fp8 error:(id *)fp12;	// IMP=0x3027e2d4
-- (id)initWithError:(id *)fp8;	// IMP=0x3027e228
-- (BOOL)insertItem:(id)fp8 afterItem:(id)fp12 error:(id *)fp16;	// IMP=0x3027e958
-- (BOOL)insertItem:(id)fp8 atIndex:(unsigned int)fp12 error:(id *)fp16;	// IMP=0x3027e7b4
-- (id)itemAfterItem:(id)fp8;	// IMP=0x3027e524
-- (id)itemAtIndex:(unsigned int)fp8;	// IMP=0x3027e44c
-- (unsigned int)itemCount;	// IMP=0x3027e42c
-- (void)itemWasAdded:(id)fp8;	// IMP=0x3027e6d0
-- (void)itemWillBeRemoved:(id)fp8;	// IMP=0x3027eb20
-- (void)removeAllItems;	// IMP=0x3027ed9c
-- (BOOL)removeItem:(id)fp8;	// IMP=0x3027ec04
-- (BOOL)removeItemAtIndex:(unsigned int)fp8;	// IMP=0x3027ec70
-- (void)removeItemsInRange:(struct _NSRange)fp8;	// IMP=0x3027ed44
++ (id)avQueue;	
++ (id)queueWithArray:(id)fp8 error:(id *)fp12;	
+- (int)_instantiateItem;	
+- (BOOL)appendItem:(id)fp8 error:(id *)fp12;	
+- (BOOL)appendItemsFromArray:(id)fp8 error:(id *)fp12;	
+- (void)dealloc;	
+- (unsigned int)indexOfItem:(id)fp8;	
+- (id)init;	
+- (id)initWithArray:(id)fp8 error:(id *)fp12;	
+- (id)initWithError:(id *)fp8;	
+- (BOOL)insertItem:(id)fp8 afterItem:(id)fp12 error:(id *)fp16;	
+- (BOOL)insertItem:(id)fp8 atIndex:(unsigned int)fp12 error:(id *)fp16;	
+- (id)itemAfterItem:(id)fp8;	
+- (id)itemAtIndex:(unsigned int)fp8;	
+- (unsigned int)itemCount;	
+- (void)itemWasAdded:(id)fp8;	
+- (void)itemWillBeRemoved:(id)fp8;	
+- (void)removeAllItems;	
+- (BOOL)removeItem:(id)fp8;	
+- (BOOL)removeItemAtIndex:(unsigned int)fp8;	
+- (void)removeItemsInRange:(struct _NSRange)fp8;	
 
 @end
 
