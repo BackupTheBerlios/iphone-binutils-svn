@@ -2730,6 +2730,11 @@ const struct attribute_spec arm_attribute_table[] =
   { "dllexport",    0, 0, false, false, false, handle_dll_attribute },
   { "notshared",    0, 0, false, true, false, arm_handle_notshared_attribute },
 #endif
+    /* iPhone binutils local: make sure to include this, as it contains nice
+     * Darwin specific attributes that we'll want to keep! */
+#ifdef SUBTARGET_ATTRIBUTE_TABLE
+  SUBTARGET_ATTRIBUTE_TABLE,
+#endif
   { NULL,           0, 0, false, false, false, NULL }
 };
 

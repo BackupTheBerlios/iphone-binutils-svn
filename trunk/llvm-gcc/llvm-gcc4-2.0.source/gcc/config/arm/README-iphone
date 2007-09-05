@@ -1,0 +1,8 @@
+Because we don't have weak symbols, we have to emulate it using dynamic_lookup.
+As a result, every C++ program must be able to find the following symbols:
+
+___cxa_begin_cleanup
+___cxa_call_unexpected
+___cxa_type_match
+___gnu_Unwind_Find_exidx
+

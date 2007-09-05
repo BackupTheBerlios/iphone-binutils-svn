@@ -480,6 +480,7 @@ static const pseudo_typeS pseudo_table[] = {
   { "file",	s_file,		0	},
   { "fill",	s_fill,		0	},
   { "globl",	s_globl,	0	},
+  { "global",	s_globl,	0	},  /* iPhone binutils extension */
   { "lcomm",	s_lcomm,	0	},
   { "line",	s_line,		0	},
   { "long",	cons,		4	},
@@ -1922,6 +1923,7 @@ int value)
 /*
  * s_globl() implements the pseudo op:
  *	.globl name [ , name ]
+ *  As an iPhone binutils extension, '.global' is accepted too.
  */
 void
 s_globl(

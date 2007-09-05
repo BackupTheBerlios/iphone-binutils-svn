@@ -29,17 +29,24 @@
 
 /* Definitions for C++ runtime support routines.  We make these weak
    declarations to avoid pulling in libsupc++ unneccesarily.  */
+
+#ifdef __APPLE__
+#define WEAK_QUALIFIER
+#else
+#define WEAK_QUALIFIER __attribute__((weak))
+#endif
+
 typedef unsigned char bool;
 
 typedef struct _ZSt9type_info type_info; /* This names C++ type_info type */
 
-void __attribute__((weak)) __cxa_call_unexpected(_Unwind_Control_Block *ucbp);
-bool __attribute__((weak)) __cxa_begin_cleanup(_Unwind_Control_Block *ucbp);
-bool __attribute__((weak)) __cxa_type_match(_Unwind_Control_Block *ucbp,
+void WEAK_QUALIFIER __cxa_call_unexpected(_Unwind_Control_Block *ucbp);
+bool WEAK_QUALIFIER __cxa_begin_cleanup(_Unwind_Control_Block *ucbp);
+bool WEAK_QUALIFIER __cxa_type_match(_Unwind_Control_Block *ucbp,
 					    const type_info *rttip,
 					    void **matched_object);
 
-_Unwind_Ptr __attribute__((weak))
+_Unwind_Ptr __attribute__((WEAK_QUALIFIER))
 __gnu_Unwind_Find_exidx (_Unwind_Ptr, int *);
 
 /* Misc constants.  */

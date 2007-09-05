@@ -49,6 +49,22 @@ struct arm_reserved_word_info arm_reserved_word_info[] = {
     { "c8",     OPRD_CR,            8       },
     { "c9",     OPRD_CR,            9       },
     { "cpsr",   OPRD_PSR,           0 << 22 },
+    { "cr0",    OPRD_COPRO_REG,     0       },
+    { "cr1",    OPRD_COPRO_REG,     1       },
+    { "cr10",   OPRD_COPRO_REG,     10      },
+    { "cr11",   OPRD_COPRO_REG,     11      },
+    { "cr12",   OPRD_COPRO_REG,     12      },
+    { "cr13",   OPRD_COPRO_REG,     13      },
+    { "cr14",   OPRD_COPRO_REG,     14      },
+    { "cr15",   OPRD_COPRO_REG,     15      },
+    { "cr2",    OPRD_COPRO_REG,     2       },
+    { "cr3",    OPRD_COPRO_REG,     3       },
+    { "cr4",    OPRD_COPRO_REG,     4       },
+    { "cr5",    OPRD_COPRO_REG,     5       },
+    { "cr6",    OPRD_COPRO_REG,     6       },
+    { "cr7",    OPRD_COPRO_REG,     7       },
+    { "cr8",    OPRD_COPRO_REG,     8       },
+    { "cr9",    OPRD_COPRO_REG,     9       },
     { "d0",     OPRD_REG_D,         0       },
     { "d1",     OPRD_REG_D,         1       },
     { "d10",    OPRD_REG_D,         10      },
@@ -174,7 +190,8 @@ const char md_EXP_CHARS[] = "eE";
 const char md_FLT_CHARS[] = "dDfF";
 
 const pseudo_typeS md_pseudo_table[] = {
-    { "code", s_ignore, 0 },        /* we don't support Thumb */
+    { "arm", s_ignore, 0 },         /* we don't support Thumb */
+    { "code", s_ignore, 0 },        /* ditto */
     { NULL, 0, 0 }
 };
 
@@ -219,9 +236,14 @@ void md_number_to_chars(char *buf, signed_expr_t val, int n)
  *   Utility routines
  * ------------------------------------------------------------------------- */
 
-unsigned int generate_shifted_immediate(unsigned int n)
+/* Pass NULL for the 'error' pointer in order to have the assembler complain if
+ * the immediate didn't fit. */
+unsigned int generate_shifted_immediate(unsigned int n, unsigned int *error)
 {
     unsigned int k = 0, m;
+
+    if (error)
+        *error = 0;
 
     for (k = 0; k < 32; k += 2) {
         m = ROTL(n, k);
@@ -235,7 +257,11 @@ unsigned int generate_shifted_immediate(unsigned int n)
             return (((k / 2) << 8) | m);
     }
 
-    as_bad("immediate value (%d) too large", n);
+    if (error)
+        *error = 1;
+    else
+        as_bad("immediate value (%d) too large", n);
+
     return 0;
 }
 
@@ -619,7 +645,7 @@ void md_number_to_imm(unsigned char *buf, signed_expr_t val, int size, fixS *
             break;
 
         case ARM_RELOC_SHIFT_IMM12:
-            n = generate_shifted_immediate(val);
+            n = generate_shifted_immediate(val, NULL);
             fill_reloc_value(buf, (unsigned int)n, 0x00000fff); 
             break;
 

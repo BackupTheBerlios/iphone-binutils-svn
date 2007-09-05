@@ -85,5 +85,9 @@ GCC_3.5 {
   # The libstdc++ exception-handling personality routine uses this 
   # GNU-specific entry point.
   __gnu_unwind_frame
+
+  # iPhone binutils local: need these too
+  __gnu_Unwind_Resume
+  __gnu_Unwind_RaiseException
 #APPLE LOCAL end LLVM
 }

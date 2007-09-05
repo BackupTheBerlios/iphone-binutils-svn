@@ -1740,7 +1740,8 @@ darwin_handle_weak_import_attribute (tree *node, tree name,
   /* APPLE LOCAL end radar 4733555 */
   if (TREE_CODE (*node) != FUNCTION_DECL && TREE_CODE (*node) != VAR_DECL)
     {
-      warning ("%qs attribute ignored", IDENTIFIER_POINTER (name));
+      warning ("%qs attribute unsupported on this type",
+        IDENTIFIER_POINTER (name));
       *no_add_attrs = true;
     }
   else
