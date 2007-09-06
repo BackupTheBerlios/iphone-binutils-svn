@@ -4,64 +4,79 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
+#import <GraphicsServices/GraphicsServices.h>
+#import <LayerKit/LKLayer.h>
 #import <UIKit/UIResponder.h>
 
-@class LKLayer, UIGestureInfo, UIViewTapInfo;
+typedef enum {
+	kUIViewSwipeUp = 1,
+	kUIViewSwipeDown = 2,
+	kUIViewSwipeLeft = 4,
+	kUIViewSwipeRight = 8
+} UIViewSwipeDirection;
 
-@interface UIView : UIResponder
-{
-    LKLayer *_layer;
-    UIViewTapInfo *_tapInfo;
-    UIGestureInfo *_gestureInfo;
-    float _charge;
-    int _tag;
-    struct {
-        unsigned int disabled:1;
-        unsigned int implementsDrawRect:1;
-        unsigned int implementsDidScroll:1;
-        unsigned int implementsMouseTracking:1;
-        unsigned int hasBackgroundColor:1;
-        unsigned int isOpaque:1;
-        unsigned int becomeFirstResponderWhenCapable:1;
-        unsigned int interceptMouseEvent:1;
-        unsigned int deallocating:1;
-        unsigned int debugFlash:1;
-        unsigned int debugSkippedSetNeedsDisplay:1;
-        unsigned int debugScheduledDisplayIsRequired:1;
-        unsigned int isInAWindow:1;
-        unsigned int isAncestorOfFirstResponder:1;
-        unsigned int dontAutoresizeSubviews:1;
-        unsigned int autoresizeMask:6;
-        unsigned int patternBackground:1;
-        unsigned int fixedBackgroundPattern:1;
-        unsigned int dontAnimate:1;
-        unsigned int superLayerIsView:1;
-        unsigned int layerKitPatternDrawing:1;
-        unsigned int inRenderTree:1;
-        unsigned int coreSurfaceImage:1;
-        unsigned int reserved:4;
-    } _viewFlags;
-}
+@interface UIView : UIResponder {}
 
-+ (Class)layerClass;	// IMP=0x323c3874
-- (unsigned int)_becomeFirstResponderWhenPossible;	// IMP=0x323c3fc0
-- (void)_clearBecomeFirstResponderWhenCapable;	// IMP=0x323c3fb0
-- (void)_createLayerWithFrame:(struct CGRect)fp8;	// IMP=0x323c389c
-- (BOOL)canHandleSwipes;	// IMP=0x323c4060
-- (BOOL)cancelMouseTracking;	// IMP=0x323c404c
-- (float)charge;	// IMP=0x323c3edc
-- (void)dealloc;	// IMP=0x323c6400
-- (id)init;	// IMP=0x323c3828
-- (id)initWithFrame:(struct CGRect)fp8;	// IMP=0x323c3a14
-- (BOOL)isEnabled;	// IMP=0x323c3e18
-- (id)nextResponder;	// IMP=0x323c3f94
-- (void)setCharge:(float)fp8;	// IMP=0x323c3e28
-- (void)setEnabled:(BOOL)fp8;	// IMP=0x323c3d2c
-- (void)setTapDelegate:(id)fp8;	// IMP=0x323c3ee4
-- (void)startHeartbeat:(SEL)fp8 inRunLoopMode:(id)fp12;	// IMP=0x323c3fd4
-- (void)stopHeartbeat:(SEL)fp8;	// IMP=0x323c4018
-- (int)swipe:(int)fp8 withEvent:(struct __GSEvent *)fp12;	// IMP=0x323c4068
-- (id)tapDelegate;	// IMP=0x323c3f84
+// class of backing LKLayer
++ (Class)layerClass;
+
+// designated initializer
+- (id)initWithFrame:(CGRect)frame;
+
+// properties
+- (float)charge;
+- (void)setCharge:(float)fp8;
+
+- (BOOL)isEnabled;
+- (void)setEnabled:(BOOL)fp8;
+
+- (id)tapDelegate;
+- (void)setTapDelegate:(id)fp8;
+
+// swipes
+- (BOOL)canHandleSwipes; // override in subclasses, defaults to YES in a table view
+- (int)swipe:(UIViewSwipeDirection)swipeDirection withEvent:(GSEventRef)event;
+
+// interface heartbeat callback
+- (void)startHeartbeat:(SEL)heartbeatSelector inRunLoopMode:(NSString *)runloopMode;	
+- (void)stopHeartbeat:(SEL)heartbeatSelector;
+
+- (BOOL)cancelMouseTracking;
+
+// private
+- (unsigned int)_becomeFirstResponderWhenPossible;
+- (void)_clearBecomeFirstResponderWhenCapable;
+- (void)_createLayerWithFrame:(CGRect)frame;
 
 @end
 
+@interface UIView (Internal)
++ (BOOL)_invalidatesViewUponCreation;	
++ (void)_setInvalidatesViewUponCreation:(BOOL)fp8;	
++ (void)_setIsResponderAncestorOfFirstResponder:(BOOL)fp8 startingAtFirstResponder:(id)fp12;
+
+// get the backing LKLayer
+- (LKLayer *)_layer;
+
+- (BOOL)_alwaysHandleInteractionEvents;	
+- (BOOL)_alwaysHandleScrollerMouseEvent;	
+- (BOOL)_canDrawContent;	
+- (BOOL)_canHandleStatusBarMouseEvents;	
+- (BOOL)_cancelTapDelegateTracking;	
+- (BOOL)_containedInAbsoluteResponderChain;	
+- (void)_didMoveFromWindow:(id)fp8 toWindow:(id)fp12;	
+- (void)_didScroll;	
+- (id)_interceptMouseEvent:(GSEventRef)fp8;	
+- (void)_invalidateLayerContents;
+- (void)_invalidateSubviewCache;
+- (void)_mouseDown:(GSEventRef)fp8;
+- (void)_mouseDragged:(GSEventRef)fp8;
+- (void)_mouseUp:(GSEventRef)fp8;
+- (void)_renderSnapshotWithRect:(CGRect)rect inContext:(CGContextRef)context;
+- (id)_scroller;
+- (void)_setContentImage:(id)fp8;
+- (void)_setContentsTransform:(CGAffineTransform)transform;	
+- (void)_setInterceptMouseEvent:(BOOL)fp8;
+- (BOOL)_subclassImplementsDrawRect;
+- (id)_window;
+@end
