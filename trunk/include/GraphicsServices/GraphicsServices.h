@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+// make sure to CFRelease(objectref) or [(id)objectref autorelease] the result of all GS...Create* methods to prevent leaking memory
+
 // events
 
 enum {
@@ -48,6 +50,25 @@ char *GSFontGetFullName(GSFontRef font);
 BOOL GSFontIsBold(GSFontRef font);
 BOOL GSFontIsFixedPitch(GSFontRef font);
 GSFontTrait GSFontGetTraits(GSFontRef font);
+
+// colors
+
+CGColorRef GSColorCreate(CGColorSpaceRef colorspace, const float components[]);
+CGColorRef GSColorCreateBlendedColorWithFraction(CGColorRef color, CGColorRef blendedColor, float fraction);
+CGColorRef GSColorCreateColorWithDeviceRGBA(float red, float green, float blue, float alpha);
+CGColorRef GSColorCreateColorWithDeviceWhite(float white, float alpha);
+CGColorRef GSColorCreateHighlightWithLevel(CGColorRef originalColor, float highlightLevel);
+CGColorRef GSColorCreateShadowWithLevel(CGColorRef originalColor, float shadowLevel);
+
+float GSColorGetRedComponent(CGColorRef color);
+float GSColorGetGreenComponent(CGColorRef color);
+float GSColorGetBlueComponent(CGColorRef color);
+float GSColorGetAlphaComponent(CGColorRef color);
+const float *GSColorGetRGBAComponents(CGColorRef color);
+
+// sets the color for the current context given by UICurrentContext()
+void GSColorSetColor(CGColorRef color);
+void GSColorSetSystemColor(CGColorRef color);
 
 #ifdef __cplusplus
 }
