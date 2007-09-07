@@ -4,10 +4,15 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import <UIKit/UIView.h>
 #import <GraphicsServices/GraphicsServices.h>
+#import <UIKit/UIView.h>
 
-@class NSString;
+typedef enum {
+    kUITextLabelEllipsisNone = 0, // this shows how the ellipsis is
+    kUITextLabelEllipsisLeading = 1, // this shows ... the ellipsis is added
+	kUITextLabelEllipsisEnd = 2, // this shows how the ellipsis...
+	kUITextLabelEllipsisTrailing = 3 // this shows how the ... is added
+} UITextLabelEllipsisStyle;
 
 @interface UITextLabel : UIView {}
 
@@ -17,6 +22,7 @@
 
 - (void)drawContentsInRect:(CGRect)rect;
 - (void)drawRect:(CGRect)rect;
+
 - (void)sizeToFit;
 
 - (CGColorRef)currentTextColor;
@@ -25,7 +31,8 @@
 
 - (BOOL)ignoresMouseEvents;
 
-- (void)setEllipsisStyle:(int)fp8;
+- (void)setEllipsisStyle:(UITextLabelEllipsisStyle)ellipsisStyle;
+
 - (void)setEnabled:(BOOL)fp8;
 
 - (BOOL)centersHorizontally;
@@ -59,8 +66,3 @@
 - (void)_invalidateTextSize;
 
 @end
-
-@interface UITextLabel (SyntheticEvents)
-- (id)_automationID;
-@end
-
