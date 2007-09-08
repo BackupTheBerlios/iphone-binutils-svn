@@ -41,9 +41,10 @@ unsigned int instruction;
 %token <nval> OP_VFP_ST_D OP_VFP_MSR OP_VFP_MRS OP_VFP_MDXR OP_VFP_MRDX
 %token <nval> OP_VFP_MXR OP_VFP_MRX OP_VFP_FMSTAT OP_VFP_DPX1_S OP_VFP_DPX1_D
 %token <nval> OP_VFP_FMDRR OP_VFP_FMRRD OP_VFP_FMSRR OP_VFP_FMRRS OP_VFP_DPX_SD
-%token <nval> OP_VFP_DPX_DS OP_MSR OP_MRS
+%token <nval> OP_VFP_DPX_DS OP_MSR OP_MRS OP_LDC
 %token <nval> OPRD_LSL_LIKE OPRD_RRX OPRD_IFLAGS OPRD_COPROC OPRD_CR OPRD_REG_S
 %token <nval> OPRD_REG_D OPRD_REG_VFP_SYS OPRD_ENDIANNESS OPRD_PSR
+%token <nval> OPRD_COPRO_REG
 %token <eval> OPRD_EXP
 %type  <ival> expr
 %type  <nval> inst branch_inst data_inst load_inst load_mult_inst maybe_bang 
@@ -64,12 +65,14 @@ unsigned int instruction;
 %type  <nval> vfp_store_multiple_inst vfp_register_transfer_inst
 %type  <nval> vfp_maybe_imm_offset generic_reg vfp_data_proc_inst
 %type  <nval> vfp_store_inst vfp_misc_inst vfp2_inst vfp_imm_offset_with_u_bit
-%type  <nval> vfp_store_am armv3_inst clz_class_inst
+%type  <nval> vfp_store_am armv3_inst clz_class_inst armv2_inst
+%type  <nval> load_store_copro_am imm_div_4_with_u_bit
 
 %%
 
 inst:
       fundamental_inst  { instruction = $1; }
+    | armv2_inst        { instruction = $1; }
     | armv3_inst        { instruction = $1; }
     | armv4t_inst       { instruction = $1; }
     | armv5_inst        { instruction = $1; }
@@ -215,15 +218,32 @@ shifter_operand_lsl_arg:
                 as_bad("immediate value (%d) too large", $2);
             $$ = (n << 7); 
         }
+    | '#' expr
+        {
+            register_reloc_type(ARM_RELOC_SHIFT_IMM, 4, 0);
+            $$ = 0;
+        }
     | OPRD_REG  { $$ = ((1 << 4) | ($1 << 8)); }
     ;
 
 shifter_imm:
       OPRD_IMM maybe_imm_rotation
         {
-            if ($1 > 0xff || $1 < 0)
-                $$ = ((0x1 << 25) | generate_shifted_immediate($1));
-            else
+            unsigned int err = 0;
+
+            if ($1 > 0xff || $1 < 0) {
+                $$ = ((0x1 << 25) | generate_shifted_immediate($1, &err));
+                if (err) {
+                    $$ = ((0x1 << 25) | generate_shifted_immediate(~$1, &err)
+                        | (0x3 << 21));
+                    if (!err)
+                        as_warn("Immediate value is out of range: converting "
+                            "automatically to a MVN instruction, but if this "
+                            "was not a MOV instruction then this is unsafe!");
+                    else
+                        as_bad("Immediate value out of range");
+                }
+            } else
                 $$ = ((0x1 << 25) | $1 | $2);
         }
     | expr
@@ -310,6 +330,11 @@ maybe_am_lsl_subclause:
                 as_bad("immediate value (%d) too large", $4);
             $$ = ($2 | (n << 7));
         }
+    | ',' OPRD_LSL_LIKE '#' expr
+        {
+            register_reloc_type(ARM_RELOC_SHIFT_IMM, 4, 0);
+            $$ = $2;
+        }
     ;
 
 branch_am:
@@ -322,6 +347,11 @@ branch_am:
 
 expr:
       OPRD_EXP  { register_expression($1); $$ = $1->X_add_number;  }
+    ;
+
+armv2_inst:
+      OP_LDC OPRD_COPROC ',' OPRD_COPRO_REG ',' load_store_copro_am
+        { $$ = ($1 | ($2 << 8) | ($4 << 12) | $6); }
     ;
 
 armv3_inst:
@@ -506,6 +536,19 @@ usad8_class_inst:
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8)); }
     | OP_USADA8 OPRD_REG ',' OPRD_REG ',' OPRD_REG ',' OPRD_REG
         { $$ = ($1 | ($2 << 16) | $4 | ($6 << 8) | ($8 << 12)); }
+    ;
+
+load_store_copro_am:
+      '[' OPRD_REG ',' '#' imm_div_4_with_u_bit ']' maybe_bang
+        { $$ = ((1 << 24) | ($2 << 16) | $5 | $7); }
+    | '[' OPRD_REG ']' ',' '#' imm_div_4_with_u_bit
+        { $$ = ((0 << 24) | (1 << 21) | ($2 << 16) | $6); }
+    | '[' OPRD_REG ']' ',' '{' OPRD_IMM '}'
+        { $$ = ((0 << 24) | (1 << 23) | (0 << 21) | ($2 << 16) | $6); }
+    ;
+
+imm_div_4_with_u_bit:
+      OPRD_IMM      { $$ = ($1 < 0 ? -($1 / 4) : ((1 << 23) | ($1 / 4))); }
     ;
 
 vfp_inst:
