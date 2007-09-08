@@ -1,0 +1,26 @@
+--- app.c	2006-04-28 16:41:59.000000000 -0700
++++ app.c	2007-09-08 14:34:44.000000000 -0700
+@@ -296,6 +296,12 @@
+ 			state++;
+ 			return ' ';
+ 		}
++#ifdef ARM
++        /* because it COULDN'T POSSIBLY BE THE CASE that spaces could be
++         * significant between keywords?!?! */
++        if (state == 3)
++            return ' ';
++#endif
+ #ifdef PPC
+ 		if(flagseen[(int)'p'] == TRUE && state == 3){
+ 			return ' ';
+@@ -623,6 +629,10 @@
+ 			state++;
+ 			return ' ';
+ 		}
++#ifdef ARM
++        if (state == 3)
++            return ' '; /* stupid stupid stupid. */
++#endif
+ #ifdef PPC
+ 		if(flagseen[(int)'p'] == TRUE && state == 3){
+ 			return ' ';
