@@ -6,12 +6,22 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum {
+  kFlatUp = 0,
+  kVertical = 1,
+  kVerticalUpsideDown = 2,
+  kHorizontalLeft = 3,
+  kHorizontalRight = 4,
+  kUnknown = 5,
+  kFlatDown = 6
+} UIHardwareOrientation;
+
 @interface UIHardware : NSObject
 {
 }
 
 + (void)_setStatusBarHeight:(float)fp8;	// IMP=0x323e86e0
-+ (int)deviceOrientation:(BOOL)fp8;	// IMP=0x323e877c
++ (UIHardwareOrientation)deviceOrientation:(BOOL)fp8;	// IMP=0x323e877c
 + (struct CGRect)fullScreenApplicationContentRect;	// IMP=0x323e8720
 + (BOOL)isTTYEnabled;	// IMP=0x323e8858
 + (struct CGSize)mainScreenSize;	// IMP=0x323e86f4
