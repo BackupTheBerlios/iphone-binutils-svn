@@ -7,13 +7,13 @@
 #import <Foundation/Foundation.h>
 
 typedef enum {
-  kFlatUp = 0,
-  kVertical = 1,
-  kVerticalUpsideDown = 2,
-  kHorizontalLeft = 3,
-  kHorizontalRight = 4,
-  kUnknown = 5,
-  kFlatDown = 6
+  kOrientationFlatUp = 0,
+  kOrientationVertical = 1,
+  kOrientationVerticalUpsideDown = 2,
+  kOrientationHorizontalLeft = 3,
+  kOrientationHorizontalRight = 4,
+  kOrientationUnknown = 5,
+  kOrientationFlatDown = 6
 } UIHardwareOrientation;
 
 @interface UIHardware : NSObject
