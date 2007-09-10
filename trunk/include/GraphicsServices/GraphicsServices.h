@@ -32,6 +32,7 @@ CGPoint GSEventGetInnerMostPathPosition(GSEvent *ev);
 CGPoint GSEventGetOuterMostPathPosition(GSEvent *ev);
 unsigned int GSEventGetSubType(GSEvent *ev);
 unsigned int GSEventGetType(GSEvent *ev);
+int GSEventDeviceOrientation(GSEvent *ev);
 
 // fonts
 
