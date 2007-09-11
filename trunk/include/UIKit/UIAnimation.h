@@ -13,7 +13,20 @@ typedef enum {
     kUIAnimationCurveLinear
 } UIAnimationCurve;
 
-@interface UIAnimation : NSObject {}
+@interface UIAnimation : NSObject
+{
+    id _target;
+    SEL _action;
+    id _delegate;
+    struct {
+        unsigned int curve:4;
+        unsigned int tvOutput:1;
+        unsigned int reserved:27;
+    } _animationFlags;
+    double _startTime;
+    double _duration;
+    int _state;
+}
 
 - (id)initWithTarget:(id)target;
 - (id)target;

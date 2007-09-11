@@ -4,11 +4,20 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
+#import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UITableCell.h>
 #import <UIKit/UITextLabel.h>
 
-@interface UISimpleTableCell : UITableCell {}
+@class UIImageView;
+
+@interface UISimpleTableCell : UITableCell {	 
+    GSFontRef _font;
+    UIImageView *_iconImageView;	 
+    unsigned int _indentationLevel;
+    NSString *_title;
+    int _titleColor;	 
+}
 
 + (GSFontRef)defaultFont;
 

@@ -1,14 +1,36 @@
+#import <Foundation/Foundation.h>
 #import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UIView.h>
 
-//@class UINavBarButton, UINavBarPrompt;
+@class UINavBarButton, UINavBarPrompt;
 
 typedef enum {
     kUINavigationBarBlue = 0,
 	kUINavigationBarBlack = 1
 } UINavigationBarStyle;
 
-@interface UINavigationBar : UIView {}
+@interface UINavigationBar : UIView
+{
+    NSMutableArray *_itemStack;
+    float _rightMargin;
+    int _state;
+    id _delegate;
+    UINavBarButton *_rightButton;
+    UINavBarButton *_leftButton;
+    UINavBarPrompt *_prompt;
+    UIView *_accessoryView;
+    struct {
+        unsigned int animate:1;
+        unsigned int animationDisabledCount:10;
+        unsigned int barStyle:3;
+        unsigned int disableLayout:1;
+        unsigned int backPressed:1;
+        unsigned int animatePromptChange:1;
+        unsigned int hideBackButton:1;
+        unsigned int removeAccessoryOnPop:1;
+        unsigned int reserved:13;
+    } _navbarFlags;
+}
 
 + (GSFontRef)defaultPromptFont;	
 + (CGSize)defaultSize;	

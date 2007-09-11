@@ -14,7 +14,11 @@ typedef enum {
     kUIBezierPathAllCorners = (kUIBezierPathTopLeftCorner | kUIBezierPathTopRightCorner | kUIBezierPathBottomLeftCorner | kUIBezierPathBottomRightCorner)
 } UIBezierPathCornerOptions;
 
-@interface UIBezierPath : NSObject {}
+@interface UIBezierPath : NSObject
+{
+    CGPathRef _pathRef;
+    float _width;
+}
 
 + (id)bezierPath;	
 + (id)bezierPathKnockingOutBottomOfRect:(CGRect)rect withCornerRadius:(float)radius;	

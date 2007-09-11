@@ -15,7 +15,41 @@ typedef enum {
 	kUIViewSwipeRight = 8
 } UIViewSwipeDirection;
 
-@interface UIView : UIResponder {}
+@class UIGestureInfo, UIViewTapInfo;
+
+@interface UIView : UIResponder {
+    LKLayer *_layer;
+    UIViewTapInfo *_tapInfo;
+    UIGestureInfo *_gestureInfo;
+    float _charge;
+    int _tag;
+    struct {
+        unsigned int disabled:1;
+        unsigned int implementsDrawRect:1;
+        unsigned int implementsDidScroll:1;
+        unsigned int implementsMouseTracking:1;
+        unsigned int hasBackgroundColor:1;
+        unsigned int isOpaque:1;
+        unsigned int becomeFirstResponderWhenCapable:1;
+        unsigned int interceptMouseEvent:1;
+        unsigned int deallocating:1;
+        unsigned int debugFlash:1;
+        unsigned int debugSkippedSetNeedsDisplay:1;
+        unsigned int debugScheduledDisplayIsRequired:1;
+        unsigned int isInAWindow:1;
+        unsigned int isAncestorOfFirstResponder:1;
+        unsigned int dontAutoresizeSubviews:1;
+        unsigned int autoresizeMask:6;
+        unsigned int patternBackground:1;
+        unsigned int fixedBackgroundPattern:1;
+        unsigned int dontAnimate:1;
+        unsigned int superLayerIsView:1;
+        unsigned int layerKitPatternDrawing:1;
+        unsigned int inRenderTree:1;
+        unsigned int coreSurfaceImage:1;
+        unsigned int reserved:4;
+    } _viewFlags;
+}
 
 // class of backing LKLayer
 + (Class)layerClass;

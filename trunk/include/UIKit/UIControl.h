@@ -11,7 +11,24 @@ typedef enum {
     kUIControlAllEvents = (kUIControlEventMouseDown | kUIControlEventMouseMovedInside | kUIControlEventMouseMovedOutside | kUIControlEventMouseUpInside | kUIControlEventMouseUpOutside)
 } UIControlEventMask;
 
-@interface UIControl : UIView {}
+@interface UIControl : UIView
+{
+    NSMutableArray *_targetActions;
+    CGPoint _previousPoint;
+    double _downTime;
+    struct {
+        unsigned int tracking:1;
+        unsigned int mouseInside:1;
+        unsigned int mouseDragged:1;
+        unsigned int needsDisplay:1;
+        unsigned int highlighted:1;
+        unsigned int dontHighlightOnMouseDown:1;
+        unsigned int delayActions:1;
+        unsigned int allowActionsToQueue:1;
+        unsigned int pendingUnhighlight:1;
+        unsigned int reserved:23;
+    } _controlFlags;
+}
 
 - (BOOL)beginTrackingAt:(CGPoint)point withEvent:(GSEventRef)event;	
 - (BOOL)cancelMouseTracking;	
