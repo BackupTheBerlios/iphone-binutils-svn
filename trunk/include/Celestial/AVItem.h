@@ -10,10 +10,10 @@
 {}
 
 + (id)avItem;
-+ (id)avItemWithPath:(NSString *)path error:(NSString *)error;
++ (id)avItemWithPath:(NSString *)path error:(NSError **)error;
 - (id)init;
-- (id)initWithError:(NSError *)error;
-- (id)initWithPath:(NSString *)path error:(NSError *)error;
+- (id)initWithError:(NSError **)error;
+- (id)initWithPath:(NSString *)path error:(NSError **)error;
 
 - (double)duration;
 
@@ -21,12 +21,12 @@
 - (id)path;
 
 - (id)attributeForKey:(id)key;
-- (BOOL)setAttribute:(id)attribute forKey:(id)key error:(NSError *)error;
+- (BOOL)setAttribute:(id)attribute forKey:(id)key error:(NSError **)error;
 
 - (int)eqPreset; // enum needed
 - (void)setEQPreset:(int)fp8;
 
-- (BOOL)setPath:(NSString *)path error:(NSError *)error;
+- (BOOL)setPath:(NSString *)path error:(NSError **)error;
 
 - (float)volume;
 - (void)setVolume:(float)volume;
