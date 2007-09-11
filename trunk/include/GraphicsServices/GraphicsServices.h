@@ -23,16 +23,16 @@ struct __GSEvent;
 typedef struct __GSEvent GSEvent;
 typedef GSEvent *GSEventRef;
 
-int GSEventIsChordingHandEvent(GSEvent *ev);
-int GSEventGetClickCount(GSEvent *ev);
-CGPoint GSEventGetLocationInWindow(GSEvent *ev);
-float GSEventGetDeltaX(GSEvent *ev); 
-float GSEventGetDeltaY(GSEvent *ev); 
-CGPoint GSEventGetInnerMostPathPosition(GSEvent *ev);
-CGPoint GSEventGetOuterMostPathPosition(GSEvent *ev);
-unsigned int GSEventGetSubType(GSEvent *ev);
-unsigned int GSEventGetType(GSEvent *ev);
-int GSEventDeviceOrientation(GSEvent *ev);
+int GSEventIsChordingHandEvent(GSEventRef ev);
+int GSEventGetClickCount(GSEventRef ev);
+CGRect GSEventGetLocationInWindow(GSEventRef ev); // the rect will have width and height during a swipe event
+float GSEventGetDeltaX(GSEventRef ev); 
+float GSEventGetDeltaY(GSEventRef ev); 
+CGPoint GSEventGetInnerMostPathPosition(GSEventRef ev);
+CGPoint GSEventGetOuterMostPathPosition(GSEventRef ev);
+unsigned int GSEventGetSubType(GSEventRef ev);
+unsigned int GSEventGetType(GSEventRef ev);
+int GSEventDeviceOrientation(GSEventRef ev);
 
 // fonts
 
