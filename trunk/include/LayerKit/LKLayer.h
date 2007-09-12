@@ -4,10 +4,20 @@
  *     class-dump is Copyright (C) 1997-1998, 2000-2001, 2004-2006 by Steve Nygard.
  */
 
-#import <Foundation/NSObject.h>
+#import <Foundation/Foundation.h>
 #import <LayerKit/LKTransform.h>
 
-@interface LKLayer : NSObject <NSCoding> {}
+@interface LKLayer : NSObject <NSCoding>
+{
+    unsigned int _superlayer;
+    CGPoint _position;
+    CGSize _size;
+    void *_contents;
+    CFArrayRef _sublayers;
+    id _delegate;
+    struct _LKAttrList *_attr;
+    unsigned int _flags;
+}
 
 + (id)layer;
 - (id)initWithBounds:(CGRect)bounds;
@@ -59,6 +69,7 @@
 - (void)renderInContext:(CGContextRef)context;
 
 - (CGPoint)anchorPoint;
+- (void)setAnchorPoint:(CGPoint)anchorPoint;
 
 - (CGAffineTransform)affineTransform;
 - (void)setAffineTransform:(CGAffineTransform)affineTransform;

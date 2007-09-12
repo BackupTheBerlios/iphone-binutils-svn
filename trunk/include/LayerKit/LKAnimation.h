@@ -25,7 +25,7 @@
 - (void)setDelegate:(id)delegate;
 
 - (double)duration;
-- (void)setDuration:(float)duration;
+- (void)setDuration:(double)duration;
 
 - (id)fillMode;
 - (void)setFillMode:(id)fillMode;

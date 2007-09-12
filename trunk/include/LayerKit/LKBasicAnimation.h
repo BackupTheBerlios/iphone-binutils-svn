@@ -9,8 +9,13 @@
 @interface LKBasicAnimation : LKPropertyAnimation {}
 
 - (id)byValue;
+- (void)setByValue:(id)byValue;
+
 - (id)fromValue;
+- (void)setFromValue:(id)fromValue;
+
 - (id)toValue;
+- (void)setToValue:(id)toValue;
 
 @end
 

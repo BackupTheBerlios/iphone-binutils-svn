@@ -8,11 +8,20 @@
 
 @interface LKKeyframeAnimation : LKPropertyAnimation {}
 
-- (id)calculationMode;	
-- (NSArray *)keyTimes;	
-- (CGPathRef)path;	
-- (NSArray *)timingFunctions;	
+- (id)calculationMode;
+- (void)setCalculationMode:(id)calculationMode;
+
+- (NSArray *)keyTimes;
+- (void)setKeyTimes:(NSArray *)keyTimes;
+
+- (CGPathRef)path;
+-(void)setPath:(CGPathRef)path;
+
+- (NSArray *)timingFunctions;
+- (void)setTimingFunctions:(NSArray *)timingFunctions;
+
 - (NSArray *)values;
+- (void)setValues:(NSArray *)values;
 
 @end
 
