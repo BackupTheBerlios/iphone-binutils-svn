@@ -6,6 +6,12 @@
 
 #import <UIKit/UIResponder.h>
 
+typedef enum {
+    kUIStatusBarWhite = 0,
+    kUIStatusBarBlack = 1,
+    kUIStatusBarNone = 2,
+} UIStatusBarMode;
+
 @interface UIApplication : UIResponder
 {
     struct {

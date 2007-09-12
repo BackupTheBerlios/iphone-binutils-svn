@@ -24,6 +24,7 @@
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UINavigationItem.h>
 #import <UIKit/UISearchField.h>
+#import <UIKit/UIThreePartButton.h>
 #import <UIKit/UITable.h>
 #import <UIKit/UITableColumn.h>
 #import <UIKit/UITextLabel.h>
@@ -32,6 +33,7 @@
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Animation.h>
 #import <UIKit/UIView-Geometry.h>
+#import <UIKit/UIView-Gestures.h>
 #import <UIKit/UIView-Hierarchy.h>
 #import <UIKit/UIView-Internal.h>
 #import <UIKit/UIView-LKLayerDelegate.h>

@@ -8,6 +8,19 @@
 
 @class UIImage, UITextTraits;
 
+typedef enum {
+  kUIKeyboardLayoutAlphabet = 0,
+  kUIKeyboardLayoutNumbers = 1,
+  kUIKeyboardLayoutPhonePad = 2,
+  kUIKeyboardLayoutURL = 3,
+  kUIKeyboardLayoutSMSAddressing = 4,
+  kUIKeyboardLayoutAlphabetTransparent = 5,
+  kUIKeyboardLayoutNumberPad = 6,
+  kUIKeyboardLayoutNumberPadTransparent = 7,
+  kUIKeyboardLayoutEmailAddressing = 8,
+  kUIKeyboardLayoutSingleEmailAddress = 9,
+} UIKeyboardType;
+
 @interface UIKeyboard : UIView
 {
     UIImage *m_snapshot;
