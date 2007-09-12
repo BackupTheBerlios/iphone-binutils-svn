@@ -57,7 +57,7 @@ GSFontTrait GSFontGetTraits(GSFontRef font);
 CGColorRef GSColorCreate(CGColorSpaceRef colorspace, const float components[]);
 CGColorRef GSColorCreateBlendedColorWithFraction(CGColorRef color, CGColorRef blendedColor, float fraction);
 CGColorRef GSColorCreateColorWithDeviceRGBA(float red, float green, float blue, float alpha);
-CGColorRef GSColorCreateColorWithDeviceWhite(float white, float alpha);
+CGColorRef GSColorCreateWithDeviceWhite(float white, float alpha);
 CGColorRef GSColorCreateHighlightWithLevel(CGColorRef originalColor, float highlightLevel);
 CGColorRef GSColorCreateShadowWithLevel(CGColorRef originalColor, float shadowLevel);
 
