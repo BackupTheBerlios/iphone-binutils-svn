@@ -5,24 +5,32 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <GraphicsServices/GraphicsServices.h>
+#import <UIKit/UITextLabel.h>
 
 @interface NSString (UIStringDrawing)
-- (void)clearStringDrawingOrigin;	// IMP=0x323be2f0
-- (struct CGSize)drawAtPoint:(struct CGPoint)fp8 forWidth:(float)fp16 withFont:(struct __GSFont *)fp20 ellipsis:(int)fp24;	// IMP=0x323be420
-- (struct CGSize)drawAtPoint:(struct CGPoint)fp8 withFont:(struct __GSFont *)fp16;	// IMP=0x323be3ac
-- (void)drawAtPoint:(struct CGPoint)fp8 withStyle:(id)fp16;	// IMP=0x323be0b4
-- (struct CGSize)drawInRect:(struct CGRect)fp8 withFont:(struct __GSFont *)fp24;	// IMP=0x323be5e8
-- (struct CGSize)drawInRect:(struct CGRect)fp8 withFont:(struct __GSFont *)fp24 ellipsis:(int)fp28;	// IMP=0x323be4e4
-- (struct CGSize)drawInRect:(struct CGRect)fp8 withFont:(struct __GSFont *)fp24 ellipsis:(int)fp28 alignment:(int)fp32;	// IMP=0x323be560
-- (void)drawInRect:(struct CGRect)fp8 withStyle:(id)fp24;	// IMP=0x323be804
-- (void)drawMarkupAtPoint:(struct CGPoint)fp8;	// IMP=0x323be160
-- (void)drawMarkupInRect:(struct CGRect)fp8;	// IMP=0x323be1c0
-- (void)setStringDrawingOrigin:(struct CGPoint)fp8;	// IMP=0x323be2a8
-- (struct CGSize)sizeInRect:(struct CGRect)fp8 withFont:(struct __GSFont *)fp24;	// IMP=0x323be6dc
-- (struct CGSize)sizeInRect:(struct CGRect)fp8 withFont:(struct __GSFont *)fp24 ellipsis:(int)fp28;	// IMP=0x323be65c
-- (struct CGSize)sizeWithFont:(struct __GSFont *)fp8;	// IMP=0x323be328
-- (struct CGSize)sizeWithFont:(struct __GSFont *)fp8 forWidth:(float)fp12 ellipsis:(int)fp16;	// IMP=0x323be360
-- (struct CGSize)sizeWithMarkupForWidth:(float)fp8;	// IMP=0x323be240
-- (struct CGSize)sizeWithStyle:(id)fp8 forWidth:(float)fp12;	// IMP=0x323be750
+
+- (void)setStringDrawingOrigin:(CGPoint)stringDrawingOrigin;
+- (void)clearStringDrawingOrigin;
+
+- (CGSize)drawAtPoint:(CGPoint)point forWidth:(float)width withFont:(GSFontRef)font ellipsis:(UITextLabelEllipsisStyle)ellipsisStyle;
+- (CGSize)drawAtPoint:(CGPoint)point withFont:(GSFontRef)font;
+- (void)drawAtPoint:(CGPoint)point withStyle:(id)style;
+
+- (CGSize)drawInRect:(CGRect)rect withFont:(GSFontRef)font;
+- (CGSize)drawInRect:(CGRect)rect withFont:(GSFontRef)font ellipsis:(UITextLabelEllipsisStyle)ellipsisStyle;
+- (CGSize)drawInRect:(CGRect)rect withFont:(GSFontRef)font ellipsis:(UITextLabelEllipsisStyle)ellipsisStyle alignment:(int)alignment; // enum needed
+- (void)drawInRect:(CGRect)rect withStyle:(id)fp24;
+
+- (void)drawMarkupAtPoint:(CGPoint)point;
+- (void)drawMarkupInRect:(CGRect)rect;
+
+- (CGSize)sizeInRect:(CGRect)rect withFont:(GSFontRef)font;
+- (CGSize)sizeInRect:(CGRect)rect withFont:(GSFontRef)font ellipsis:(UITextLabelEllipsisStyle)ellipsisStyle;
+- (CGSize)sizeWithFont:(GSFontRef)font;
+- (CGSize)sizeWithFont:(GSFontRef)font forWidth:(float)width ellipsis:(UITextLabelEllipsisStyle)ellipsisStyle;
+- (CGSize)sizeWithMarkupForWidth:(float)width;
+- (CGSize)sizeWithStyle:(id)style forWidth:(float)width;
+
 @end
 

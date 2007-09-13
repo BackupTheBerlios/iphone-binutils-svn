@@ -24,11 +24,11 @@
 #import <UIKit/UINavigationBar.h>
 #import <UIKit/UINavigationItem.h>
 #import <UIKit/UISearchField.h>
-#import <UIKit/UIThreePartButton.h>
 #import <UIKit/UITable.h>
 #import <UIKit/UITableColumn.h>
 #import <UIKit/UITextLabel.h>
 #import <UIKit/UITextView.h>
+#import <UIKit/UIThreePartButton.h>
 #import <UIKit/UITransitionView.h>
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Animation.h>
@@ -52,8 +52,12 @@ extern NSString *UITextFieldTextDidEndEditingNotification;
 extern NSString *UITextFieldTextDidChangeNotification;
 
 int UIApplicationMain(int argc, char **argv, id Class);
+
 CGContextRef UICurrentContext();
-struct CGAffineTransform UIIntegralTransform();
+void UIPushContext(CGContextRef context);
+void UIPopContext(CGContextRef context);
+
+CGAffineTransform UIIntegralTransform();
 
 #ifdef __cplusplus
 }
