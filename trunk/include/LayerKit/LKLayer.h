@@ -118,6 +118,7 @@
 - (id)name;
 
 - (float)opacity;
+- (void)setOpacity:(float)opacity;
 
 - (BOOL)opaque;
 - (void)setOpaque:(BOOL)opaque;
