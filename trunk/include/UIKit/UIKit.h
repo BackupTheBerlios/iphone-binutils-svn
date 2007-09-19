@@ -29,6 +29,7 @@
 #import <UIKit/UITextLabel.h>
 #import <UIKit/UITextView.h>
 #import <UIKit/UIThreePartButton.h>
+#import <UIKit/UITransformAnimation.h>
 #import <UIKit/UITransitionView.h>
 #import <UIKit/UIView.h>
 #import <UIKit/UIView-Animation.h>
